@@ -10,16 +10,10 @@
         <div class="relative w-full">
 
             <div @click="toggleDropdown"
-                class="h-12 w-full px-3 py-2.5 rounded-[10px] border flex items-center gap-x-1.5 transition-all duration-300 cursor-pointer bg-surface-rest"
-                :class="[
-                    disabled ? 'opacity-50 pointer-events-none' : '',
-                    // Shadow logic: 2/3 of the options menu shadow when open
-                    isOpen ? 'shadow-[0_8px_10px_-3px_rgba(13,13,18,0.05)] dark:shadow-[0_8px_10px_-3px_rgba(0,0,0,0.26)]' : 'shadow-none',
-                    // Border logic: Keep outline-container unless explicitly assigned color/error
-                    (hasError || color === 'error') ? 'border-error' : (color !== 'primary' ? `border-${color}` : (isOpen ? ' border-primary' : ' border-surface-variant-2'))
-                ]">
+                class="h-12 w-full px-3 py-2.5 rounded-[10px] border flex items-center gap-x-1.5 transition-all duration-300 cursor-pointer "
+                :class="containerClasses">
 
-                <BIcon v-if="icon" :icon="icon" class="w-5 h-5 shrink-0 fill-on-background" />
+                <BIcon v-if="icon" :icon="icon" class="w-5 h-5 shrink-0 fill-on-surface/50" />
 
                 <div class="flex-1 flex items-center gap-x-2 overflow-x-auto overflow-y-hidden hide-scrollbar h-full">
 
@@ -27,7 +21,7 @@
                         <div v-for="item in selectedItems" :key="item.value" @click.stop
                             class="flex items-center gap-x-2 h-7 bg-surface-variant-3 px-2 rounded-lg  shrink-0">
                             <span class="text-sm font-medium text-on-background whitespace-nowrap">{{ item.label
-                                }}</span>
+                            }}</span>
                             <BIcon @click.stop="removeItem(item)" icon="PhX"
                                 class="w-3.5 h-3.5 cursor-pointer fill-on-background opacity-50 transition-opacity hover:opacity-100" />
                         </div>
@@ -60,7 +54,7 @@
 
             <transition name="dropdown-fade">
                 <div v-if="isOpen"
-                    class="absolute border border-outline top-[calc(100%+6px)] left-0 w-full bg-surface rounded-xl z-50 flex flex-col shadow-[0_12px_16px_-4px_rgba(13,13,18,0.08)] dark:shadow-[0_12px_16px_-4px_rgba(0,0,0,0.4)]">
+                    class="absolute border overflow-hidden border-outline top-[calc(100%+6px)] left-0 w-full bg-surface rounded-xl z-50 flex flex-col shadow-[0_12px_16px_-4px_rgba(13,13,18,0.08)] dark:shadow-[0_12px_16px_-4px_rgba(0,0,0,0.4)]">
 
                     <div v-if="loading" class="flex items-center justify-center h-18.75 w-full">
                         <BIcon icon="PhCircleNotch" class="w-7 h-7 animate-spin fill-outline" />
@@ -106,8 +100,7 @@
                                         :icon="filteredOptions[virtualRow.index].icon" class="w-6 h-6 shrink-0"
                                         :class="isSelected(filteredOptions[virtualRow.index]) ? 'fill-primary' : 'fill-on-background'" />
 
-                                    <span
-                                        class="text-sm font-medium line-clamp-1 text-ellipsis overflow-hidden flex-1"
+                                    <span class="text-sm font-medium line-clamp-1 text-ellipsis overflow-hidden flex-1"
                                         :class="isSelected(filteredOptions[virtualRow.index]) ? 'text-primary' : 'text-on-background'">
                                         {{ filteredOptions[virtualRow.index].label }}
                                     </span>
@@ -185,7 +178,7 @@ export default defineComponent({
         // --- Error/Message Styling ---
         const messageColorClass = computed(() => {
             if (props.hasError || props.color === 'error') return 'text-error fill-error';
-            if (props.color === 'success') return 'text-success fill-success';
+            if (props.color === 'success') return 'text-secondary fill-secondary';
             if (props.color === 'warning') return 'text-warning fill-warning';
             return 'text-on-background/50 fill-on-background/50';
         });
@@ -372,13 +365,60 @@ export default defineComponent({
             if (!isOpen.value) toggleDropdown();
         };
 
+        const containerClasses = computed(() => {
+            const classes = [];
+            const c = props.color;
+            const isError = props.hasError || c === 'error';
+
+            // --- Background Logic ---
+            if (isOpen.value) {
+                classes.push('bg-surface');
+            } else if (isError) {
+                classes.push('bg-error/10');
+            } else if (c === 'warning') {
+                classes.push('bg-warning/10');
+            } else if (c === 'success' || c === 'secondary') {
+                // Mapping secondary to success as per your design system
+                classes.push('bg-secondary/10');
+            } else {
+                classes.push('bg-surface-rest');
+            }
+
+            // --- Border Logic ---
+            if (isError) {
+                classes.push('border-error');
+            } else if (c === 'warning') {
+                classes.push('border-warning');
+            } else if (c === 'success' || c === 'secondary') {
+                classes.push('border-secondary');
+            } else if (isOpen.value) {
+                classes.push('border-primary');
+            } else {
+                classes.push('border-surface-variant-2');
+            }
+
+            // --- Shadow Logic ---
+            if (isOpen.value) {
+                classes.push('shadow-[0_8px_10px_-3px_rgba(13,13,18,0.05)] dark:shadow-[0_8px_10px_-3px_rgba(0,0,0,0.26)]');
+            } else {
+                classes.push('shadow-none');
+            }
+
+            // --- Disabled Logic ---
+            if (props.disabled) {
+                classes.push('opacity-50 pointer-events-none');
+            }
+
+            return classes;
+        });
+
         return {
             t, isOpen, searchQuery, dropdownRef, searchInput, optionsListRef, highlightedIndex,
             filteredOptions, hasExactMatch, isSelected,
             selectedItems, selectedItem, showPlaceholder,
             messageColorClass, messageIcon, virtualizer,
             toggleDropdown, closeDropdown, toggleOption, removeItem, createOption,
-            highlightNext, highlightPrev, selectHighlighted, openOnTab,
+            highlightNext, highlightPrev, selectHighlighted, openOnTab, containerClasses,
         };
     }
 });
