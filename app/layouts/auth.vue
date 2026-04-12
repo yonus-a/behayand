@@ -27,14 +27,15 @@ import backgroundImage from '/images/auth/auth-bg.webp';
 import AuthHeader from '@/components/auth/FormHeader.vue';
 import ThemeSwitch from '~/components/general/ThemeSwitch.vue';
 import LocaleSwitch from '~/components/general/LocaleSwitch.vue';
-
+const authStore = useAuthStore()
+const { dir } = useLocale()
 const { t } = useI18n();
 const route = useRoute();
 const selectedUsername = ref('');
 
 const routeDetails = computed(() => ({
     routesWithHeader: ['/auth', '/auth/password', '/auth/verify', '/auth/register'],
-    title: route.path === '/auth' ? t('auth.login.title') : t('auth.register.title'),
-    description: route.path === '/auth' ? t('auth.login.enterDetails') : selectedUsername.value
+    title: route.path === '/auth/verify' && !authStore.isRegistering ? t('auth.login.title') : t('auth.register.title'),
+    description: route.path === '/auth' ? t('auth.login.enterDetails') : (authStore.loginType === 'national_id' ? authStore.loginIdentifier : formatPhoneNumber(authStore.loginIdentifier, dir.value))
 }));
 </script>

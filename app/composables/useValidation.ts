@@ -126,18 +126,37 @@ export const useValidation = () => {
   };
 
   const validatePassword = (password: string): string | null => {
-    if (!password)
-      return t("validation.required", { field: t("login.password") });
-    if (password.length < 8) return t("login.passwordErrors.tooShort");
-    if (!/[a-z]/.test(password))
-      return t("login.passwordErrors.missingLowercase");
-    if (!/[A-Z]/.test(password))
-      return t("login.passwordErrors.missingUppercase");
-    if (!/\d/.test(password)) return t("login.passwordErrors.missingNumber");
+    if (!password) {
+      return t("auth.password.validation.required", {
+        field: t("auth.password.title"),
+      });
+    }
+
+    if (password.length < 8) {
+      return t("auth.password.validation.tooShort");
+    }
+
+    if (!/[a-z]/.test(password)) {
+      return t("auth.password.validation.missingLowercase");
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      return t("auth.password.validation.missingUppercase");
+    }
+
+    if (!/\d/.test(password)) {
+      return t("auth.password.validation.missingNumber");
+    }
+
     const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
-    if (!specialCharRegex.test(password))
-      return t("login.passwordErrors.missingSpecial");
-    if (/\s/.test(password)) return t("login.passwordErrors.hasSpaces");
+    if (!specialCharRegex.test(password)) {
+      return t("auth.password.validation.missingSpecial");
+    }
+
+    if (/\s/.test(password)) {
+      return t("auth.password.validation.hasSpaces");
+    }
+
     return null;
   };
 
@@ -279,6 +298,7 @@ export const useValidation = () => {
     passwordSecurityRate,
     validatePhoneNumber,
     validateDate,
+    toEnglishNumbers,
     validateUrl,
     validateWhatsappUrl,
     validateSocialUsername,

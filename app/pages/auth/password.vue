@@ -1,73 +1,118 @@
 <template>
-    <div class=" w-full">
-        <BInput :title="t('auth.password.title')" :placeholder="t('auth.password.passwordPlaceholder')"
-            v-model="password.value" :color="password.color" :message="password.message" />
-        <BCheckBox v-model="rememberMe" :label="t('auth.password.rememberMe')" />
-        <div class=" w-full flex mt-4 flex-col gap-y-3">
-            <BButton @click="validateFields" class=" w-full" :text="t('auth.login.title')" :loading="isSending"
-                :disabled="hasErrors" />
-            <RouterLink to="/auth/verify">
-                <BButton color="secondary" class=" w-full" :text="t('auth.password.loginViaCode')" />
-            </RouterLink>
-            <RouterLink to="/auth">
-                <BButton type="ghost" class=" w-full" :text="t('auth.password.changeNumber')" />
-            </RouterLink>
-        </div>
+  <div class="w-full">
+    <BInput 
+      type="password" 
+      :title="t('auth.password.title')" 
+      :placeholder="t('auth.password.passwordPlaceholder')"
+      v-model="password.value" 
+      :color="password.color" 
+      :message="password.message" 
+    />
+
+    <BCheckBox 
+      v-model="rememberMe" 
+      :label="t('auth.password.rememberMe')" 
+    />
+
+    <div class="w-full flex mt-4 flex-col gap-y-3">
+      <BButton 
+        @click="validateFields" 
+        class="w-full" 
+        :text="t('auth.login.title')" 
+        :loading="isSending"
+        :disabled="hasErrors" 
+      />
+
+      <RouterLink to="/auth/verify" class="w-full">
+        <BButton 
+          color="secondary" 
+          class="min-w-full" 
+          :text="t('auth.password.loginViaCode')" 
+        />
+      </RouterLink>
+
+      <RouterLink to="/auth" class="w-full">
+        <BButton 
+          type="ghost" 
+          class="min-w-full" 
+          :text="t('auth.password.changeNumber')" 
+        />
+      </RouterLink>
     </div>
+  </div>
 </template>
-<script lang="ts">
-import { defineComponent, watch } from 'vue';
-import { useI18n } from '#imports';
-import { useValidation } from '#imports';
-export default defineComponent({
-    name: 'PasswordPage',
-    setup() {
-        const { validatePassword } = useValidation()
-        const { t } = useI18n()
-        const isSending = ref(false)
-        const hasErrors = ref(false)
 
-        const password = ref({
-            value: '', color: 'primary', message: ''
-        })
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { useI18n, useValidation, useAuthStore } from '#imports';
 
-        const rememberMe = ref(false)
+// Composables
+const { t } = useI18n();
+const { validatePassword } = useValidation();
+const authStore = useAuthStore();
 
-        watch(() => password.value.value, () => {
-            password.value.color = 'primary'
-            password.value.message = ''
-            hasErrors.value = false;
-        })
+// State
+const isSending = ref(false);
+const hasErrors = ref(false);
+const rememberMe = ref(false);
 
-        const validateFields = () => {
-            if (isSending.value || hasErrors.value) return
+const password = ref({
+  value: '',
+  color: 'primary',
+  message: ''
+});
 
+/**
+ * Validation Logic
+ * Runs the check against the input and updates the UI state.
+ */
+const validateFields = () => {
+  // Reset state
+  password.value.message = '';
+  password.value.color = 'primary';
+  hasErrors.value = false;
 
-            if (!hasErrors.value) {
-                submitPassword()
-            }
-        }
+  // Execute the validation from your utils/composable
+  const error = validatePassword(password.value.value);
 
-        const submitPassword = async () => {
-            if (isSending.value || hasErrors.value) return
-            isSending.value = true;
-            try {
+  if (error) {
+    password.value.message = error;
+    password.value.color = 'error';
+    hasErrors.value = true;
+    return; // Stop here if validation fails
+  }
 
-            } catch (error) {
+  // If we reach here, validation passed
+  submitPassword();
+};
 
-            } finally {
-                isSending.value = false;
-            }
-        }
+/**
+ * Final Submission
+ * Interacts with the backend via the Auth Store.
+ */
+const submitPassword = async () => {
+  if (isSending.value || hasErrors.value) return;
+  
+  isSending.value = true;
+  try {
+    // Logic to verify password using the identifier stored in authStore
+    console.log(`Attempting login for: ${authStore.loginIdentifier}`);
+    
+    // Example: const success = await authStore.loginWithPassword(password.value.value);
+    // if (success) router.push('/dashboard');
+    
+  } catch (error) {
+    password.value.message = t('auth.password.incorrect');
+    password.value.color = 'error';
+  } finally {
+    isSending.value = false;
+  }
+};
 
-        return {
-            t,
-            rememberMe,
-            password,
-            isSending,
-            validateFields,
-            hasErrors,
-        }
-    }
-})
+// Clear error state when the user starts typing again
+watch(() => password.value.value, () => {
+  password.value.color = 'primary';
+  password.value.message = '';
+  hasErrors.value = false;
+});
 </script>

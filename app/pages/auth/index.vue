@@ -1,31 +1,15 @@
 <template>
   <div class="w-full flex flex-col">
-    <BInput 
-      type="text" 
-      inputmode="numeric"
-      :maxlength="11" 
-      :title="t('auth.login.username')" 
-      :placeholder="t('auth.login.usernamePlaceholder')"
-      v-model="userName.value" 
-      :color="userName.color" 
-      :message="userName.message" 
-    />
+    <BInput type="text" inputmode="numeric" :maxlength="11" :title="t('auth.login.username')"
+      :placeholder="t('auth.login.usernamePlaceholder')" v-model="userName.value" :color="userName.color"
+      :message="userName.message" />
 
     <div class="flex flex-col gap-y-4 w-full">
-      <BCaptcha 
-        ref="captchaRef" 
-        @verified="handleCaptchaVerified" 
-        @error="isVerified = false" 
-      />
+      <BCaptcha ref="captchaRef" @verified="handleCaptchaVerified" @error="isVerified = false" />
 
       <div class="w-full flex flex-col gap-y-3">
-        <BButton 
-          @click="validateFields" 
-          class="w-full" 
-          :loading="isSending" 
-          :disabled="hasErrors"
-          :text="t('auth.login.title')" 
-        />
+        <BButton @click="validateFields" class="w-full" :loading="isSending" :disabled="hasErrors"
+          :text="t('auth.login.title')" />
 
         <div class="flex w-full items-center gap-x-2">
           <div class="flex-1 border border-outline"></div>
@@ -35,14 +19,8 @@
           <div class="flex-1 border border-outline"></div>
         </div>
 
-        <OAuthButton 
-          v-for="btn in oauthProviders" 
-          :key="btn.provider" 
-          :src="btn.logo" 
-          :text="btn.label"
-          :provider="btn.provider" 
-          @click="handleOAuthAction" 
-        />
+        <OAuthButton v-for="btn in oauthProviders" :key="btn.provider" :src="btn.logo" :text="btn.label"
+          :provider="btn.provider" @click="handleOAuthAction" />
       </div>
     </div>
   </div>
@@ -55,6 +33,7 @@ import googleLogo from '/images/auth/google.svg';
 import dolateManLogo from '/images/auth/dolate-man.svg';
 import OAuthButton from '@/components/auth/OAuthButton.vue'
 
+const authStore = useAuthStore()
 // Composables
 const router = useRouter();
 const { t } = useI18n();
@@ -69,7 +48,7 @@ const captchaRef = ref<any>(null);
 
 const userName = ref({
   color: 'primary',
-  value: '',
+  value: authStore.loginIdentifier,
   message: ''
 });
 
@@ -113,7 +92,10 @@ const submitField = async () => {
 
   try {
     // API call logic will go here
+    authStore.setLoginData(userName.value.value);
     router.push('/auth/password');
+    // set the login type for the user, the user might be new or old depending on that set the boolean below :
+    //authStore.isRegistering = isNew
   } catch (error) {
     console.error('Login failed:', error);
   } finally {
