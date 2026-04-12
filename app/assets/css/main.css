@@ -77,3 +77,12 @@
 html {
   font-family: "IranYekan", sans-serif;
 }
+
+.border-diamond {
+  border-color: transparent !important;
+  background-image:
+    linear-gradient(var(--color-surface), var(--color-surface)),
+    var(--background-image-diamond-primary-secondary) !important;
+  background-origin: border-box !important;
+  background-clip: padding-box, border-box !important;
+}

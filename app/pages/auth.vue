@@ -1,22 +1,18 @@
 <template>
-    <div class=" w-full flex flex-col items-center gap-y-16 h-full">
-        <div></div>
+    <div class=" w-full  h-full">
+        <NuxtPage />
     </div>
 </template>
 
 <script lang="ts">
-import LocaleSwitch from '~/components/general/LocaleSwitch.vue';
-import ThemeSwitch from '~/components/general/ThemeSwitch.vue';
+
 
 definePageMeta({
-    layout: 'dashboard'
+    layout: 'auth'
 })
 
 export default defineComponent({
     name: 'AuthBasePage',
-    components: {
-        ThemeSwitch,
-        LocaleSwitch,
-    }
+
 })
 </script>

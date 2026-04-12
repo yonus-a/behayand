@@ -1,3 +1,4 @@
+// app/composables/useLocale.ts
 import countries from "~/assets/data/countries.json";
 
 export const useLocale = () => {
@@ -9,37 +10,44 @@ export const useLocale = () => {
     ar: "AE",
   };
 
-  // NEW: Computed list of all available languages with flags and country codes
+  const localeTitles: Record<string, string> = {
+    en: "English",
+    fa: "فارسی",
+    ar: "العربية",
+  };
+
   const languages = computed(() => {
     return locales.value.map((loc: any) => {
       const countryCode = localeToCountryMap[loc.code] || "US";
-
       return {
         ...loc,
+        title: localeTitles[loc.code] || loc.name || loc.code,
         countryCode: countryCode.toUpperCase(),
         flag: `/flags/${countryCode.toLowerCase()}.svg`,
       };
     });
   });
 
+  // Updated currentCountry to include the native title
   const currentCountry = computed(() => {
     const code = localeToCountryMap[locale.value] || "US";
-    return (
-      countries.find((c) => c.code.toUpperCase() === code) ||
-      countries.find((c) => c.code === "IR")
-    );
+    const baseCountry = countries.find((c: any) => c.code.toUpperCase() === code) || 
+                        countries.find((c: any) => c.code === "IR");
+    
+    return {
+      ...baseCountry,
+      title: localeTitles[locale.value] || locale.value,
+    };
   });
 
   const flagUrl = computed(() => {
-    return currentCountry.value
+    return currentCountry.value?.code
       ? `/flags/${currentCountry.value.code.toLowerCase()}.svg`
       : "";
   });
 
   const dir = computed(() => {
-    const currentLocaleObj = locales.value.find(
-      (l: any) => l.code === locale.value,
-    );
+    const currentLocaleObj = locales.value.find((l: any) => l.code === locale.value);
     return currentLocaleObj?.dir || "ltr";
   });
 
@@ -52,7 +60,7 @@ export const useLocale = () => {
 
   const switchLocale = async (newLocale: string) => {
     await setLocale(newLocale);
-    // Reload only if necessary for direction changes, otherwise setLocale handles reactivity
+    localStorage.setItem('user-locale', newLocale);
     window.location.reload();
   };
 
@@ -60,27 +68,12 @@ export const useLocale = () => {
     return languages.value.filter((lang) => lang.code !== locale.value);
   });
 
-  const currentDirection = computed(() => {
-    const activeLocale = locales.value.find(
-      (l: any) => l.code === locale.value,
-    );
-
-    return activeLocale?.dir || "ltr";
-  });
-
-  onMounted(() => {
-    setTimeout(() => {
-      console.log(currentDirection.value);
-    }, 200);
-  });
-
   return {
     locale,
+    languages,
     otherLanguages,
-    languages, // Added to return
     currentCountry,
     flagUrl,
-    currentDirection,
     dir,
     switchLocale,
   };

@@ -359,7 +359,7 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
 <style scoped>
 .b-input-wrapper {
     width: 100%;
-    max-width: 320px;
+    max-width: 500px;
     display: flex;
     flex-direction: column;
     position: relative;

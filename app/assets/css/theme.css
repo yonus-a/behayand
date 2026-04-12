@@ -2,7 +2,7 @@
 
 @theme {
   /* --- Colors from Previous Image (image_cc9dbf.png) --- */
-
+  --shadow-floating: 0 8px 24px 0 rgba(149, 157, 165, 0.2);
   /* Primary - Material Green */
   --color-primary-50: #d4f9f5;
   --color-primary-100: #afeee7;
@@ -119,7 +119,7 @@
   );
 
   /* Diamond (Radial) Gradients */
- --background-image-diamond-primary: radial-gradient(
+  --background-image-diamond-primary: radial-gradient(
     circle at 70% 0%,
     var(--color-primary-600),
     var(--color-primary-200)

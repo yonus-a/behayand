@@ -9,7 +9,7 @@
             :class="[isOpen ? ' bg-on-background/20 backdrop-blur-sm pointer-events-auto' : ' backdrop-blur-none bg-on-background/0 pointer-events-none']">
         </div>
         <div ref="panelRef"
-            class="absolute z-100 min-w-40 rounded-xl bg-surface border border-outline max-h-64 overflow-y-auto transition-all duration-200 ease-in-out overflow-hidden"
+            class="absolute z-100  rounded-xl bg-surface border border-outline max-h-64 overflow-y-auto transition-all duration-200 ease-in-out overflow-hidden"
             :style="panelPositionStyles"
             :class="[isOpen ? 'shadow-[0px_8px_24px_rgba(149,157,165,0.2)] ' : 'shadow-none']">
             <div v-if="options.length > 0" class="flex flex-col">
