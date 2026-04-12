@@ -13,16 +13,8 @@
                     }}</div>
                     <div class=" flex-1 border border-outline"></div>
                 </div>
-               
-                <div
-                    class=" h-11 transition-all  duration-200 ease-in-out hover:bg-surface-variant-3 w-full cursor-pointer select-none text-label-md text-on-surface bg-surface-variant-2 rounded-xl flex items-center justify-between p-3">
-                    <div class=" w-5 h-5">
-                        <BImage class=" min-w-full min-h-full max-w-full max-h-full w-full h-full"
-                            :src="dolateManLogo" />
-                    </div>
-                    <div>{{ t('auth.login.dolatLogin') }}</div>
-                    <div></div>
-                </div>
+                <OAuthButton v-for="btn in oauthProviders" :key="btn.provider" :src="btn.logo" :text="btn.label"
+                    :provider="btn.provider" @click="handleOAuthAction" />
             </div>
         </div>
     </div>
@@ -35,8 +27,12 @@ import { useRouter } from 'vue-router';
 import BButton from '~/components/global/BButton.vue';
 import googleLogo from '/images/auth/google.svg'
 import dolateManLogo from '/images/auth/dolate-man.svg'
+import OAuthButton from '~/components/auth/OAuthButton.vue';
 export default defineComponent({
     name: 'AuthPage',
+    components: {
+        OAuthButton,
+    },
     setup() {
         const router = useRouter()
         const { t } = useI18n()
@@ -79,6 +75,26 @@ export default defineComponent({
             captchaPayload.value = payload;
         };
 
+        const oauthProviders = [
+            { provider: 'google', label: t('auth.login.googleLogin'), logo: googleLogo },
+            { provider: 'dolat', label: t('auth.login.dolatLogin'), logo: dolateManLogo }
+        ];
+
+        const handleOAuthAction = (provider: string) => {
+            console.log(`Initiating login for: ${provider}`);
+
+            switch (provider) {
+                case 'google':
+                    // window.location.href = someGoogleAuthUrl
+                    break;
+                case 'dolat':
+                    // Dolat specific logic
+                    break;
+                default:
+                    console.warn('Unknown provider');
+            }
+        };
+
 
         return {
             handleCaptchaVerified,
@@ -86,6 +102,8 @@ export default defineComponent({
             t, dolateManLogo,
             googleLogo,
             validateFields,
+            oauthProviders,
+            handleOAuthAction,
             isSending,
             userName,
             rememberMe,
