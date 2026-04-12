@@ -77,6 +77,9 @@
 html {
   font-family: "IranYekan", sans-serif;
 }
+:root {
+  interpolate-size: allow-keywords;
+}
 
 .border-diamond {
   border-color: transparent !important;

@@ -24,6 +24,29 @@ export default defineNuxtConfig({
     },
     plugins: [tailwindcss()],
   },
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: "http://localhost:6050/",
+      platformApiBaseUrl: "http://localhost:3010/",
+      domainName: "behayand.ir",
+      vapidPublicKey:
+        "BJl8mccIGmLam84dZoOSuXGAq884ip2hOjdF5OnyVE-P0Yu5NJZnHbbhHyG2NUSL5vJ7ju3oiCl359hIkNKZOp0",
+      altchaChallengeUrl: "http://localhost:6050/challenge",
+      mqttWsUrl: "ws://localhost:8083/mqtt",
+      sentryDsn: "",
+      sentryTracesSampleRate: 0.8,
+
+      google: {
+        scope:
+          "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+        clientId:
+          "932594562282-i2edm3ivp3adaf136fcijr7cg9p2kot3.apps.googleusercontent.com",
+        redirectUri: "/oauth",
+      },
+
+      mapTileServerPath: "https://osm.wenex.tech/tile/{z}/{x}/{y}.png",
+    },
+  },
   modules: [
     "@nuxt/image",
     "@nuxtjs/i18n",
@@ -37,6 +60,11 @@ export default defineNuxtConfig({
       global: true,
     },
   ],
+  vue: {
+    compilerOptions: {
+      isCustomElement: (tag) => tag.startsWith("altcha-"),
+    },
+  },
   colorMode: {
     classSuffix: "",
   },
