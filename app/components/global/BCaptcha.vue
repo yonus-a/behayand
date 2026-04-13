@@ -104,6 +104,7 @@ const onStateChange = (ev: any) => {
         if (timeoutRef.value) clearTimeout(timeoutRef.value);
         loading.value = false;
         verified.value = true;
+        error.value = false;
         emit('verified', payload);
     } else if (state === 'error' || state === 'expired') {
         // ERROR: Kill the timeout and show error

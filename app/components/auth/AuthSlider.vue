@@ -33,7 +33,7 @@
             </div>
         </div>
 
-        <!-- 
+        <!--  -->
         <div class="absolute top-4 left-4 z-50 bg-white p-4 rounded-xl shadow-xl flex flex-col gap-3">
             <p class="text-xs font-bold text-gray-700">Auth Flow Tester</p>
             
@@ -70,7 +70,7 @@
                 </div>
             </div>
         </div>
-       -->
+      
     </div>
 </template>
 

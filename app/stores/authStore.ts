@@ -1,72 +1,75 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { useValidation, useRouter, useCookie } from "#imports";
+import { useRouter, useCookie, useValidation } from "#imports";
 
 export const useAuthStore = defineStore("auth", () => {
   const { toEnglishNumbers } = useValidation();
   const router = useRouter();
+
+  // Persistent state using cookies to survive page refreshes
   const token = useCookie("auth_token", { maxAge: 60 * 60 * 24 * 7 });
+  const loginIdentifier = useCookie("auth_identifier", { maxAge: 60 * 30 });
+  const isRegistering = useCookie<boolean>("auth_is_reg", { maxAge: 60 * 30 });
 
-  // --- State ---
-  const loginIdentifier = ref("");
-  const loginType = ref<"phone" | "national_id" | null>(null);
+  // Local state
   const user = ref<any>(null);
-  const isRegistering = ref(false)
-
   const isRequesting = ref(false);
-  const isVerifying = ref(false);
-  const isRevoking = ref(false);
-  const sentIdentifiers = ref<string[]>([]);
   const timers = ref<Record<string, number>>({});
 
-  // --- Getters ---
+  const STORAGE_KEY = 'auth_otp_timers';
+
+  const saveTimersToStorage = () => {
+    if (process.client) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(timers.value));
+    }
+  };
+
+  const loadTimersFromStorage = () => {
+    if (process.client) {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          timers.value = JSON.parse(stored);
+        } catch (e) {
+          timers.value = {};
+        }
+      }
+    }
+  };
+
   const isLoggedIn = computed(() => !!token.value);
 
   const getRemainingTime = (identifier: string): number => {
-    const cleanId = toEnglishNumbers(identifier);
+    if (!identifier) return 0;
+    const cleanId = toEnglishNumbers(identifier.trim());
     const expiry = timers.value[cleanId];
     if (!expiry) return 0;
+
     const remaining = Math.ceil((expiry - Date.now()) / 1000);
     return remaining > 0 ? remaining : 0;
   };
 
-  // --- Actions ---
-
-  /**
-   * Commits the login data to the store so subsequent pages know
-   * exactly who is logging in and via what method.
-   */
-  const setLoginData = (val: string) => {
+  const setLoginData = (val: string, registering: boolean = false) => {
     const cleanId = toEnglishNumbers(val.trim());
     loginIdentifier.value = cleanId;
-
-    // Logic: 09 prefix = Phone. Everything else (10 digits) = National ID.
-    if (cleanId.startsWith("09")) {
-      loginType.value = "phone";
-    } else {
-      loginType.value = "national_id";
-    }
-
-    console.log(
-      `[AuthStore] Data set: ${loginIdentifier.value} as ${loginType.value}`,
-    );
+    isRegistering.value = registering;
   };
 
   const requestOtp = async () => {
-    if (!loginIdentifier.value) return false;
     const id = loginIdentifier.value;
+    if (!id) return false;
 
+    // Do not request if a valid timer exists
     if (getRemainingTime(id) > 0) return true;
 
     try {
       isRequesting.value = true;
-      // API call using loginIdentifier.value and loginType.value
-      // await $fetch('/api/auth/otp/send', { method: 'POST', body: { id, type: loginType.value } });
+      // API call placeholder
+      // await $fetch('/api/auth/otp/send', { method: 'POST', body: { phone: id } });
 
-      if (!sentIdentifiers.value.includes(id)) {
-        sentIdentifiers.value.push(id);
-      }
-      timers.value[id] = Date.now() + 120000;
+      // Set 120 seconds expiry
+      timers.value[id] = Date.now() + 60000;
+      saveTimersToStorage();
       return true;
     } catch (error) {
       return false;
@@ -75,25 +78,26 @@ export const useAuthStore = defineStore("auth", () => {
     }
   };
 
-  const logout = async () => {
+  const logout = () => {
     token.value = null;
-    user.value = null;
-    loginIdentifier.value = "";
-    loginType.value = null;
+    loginIdentifier.value = null;
+    isRegistering.value = false;
     router.push("/auth");
   };
 
+  if (process.client) {
+    loadTimersFromStorage();
+  }
+
   return {
     loginIdentifier,
-    loginType,
     token,
     isRequesting,
-    isVerifying,
     isLoggedIn,
+    isRegistering,
     setLoginData,
     requestOtp,
     getRemainingTime,
     logout,
-    isRegistering,
   };
 });

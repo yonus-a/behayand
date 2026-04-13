@@ -1,6 +1,6 @@
 <template>
     <div class=" w-full md:pt-0 pt-12 md:h-auto h-dvh flex flex-col gap-y-4">
-        <div class=" pb-8 flex justify-between items-center w-full">
+        <div class=" pb-8 md:hidden flex justify-between items-center w-full">
             <div></div>
             <div class=" text-label-sm select-none text-on-surface">{{ t('auth.profile.finishProfile') }}</div>
             <BIcon class="rtl:rotate-0 ltr:rotate-180 fill-on-surface cursor-pointer" @click="goBack"
@@ -26,13 +26,7 @@
                         :placeholder="t('auth.profile.write')" />
                 </div>
             </div>
-            <BSelect :disabled="isLoading" :title="t('auth.profile.personalDetails.nationality')" class=" min-w-full"
-                :placeholder="t('auth.profile.select')" :options="nationalities" v-model="nationality.value"
-                :color="nationality.color" :message="nationality.message" />
 
-            <BInput :maxlength="10" :readonly="isLoading" v-model="nationalId.value" type="number"
-                :color="nationalId.color" :message="nationalId.message" :title="idCodeFieldProps.title"
-                :placeholder="idCodeFieldProps.placeholder" />
 
             <div class=" w-full">
                 <div class=" mb-1.5 text-label-sm select-none text-on-surface">{{
@@ -66,7 +60,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import ImageUpload from '~/components/general/ImageUpload.vue';
 import { useI18n, useValidation, useProfileStore, useDate } from '#imports';
 const { t, locale } = useI18n();
-const { validateName, validateBirthDate, checkIsNationalCode, validateForeignCode, toEnglishNumbers } = useValidation();
+const { validateName, validateBirthDate, toEnglishNumbers } = useValidation();
 const { g2j, j2g } = useDate();
 const profileStore = useProfileStore();
 const avatar = ref<File | null>(null);
@@ -77,8 +71,7 @@ const router = useRouter()
 // --- Local Form State ---
 const name = ref({ value: '', color: 'primary', message: '' });
 const lastName = ref({ value: '', color: 'primary', message: '' });
-const nationality = ref({ value: 'iranian', color: 'primary', message: '' });
-const nationalId = ref({ value: '', color: 'primary', message: '' });
+
 const gender = ref({ value: '', color: 'primary', message: '' });
 const birthDay = ref({ value: '', color: 'primary', message: '' });
 const birthMonth = ref({ value: '', color: 'primary', message: '' });
@@ -87,23 +80,14 @@ const birthYear = ref({ value: '', color: 'primary', message: '' });
 // --- Computed ---
 const isLoading = computed(() => profileStore.isLoading);
 
-const nationalities = computed(() => [
-    { value: 'iranian', label: t('auth.profile.personalDetails.nationalities.iranian') },
-    { value: 'nonIranian', label: t('auth.profile.personalDetails.nationalities.nonIranian') },
-]);
+
 
 const genders = computed(() => [
     { value: 'male', label: t('auth.profile.personalDetails.gender.options.male') },
     { value: 'female', label: t('auth.profile.personalDetails.gender.options.female') },
 ]);
 
-const idCodeFieldProps = computed(() => {
-    const isIranian = nationality.value.value === 'iranian';
-    return {
-        title: isIranian ? t('auth.profile.personalDetails.nationalCode') : t('auth.profile.personalDetails.foreignCode'),
-        placeholder: isIranian ? t('auth.profile.personalDetails.nationalCodePlaceholder') : t('auth.profile.personalDetails.foreignCodePlaceholder')
-    }
-});
+
 
 // --- Hydration Logic ---
 
@@ -114,8 +98,8 @@ const syncFieldsWithStore = () => {
 
     name.value.value = data.name;
     lastName.value.value = data.lastName;
-    nationality.value.value = data.nationality;
-    nationalId.value.value = data.nationalId;
+    // nationality.value.value = data.nationality;
+    // nationalId.value.value = data.nationalId;
     gender.value.value = data.gender;
 
     if (data.birthDate) {
@@ -159,8 +143,8 @@ const hasChanges = computed(() => {
     if (avatar.value) return true;
     if (name.value.value !== original.name) return true;
     if (lastName.value.value !== original.lastName) return true;
-    if (nationality.value.value !== original.nationality) return true;
-    if (nationalId.value.value !== original.nationalId) return true;
+    // if (nationality.value.value !== original.nationality) return true;
+    // if (nationalId.value.value !== original.nationalId) return true;
     if (gender.value.value !== original.gender) return true;
 
     // Date Comparison
@@ -198,7 +182,7 @@ const resetField = (field: any) => {
 };
 
 // Loop through all refs to assign watchers
-const formRefs = [name, lastName, nationality, nationalId, gender, birthDay, birthMonth, birthYear];
+const formRefs = [name, lastName, gender, birthDay, birthMonth, birthYear];
 formRefs.forEach((fieldRef) => {
     watch(() => fieldRef.value.value, () => {
         resetField(fieldRef.value);
@@ -218,20 +202,7 @@ const validateFields = () => {
     if (lastErr) { lastName.value.message = lastErr; lastName.value.color = 'error'; hasErrors.value = true; }
 
     // ID Validation
-    if (nationality.value.value === 'iranian') {
-        if (!checkIsNationalCode(nationalId.value.value)) {
-            nationalId.value.message = t('validation.national_id_invalid');
-            nationalId.value.color = 'error';
-            hasErrors.value = true;
-        }
-    } else {
-        const foreignErr = validateForeignCode(nationalId.value.value);
-        if (foreignErr) {
-            nationalId.value.message = foreignErr;
-            nationalId.value.color = 'error';
-            hasErrors.value = true;
-        }
-    }
+
 
     // Date Validation
     const dateErrors = validateBirthDate(

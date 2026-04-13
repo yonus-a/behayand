@@ -8,7 +8,7 @@
 
         <div class="w-full flex flex-col items-center gap-y-2">
             <div class="h-5 text-center select-none">
-                <div v-show="remainingSeconds > 0" class="text-body-md text-on-surface">
+                <div dir="ltr" v-show="remainingSeconds > 0" class="text-body-md text-on-surface">
                     {{ formatCountdown(remainingSeconds) }}
                 </div>
             </div>
@@ -33,16 +33,15 @@
         </div>
     </div>
 </template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n, useAuthStore } from '#imports';
 import { formatCountdown } from '~/utils/format';
-const hasErrors = ref(false)
+
 const { t } = useI18n();
 const authStore = useAuthStore();
+const hasErrors = ref(false);
 
-// UI States
 const isVerifying = ref(false);
 const remainingSeconds = ref(0);
 let timerInterval: any = null;
@@ -53,61 +52,35 @@ const pinCode = ref({
     message: ''
 });
 
-// Computed Properties
-const isRequesting = computed(() => authStore.isRequesting);
+const isSubmitDisabled = computed(() => pinCode.value.value.length < 6)
 
-const buttonTitle = computed(() =>
-    authStore.loginType === 'phone' ? t('auth.login.title') : t('auth.register.title')
-);
+// Identifier check to prevent errors if user navigates directly here
+const currentPhone = computed(() => authStore.loginIdentifier || '');
 
-const isSubmitDisabled = computed(() =>
-    pinCode.value.value.length < 6 || hasErrors.value
-);
-
-const resendButtonClasses = computed(() => {
-    if (isRequesting.value) return 'opacity-0';
-    return remainingSeconds.value > 0
-        ? 'text-on-surface/50 cursor-not-allowed'
-        : 'text-primary cursor-pointer opacity-100';
-});
-
-// Methods
 const syncTimer = () => {
-    remainingSeconds.value = authStore.getRemainingTime(authStore.loginIdentifier);
+    if (currentPhone.value) {
+        remainingSeconds.value = authStore.getRemainingTime(currentPhone.value);
+    }
 };
 
 const handleResend = () => {
-    if (remainingSeconds.value > 0 || isRequesting.value) return;
+    if (remainingSeconds.value > 0 || authStore.isRequesting) return;
     authStore.requestOtp();
 };
 
 const validateAndSend = async () => {
-    if (isSubmitDisabled.value) return;
-
-    if (pinCode.value.value.trim().length < 6) {
-        hasErrors.value = true;
-        pinCode.value.color = 'error'
-        pinCode.value.message = t('auth.code.errors.codeLength')
-        return
-    }
+    if (pinCode.value.value.length < 6 || isVerifying.value) return;
 
     isVerifying.value = true;
     try {
-
-        // if successful redirect to /dashboard route here 
-
-
-        // const success = await authStore.verifyOtp(authStore.loginIdentifier, pinCode.value.value);
-        // if (!success) {
-        //     pinCode.value.message = t('auth.code.invalidCode'); // Ensure this exists in your JSON
-        //     pinCode.value.color = 'error';
-        //}
+        console.log("Verifying OTP for:", currentPhone.value);
+        // API verification logic here
+        // router.push('/dashboard');
     } finally {
         isVerifying.value = false;
     }
 };
 
-// Lifecycle
 onMounted(() => {
     syncTimer();
     timerInterval = setInterval(syncTimer, 1000);
@@ -117,13 +90,16 @@ onUnmounted(() => {
     if (timerInterval) clearInterval(timerInterval);
 });
 
-// Auto-submit when PIN is complete
 watch(() => pinCode.value.value, (val) => {
     pinCode.value.message = '';
     pinCode.value.color = 'primary';
-    hasErrors.value = false;
-    if (val.length === 6) {
-        validateAndSend();
-    }
+    if (val.length === 6) validateAndSend();
+});
+
+const isRequesting = computed(() => authStore.isRequesting);
+const buttonTitle = computed(() => authStore.isRegistering ? t('auth.register.title') : t('auth.login.title'));
+const resendButtonClasses = computed(() => {
+    if (isRequesting.value) return 'opacity-0';
+    return remainingSeconds.value > 0 ? 'text-on-surface/50 cursor-not-allowed' : 'text-primary cursor-pointer';
 });
 </script>

@@ -272,7 +272,35 @@ export const useValidation = () => {
     return checkRules(pass).filter((r) => r.met).length;
   };
 
+  const validatePhoneNumber = (val: string): string | null => {
+    // 0. Cleanup and check required
+    const cleanVal = toEnglishNumbers(val?.trim() || "");
+    const fieldTitle = t("validation.phoneNumber");
+
+    if (!cleanVal) {
+      return t("validation.required", { field: fieldTitle });
+    }
+
+    // 1. If the phone didn't start with 09 its invalid
+    if (!cleanVal.startsWith("09")) {
+      return t("validation.phone_invalid");
+    }
+
+    // 2. if the phone had less than 11 characters length we throw the error which it must have 11 digits
+    if (cleanVal.length !== 11) {
+      return t("validation.phone_length_invalid");
+    }
+
+    // Ensure it's all digits (extra safety)
+    if (!/^\d+$/.test(cleanVal)) {
+      return t("validation.phone_invalid");
+    }
+
+    return null;
+  };
+
   return {
+    validatePhoneNumber,
     validateName,
     validateSlug,
     passwordSecurityRate,
