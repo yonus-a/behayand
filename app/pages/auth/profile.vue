@@ -2,7 +2,7 @@
     <div class=" w-full flex flex-col gap-y-4">
         <div class=" w-full flex flex-col gap-y-3">
             <div class=" select-none text-label-sm text-on-surface">{{ t('auth.profile.profileImage') }}</div>
-            <ImageUpload />
+            <ImageUpload v-model="avatar" />
         </div>
         <div class=" w-full">
             <div class=" mb-3 select-none text-label-sm text-on-surface">{{ t('auth.profile.personalDetails.title') }}
@@ -60,7 +60,7 @@ const { t, locale } = useI18n();
 const { validateName, validateBirthDate, checkIsNationalCode, validateForeignCode, toEnglishNumbers } = useValidation();
 const { g2j, j2g } = useDate();
 const profileStore = useProfileStore();
-
+const avatar = ref<File | null>(null);
 const isSending = ref(false);
 const hasErrors = ref(false);
 
@@ -146,6 +146,7 @@ const hasChanges = computed(() => {
     const original = profileStore.userData;
 
     // Check basic strings (trim to avoid whitespace false positives)
+    if (avatar.value) return true;
     if (name.value.value !== original.name) return true;
     if (lastName.value.value !== original.lastName) return true;
     if (nationality.value.value !== original.nationality) return true;

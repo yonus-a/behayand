@@ -20,27 +20,27 @@
                     <template v-if="multiple && selectedItems.length > 0">
                         <div v-for="item in selectedItems" :key="item.value" @click.stop
                             class="flex items-center gap-x-2 h-7 bg-surface-variant-3 px-2 rounded-lg  shrink-0">
-                            <span class="text-sm font-medium text-on-background whitespace-nowrap">{{ item.label
+                            <span class="text-sm font-medium text-on-surface whitespace-nowrap">{{ item.label
                             }}</span>
                             <BIcon @click.stop="removeItem(item)" icon="PhX"
-                                class="w-3.5 h-3.5 cursor-pointer fill-on-background opacity-50 transition-opacity hover:opacity-100" />
+                                class="w-3.5 h-3.5 cursor-pointer fill-on-surface opacity-50 transition-opacity hover:opacity-100" />
                         </div>
                     </template>
 
                     <span v-if="!multiple && selectedItem && (!searchable || !isOpen)"
-                        class="text-sm font-medium select-none truncate text-on-background opacity-100 shrink-0">
+                        class="text-sm font-medium select-none truncate text-on-surface opacity-100 shrink-0">
                         {{ selectedItem.label }}
                     </span>
 
                     <span v-if="showPlaceholder"
-                        class="text-sm font-medium select-none truncate text-on-background opacity-50 shrink-0">
+                        class="text-sm font-medium select-none truncate text-on-surface opacity-50 shrink-0">
                         {{ placeholder }}
                     </span>
 
                     <input v-if="searchable && isOpen" ref="searchInput" v-model="searchQuery" @click.stop
                         @keydown.down.prevent="highlightNext" @keydown.up.prevent="highlightPrev"
                         @keydown.enter.prevent="selectHighlighted"
-                        class="flex-1 min-w-15 bg-transparent outline-none text-sm font-medium text-on-background placeholder:text-on-background/50 h-full"
+                        class="flex-1 min-w-15 bg-transparent outline-none text-sm font-medium text-on-surface placeholder:text-on-surface/50 h-full"
                         :placeholder="multiple && selectedItems.length > 0 ? '' : placeholder" />
                 </div>
 
@@ -48,7 +48,7 @@
               <BIcon v-if="loading" icon="PhSpinner" class="w-6 h-6 shrink-0 fill-primary animate-spin" />
               -->
                 <BIcon icon="PhCaretDown"
-                    class="w-5 h-5 fill-on-surface/50 shrink-0 fill-on-background transition-transform duration-300"
+                    class="w-5 h-5 fill-on-surface/50 shrink-0 fill-on-surface transition-transform duration-300"
                     :class="[isOpen ? 'rotate-180' : '', disabled ? 'opacity-40' : '']" />
             </div>
 
@@ -69,7 +69,7 @@
                         </div>
 
                         <div v-if="filteredOptions.length === 0 && (!allowCreate || !searchQuery)"
-                            class="flex items-center justify-center gap-x-2 py-6 text-on-background/50">
+                            class="flex items-center justify-center gap-x-2 py-6 text-on-surface/50">
                             <span class="text-sm font-medium">{{ noResultText || t('addresses.noResults') || `No
                                 results found!` }}</span>
                         </div>
@@ -98,10 +98,10 @@
                                         class="w-6 max-w-6 max-h-6 min-h-6 min-w-6 rounded-sm h-6 shrink-0 object-cover" />
                                     <BIcon v-else-if="filteredOptions[virtualRow.index].icon"
                                         :icon="filteredOptions[virtualRow.index].icon" class="w-6 h-6 shrink-0"
-                                        :class="isSelected(filteredOptions[virtualRow.index]) ? 'fill-primary' : 'fill-on-background'" />
+                                        :class="isSelected(filteredOptions[virtualRow.index]) ? 'fill-primary' : 'fill-on-surface'" />
 
                                     <span class="text-sm font-medium line-clamp-1 text-ellipsis overflow-hidden flex-1"
-                                        :class="isSelected(filteredOptions[virtualRow.index]) ? 'text-primary' : 'text-on-background'">
+                                        :class="isSelected(filteredOptions[virtualRow.index]) ? 'text-primary' : 'text-on-surface'">
                                         {{ filteredOptions[virtualRow.index].label }}
                                     </span>
 
@@ -180,7 +180,7 @@ export default defineComponent({
             if (props.hasError || props.color === 'error') return 'text-error fill-error';
             if (props.color === 'success') return 'text-secondary fill-secondary';
             if (props.color === 'warning') return 'text-warning fill-warning';
-            return 'text-on-background/50 fill-on-background/50';
+            return 'text-on-surface/50 fill-on-surface/50';
         });
 
         const messageIcon = computed(() => {
