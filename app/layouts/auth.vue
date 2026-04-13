@@ -9,7 +9,7 @@
                 <div ref="cardRef"
                     class="shadow-floating bg-surface rounded-3xl w-99 overflow-hidden transition-[height] duration-300 ease-in-out"
                     :style="{ height: cardHeight }">
-                    <div ref="contentRef" class="p-6 h-fit">
+                    <div ref="contentRef" class="p-6 ">
                         <AuthHeader v-if="routeDetails.routesWithHeader.includes(route.path)"
                             :title="routeDetails.title" :description="routeDetails.description" />
                         <NuxtPage />
@@ -19,7 +19,11 @@
         </div>
         <div class=" basis-1/2">
             <BImage :src="backgroundImage" fit="cover"
-                class=" min-w-full min-h-full max-w-full max-h-full h-full w-full" />
+                class=" min-w-full min-h-full max-w-full max-h-full h-full w-full">
+                <div class=" w-full h-full flex justify-center items-center">
+                    <AuthSlider />
+                </div>
+            </BImage>
         </div>
     </div>
 </template>
@@ -31,6 +35,7 @@ import backgroundImage from '/images/auth/auth-bg.webp';
 import AuthHeader from '@/components/auth/FormHeader.vue';
 import ThemeSwitch from '~/components/general/ThemeSwitch.vue';
 import LocaleSwitch from '~/components/general/LocaleSwitch.vue';
+import AuthSlider from '~/components/auth/AuthSlider.vue';
 const authStore = useAuthStore()
 const { dir } = useLocale()
 const { t } = useI18n();
@@ -54,7 +59,7 @@ onMounted(() => {
             for (const entry of entries) {
                 // We add the pixel value to trigger the CSS transition
                 const height = entry.contentRect.height;
-                cardHeight.value = `${height}px`;
+                cardHeight.value = `${height + 48}px`;
             }
         });
 
