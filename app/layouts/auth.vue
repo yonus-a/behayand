@@ -5,11 +5,15 @@
                 <ThemeSwitch />
                 <LocaleSwitch />
             </div>
-            <div class=" w-full flex-1 flex justify-center items-center">
-                <div class=" shadow-floating bg-surface rounded-3xl w-99 p-6 ">
-                    <AuthHeader v-if="routeDetails.routesWithHeader.includes(route.path)" :title="routeDetails.title"
-                        :description="routeDetails.description" />
-                    <NuxtPage />
+            <div class="w-full flex-1 flex justify-center items-center">
+                <div ref="cardRef"
+                    class="shadow-floating bg-surface rounded-3xl w-99 overflow-hidden transition-[height] duration-300 ease-in-out"
+                    :style="{ height: cardHeight }">
+                    <div ref="contentRef" class="p-6 h-fit">
+                        <AuthHeader v-if="routeDetails.routesWithHeader.includes(route.path)"
+                            :title="routeDetails.title" :description="routeDetails.description" />
+                        <NuxtPage />
+                    </div>
                 </div>
             </div>
         </div>
@@ -38,4 +42,38 @@ const routeDetails = computed(() => ({
     title: route.path === '/auth/verify' && !authStore.isRegistering ? t('auth.login.title') : t('auth.register.title'),
     description: route.path === '/auth' ? t('auth.login.enterDetails') : (authStore.loginType === 'national_id' ? authStore.loginIdentifier : formatPhoneNumber(authStore.loginIdentifier, dir.value))
 }));
+
+const cardRef = ref<HTMLElement | null>(null);
+const contentRef = ref<HTMLElement | null>(null);
+const cardHeight = ref('auto');
+let observer: ResizeObserver | null = null;
+
+onMounted(() => {
+    if (process.client && contentRef.value) {
+        observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                // We add the pixel value to trigger the CSS transition
+                const height = entry.contentRect.height;
+                cardHeight.value = `${height}px`;
+            }
+        });
+
+        observer.observe(contentRef.value);
+    }
+});
+
+onUnmounted(() => {
+    if (observer) observer.disconnect();
+});
 </script>
+<style scoped>
+.v-enter-active,
+.v-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+    opacity: 0;
+}
+</style>
