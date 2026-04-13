@@ -8,7 +8,7 @@
                     : 'pointer-events-none bg-[#0A0A0A]/0 dark:bg-white/0 backdrop-blur-none invisible']">
 
                 <div ref="tabContent" :style="isMobile ? { transform: `translateY(${translateY}px)` } : {}" :class="[
-                    'relative bg-greyscale-0 overflow-hidden rounded-t-xl md:rounded-xl',
+                    'relative bg-surface overflow-hidden rounded-t-xl md:rounded-xl',
                     isMobile ? 'w-full' : 'max-w-[90vw] lg:max-w-max',
                     isDragging ? 'transition-none' : 'transition-all duration-300 ease-in-out',
 
@@ -29,8 +29,8 @@
                     </div>
                     <div class="w-full pb-3 px-3 flex justify-start gap-x-3 items-center ">
                         <div v-if="hasClose" @click="close"
-                            class="w-8 h-8 flex items-center justify-center  bg-surface-container rounded-full cursor-pointer hover:bg-greyscale-200 transition-colors">
-                            <DIcon icon="PhX" class="w-4 h-4 fill-text-light-high dark:fill-text-dark-high" />
+                            class="w-7 h-7 flex items-center justify-center cursor-pointer transition-colors">
+                            <BIcon icon="PhX" class="w-4 h-4 fill-text-light-high dark:fill-text-dark-high" />
                         </div>
                         <div v-if="title.trim().length > 0"
                             class="text-sm font-medium text-text-light-high dark:text-text-dark-high select-none">

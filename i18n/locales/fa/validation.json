@@ -18,7 +18,16 @@
     "identifier_invalid": "لطفاً یک شماره موبایل یا کد ملی/اتباع معتبر وارد کنید",
     "captcha_required": "لطفاً تایید کنید که ربات نیستید",
     "email": "ایمیل",
-    "phoneNumber": "شماره موبایل"
+    "phoneNumber": "شماره موبایل",
+    "only_letters": "{field} فقط باید شامل حروف باشد (اعداد مجاز نیستند).",
+    "must_be_persian_letters": "{field} فقط باید شامل حروف فارسی باشد.",
+    "must_be_english_letters": "{field} فقط باید شامل حروف انگلیسی باشد.",
+    "invalid_day": "روز نامعتبر",
+    "invalid_month": "ماه نامعتبر",
+    "invalid_year": "سال نامعتبر",
+    "invalid_date": "تاریخ نامعتبر .",
+    "future_date": "تاریخ نامعتبر .",
+    "too_old_date": "تاریخ نامعتبر ."
   },
   "addresses": {
     "errors": {

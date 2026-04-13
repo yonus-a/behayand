@@ -4,11 +4,14 @@
         <div class=" text-label-sm mb-1.5 select-none text-on-surface">{{ title }}</div>
         <div :style="inputStyle" class="w-full relative">
             <input v-if="!textarea" ref="inputField" :readonly="readonly" :maxlength="maxlength" :type="finalInputType"
-                v-model="inputValue" class="b-input" :class="{
-                    'is-focused': isFocus,
-                    'is-readonly': readonly,
-                    'is-disabled': disabled
-                }" :tabindex="tabindex" :autocomplete="finalAutocomplete" :enterkeyhint="enterkeyhint"
+                v-model="inputValue" class="b-input" :class="[
+                    {
+                        'is-focused': isFocus,
+                        'is-readonly': readonly,
+                        'is-disabled': disabled,
+                    },
+                    textAlign
+                ]" :tabindex="tabindex" :autocomplete="finalAutocomplete" :enterkeyhint="enterkeyhint"
                 :inputmode="type === 'phone' || type === 'number' ? 'numeric' : undefined" :placeholder="placeholder"
                 @keypress="handleKeypress" @keydown.enter="handleSubmit" @paste="handlePaste" @focus="handleFocus"
                 @blur="handleBlur" :disabled="disabled" />
@@ -64,7 +67,7 @@
 
         <div class="b-input-message-wrapper overflow-hidden h-6">
             <div class="flex items-center gap-x-1.5 transition-all duration-200 ease-in-out"
-                :class="[showMessage ? `${!newPassword ?'translate-y-0' : 'translate-y-1'} opacity-100` : '-translate-y-4 opacity-0']"
+                :class="[showMessage ? `${!newPassword ? 'translate-y-0' : 'translate-y-1'} opacity-100` : '-translate-y-4 opacity-0']"
                 :style="{ color: messageColor }">
                 <BIcon :icon="messageIcon" class="b-input-message-icon shrink-0" />
                 <span class="text-xs select-none">{{ displayedMessage }}</span>
@@ -180,11 +183,12 @@ const props = defineProps({
     textarea: { type: Boolean, default: false },
     prefix: { type: String, default: '' },
     passfix: { type: String, default: '' },
-    caption: { type: String, default: '' }
+    caption: { type: String, default: '' },
+    align: { type: String as PropType<'' | 'left' | 'right' | 'center'>, default: '' }
 });
 
 const emit = defineEmits(['update:modelValue', 'focus', 'blur', 'submit', 'paste', 'action']);
-
+const textAlign = computed(() => `text-${props.align}`)
 /* --- STATE --- */
 const showPassword = ref(false);
 const inputValue = ref(props.modelValue);

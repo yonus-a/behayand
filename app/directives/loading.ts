@@ -3,8 +3,8 @@ import type { Directive, DirectiveBinding } from 'vue'
 // 1. The visual skeleton properties (No transitions here)
 const coreClasses = [
   '!text-transparent',
-  '!bg-surface-container',
-  'dark:!bg-surface-container', 
+  '!bg-surface-variant-2',
+  'dark:!bg-surface-variant-2', 
   '!animate-pulse',
   '!rounded',
   '!pointer-events-none',

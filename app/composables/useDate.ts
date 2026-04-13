@@ -1,21 +1,15 @@
 import { useI18n } from "#imports";
-import toJalaali from "jalaali-js";
 
 export interface DateFormatOptions {
-  /** If true, includes the day of the week (e.g., Monday, دوشنبه) */
   showWeekday?: boolean;
-  /** If true, replaces the weekday with 'Today' or 'Yesterday' if applicable */
   useRelativeDay?: boolean;
-  /** If true, appends the time (e.g., 14:30) at the end */
   showTime?: boolean;
-  /** Use 'short' for abbreviated months in English/Arabic */
   monthFormat?: "short" | "long";
 }
 
 export const useDate = () => {
   const { locale } = useI18n();
 
-  // Internal Dictionary for Time/Relative Words
   const dict = {
     en: {
       today: "Today",
@@ -43,7 +37,106 @@ export const useDate = () => {
     },
   };
 
-  // --- Core Helpers ---
+  // --- Internal Math Helpers ---
+
+  /**
+   * Gregorian (Miladi) to Jalali (Shamsi)
+   */
+  const g2j = (
+    gy: number,
+    gm: number,
+    gd: number,
+  ): [number, number, number] => {
+    const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+
+    let jy = gy <= 1600 ? 0 : 979;
+    gy -= gy <= 1600 ? 621 : 1600;
+
+    let gy2 = gm > 2 ? gy + 1 : gy;
+    let days =
+      365 * gy +
+      Math.floor((gy2 + 3) / 4) -
+      Math.floor((gy2 + 99) / 100) +
+      Math.floor((gy2 + 399) / 400) -
+      80 +
+      gd +
+      g_d_m[gm - 1];
+
+    jy += 33 * Math.floor(days / 12053);
+    days %= 12053;
+    jy += 4 * Math.floor(days / 1461);
+    days %= 1461;
+    jy += Math.floor((days - 1) / 365);
+    if (days > 365) days = (days - 1) % 365;
+
+    let jm =
+      days < 186
+        ? 1 + Math.floor(days / 31)
+        : 7 + Math.floor((days - 186) / 30);
+    let jd = 1 + (days < 186 ? days % 31 : (days - 186) % 30);
+
+    return [jy, jm, jd];
+  };
+
+  /**
+   * Jalali (Shamsi) to Gregorian (Miladi)
+   */
+  const j2g = (
+    jy: number,
+    jm: number,
+    jd: number,
+  ): [number, number, number] => {
+    let gy = jy <= 979 ? 621 : 1600;
+    jy -= jy <= 979 ? 0 : 979;
+
+    let days =
+      365 * jy +
+      Math.floor(jy / 33) * 8 +
+      Math.floor(((jy % 33) + 3) / 4) +
+      78 +
+      jd +
+      (jm < 7 ? (jm - 1) * 31 : (jm - 7) * 30 + 186);
+
+    gy += 400 * Math.floor(days / 146097);
+    days %= 146097;
+
+    if (days > 36524) {
+      gy += 100 * Math.floor(--days / 36524);
+      days %= 36524;
+      if (days >= 365) days++;
+    }
+
+    gy += 4 * Math.floor(days / 1461);
+    days %= 1461;
+    gy += Math.floor((days - 1) / 365);
+    if (days > 365) days = (days - 1) % 365;
+
+    let gd = days + 1;
+    let sal_a = [
+      0,
+      31,
+      (gy % 4 == 0 && gy % 100 != 0) || gy % 400 == 0 ? 29 : 28,
+      31,
+      30,
+      31,
+      30,
+      31,
+      31,
+      30,
+      31,
+      30,
+      31,
+    ];
+    let gm;
+    for (gm = 0; gm < 13; gm++) {
+      let v = sal_a[gm];
+      if (gd <= v) break;
+      gd -= v;
+    }
+    return [gy, gm, gd];
+  };
+
+  // --- Formatting Helpers ---
 
   const getLang = (): "en" | "fa" | "ar" => {
     const current = locale.value as string;
@@ -59,31 +152,13 @@ export const useDate = () => {
     if (lang === "fa")
       return String(str).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
     if (lang === "ar")
-      return String(str).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[parseInt(d)]); // Eastern Arabic Numerals
+      return String(str).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[parseInt(d)]);
     return String(str);
   };
 
   const parseDate = (dateInput: string | Date): Date => {
     return typeof dateInput === "string" ? new Date(dateInput) : dateInput;
   };
-
-  const isSameDay = (d1: Date, d2: Date) => {
-    return (
-      d1.getDate() === d2.getDate() &&
-      d1.getMonth() === d2.getMonth() &&
-      d1.getFullYear() === d2.getFullYear()
-    );
-  };
-
-  const isToday = (date: Date) => isSameDay(date, new Date());
-
-  const isYesterday = (date: Date) => {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    return isSameDay(date, yesterday);
-  };
-
-  // --- Persian Specific Data ---
 
   const getJalaaliMonthName = (monthIndex: number): string => {
     const months = [
@@ -116,25 +191,21 @@ export const useDate = () => {
     return days[date.getDay()];
   };
 
-  // --- Formatting Logic ---
-
   const formatTime = (dateInput: string | Date): string => {
     const date = parseDate(dateInput);
     const lang = getLang();
     const hours = date.getHours().toString().padStart(2, "0");
     const minutes = date.getMinutes().toString().padStart(2, "0");
-    const timeStr = `${hours}:${minutes}`;
-    return localizeDigits(timeStr, lang);
+    return localizeDigits(`${hours}:${minutes}`, lang);
   };
-  /**
-   * Master Date Formatter
-   * Can format dates cleanly across 3 languages with precise toggles.
-   */
+
+  // --- Main Exported Methods ---
+
   const formatDate = (
     dateInput: string | Date,
     options: DateFormatOptions = {},
   ): string => {
-    const opts: DateFormatOptions = {
+    const opts = {
       showWeekday: true,
       useRelativeDay: true,
       showTime: false,
@@ -143,157 +214,103 @@ export const useDate = () => {
     };
     const date = parseDate(dateInput);
     const lang = getLang();
+    const separator = lang === "fa" || lang === "ar" ? "، " : ", ";
 
-    const isRtl = lang === "fa" || lang === "ar";
-    const separator = isRtl ? "، " : ", "; // Standard Arabic comma vs English comma
-
-    // 1. Resolve Prefix (Today / Yesterday / Weekday Name)
     let prefix = "";
-    if (opts.useRelativeDay && isToday(date)) {
-      prefix = dict[lang].today;
-    } else if (opts.useRelativeDay && isYesterday(date)) {
-      prefix = dict[lang].yesterday;
-    } else if (opts.showWeekday) {
-      if (lang === "fa") {
-        prefix = getJalaaliDayOfWeekName(date);
-      } else {
-        // Native Intl handling for En & Ar (Gregorian)
-        prefix = new Intl.DateTimeFormat(
-          lang === "ar" ? "ar-EG-u-ca-gregory" : "en-US",
-          { weekday: "long" },
-        ).format(date);
-      }
+    const now = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+
+    const isToday = date.toDateString() === now.toDateString();
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+
+    if (opts.useRelativeDay && isToday) prefix = dict[lang].today;
+    else if (opts.useRelativeDay && isYesterday) prefix = dict[lang].yesterday;
+    else if (opts.showWeekday) {
+      prefix =
+        lang === "fa"
+          ? getJalaaliDayOfWeekName(date)
+          : new Intl.DateTimeFormat(lang === "ar" ? "ar-EG" : "en-US", {
+              weekday: "long",
+            }).format(date);
     }
 
-    // 2. Resolve Main Date Body
     let body = "";
     if (lang === "fa") {
-      const jDate = toJalaali.toJalaali(date);
-      body = `${localizeDigits(jDate.jd, lang)} ${getJalaaliMonthName(jDate.jm)} ${localizeDigits(jDate.jy, lang)}`;
+      const [jy, jm, jd] = g2j(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        date.getDate(),
+      );
+      body = `${localizeDigits(jd, lang)} ${getJalaaliMonthName(jm)} ${localizeDigits(jy, lang)}`;
     } else {
-      // Native Intl handling for En & Ar (Gregorian)
-      body = new Intl.DateTimeFormat(
-        lang === "ar" ? "ar-EG-u-ca-gregory" : "en-US",
-        {
-          day: "numeric",
-          month: opts.monthFormat,
-          year: "numeric",
-        },
-      ).format(date);
+      body = new Intl.DateTimeFormat(lang === "ar" ? "ar-EG" : "en-US", {
+        day: "numeric",
+        month: opts.monthFormat,
+        year: "numeric",
+      }).format(date);
     }
 
-    // 3. Assemble Date Parts
-    let finalString = prefix ? `${prefix}${separator}${body}` : body;
-
-    // 4. Append Time if requested
-    if (opts.showTime) {
-      const timeDash = isRtl ? " - " : " - ";
-      finalString += `${timeDash}${formatTime(date, lang)}`;
-    }
-
-    return finalString;
-  };
-
-  /**
-   * Social Media Style Relative Time (e.g., 2 hours ago)
-   */
-  const getRelativeTime = (dateInput: string | Date): string => {
-    const date = parseDate(dateInput);
-    const now = new Date();
-    const diffMs = Math.max(now.getTime() - date.getTime(), 0);
-
-    const diffMinutes = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMinutes / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    const lang = getLang();
-    const tDict = dict[lang];
-
-    if (diffDays < 7) {
-      if (diffMinutes < 60) {
-        const val = diffMinutes || 1;
-        return lang === "en"
-          ? `${val} ${tDict.min} ${tDict.ago}`
-          : `${localizeDigits(val, lang)} ${tDict.min} ${tDict.ago}`;
-      }
-      if (diffHours < 24) {
-        return lang === "en"
-          ? `${diffHours}${tDict.hr} ${tDict.ago}`
-          : `${localizeDigits(diffHours, lang)} ${tDict.hr} ${tDict.ago}`;
-      }
-      return lang === "en"
-        ? `${diffDays}${tDict.day} ${tDict.ago}`
-        : `${localizeDigits(diffDays, lang)} ${tDict.day} ${tDict.ago}`;
-    }
-
-    // Fallback for older dates
-    return formatDate(date, {
-      showWeekday: false,
-      useRelativeDay: false,
-      showTime: true,
-      monthFormat: "short",
-    });
+    let result = prefix ? `${prefix}${separator}${body}` : body;
+    if (opts.showTime) result += ` - ${formatTime(date)}`;
+    return result;
   };
 
   const formatNumericDate = (dateInput: string | Date): string => {
     const date = parseDate(dateInput);
     const lang = getLang();
-
     let y, m, d;
-
     if (lang === "fa") {
-      const jDate = toJalaali.toJalaali(date);
-      y = jDate.jy;
-      m = String(jDate.jm).padStart(2, "0");
-      d = String(jDate.jd).padStart(2, "0");
+      const [jy, jm, jd] = g2j(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        date.getDate(),
+      );
+      [y, m, d] = [
+        jy,
+        String(jm).padStart(2, "0"),
+        String(jd).padStart(2, "0"),
+      ];
     } else {
-      y = date.getFullYear();
-      m = String(date.getMonth() + 1).padStart(2, "0");
-      d = String(date.getDate()).padStart(2, "0");
+      [y, m, d] = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0"),
+      ];
     }
-
-    const dateStr = `${y}/${m}/${d}`;
-    return localizeDigits(dateStr, lang);
+    return localizeDigits(`${y}/${m}/${d}`, lang);
   };
 
   const formatDateTime = (dateInput: string | Date): string => {
     const date = parseDate(dateInput);
     const lang = getLang();
-
     let body = "";
     if (lang === "fa") {
-      const jDate = toJalaali.toJalaali(date);
-      body = `${jDate.jd} ${getJalaaliMonthName(jDate.jm)} ${jDate.jy}`;
+      const [jy, jm, jd] = g2j(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        date.getDate(),
+      );
+      body = `${jd} ${getJalaaliMonthName(jm)} ${jy}`;
     } else {
-      body = new Intl.DateTimeFormat(
-        lang === "ar" ? "ar-EG-u-ca-gregory" : "en-US",
-        {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        },
-      ).format(date);
+      body = new Intl.DateTimeFormat(lang === "ar" ? "ar-EG" : "en-US", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(date);
     }
-
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    const timeStr = `${hours}:${minutes}`;
-
-    // Combine date body and time with a simple space
-    const combined = `${body}  ${timeStr}`;
-
-    // Localize all digits at once
-    return localizeDigits(combined, lang);
+    const timeStr = `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+    return localizeDigits(`${body}  ${timeStr}`, lang);
   };
 
   return {
     parseDate,
+    formatDate,
     formatNumericDate,
-    formatDate, // Use this everywhere for general formatting
-    getRelativeTime,
-    formatFullDate: formatDate,
-    formatTime,
     formatDateTime,
-    // Exposing under the old name as an alias so existing code doesn't break
+    formatTime,
+    g2j,
+    j2g,
+    getRelativeTime: (d: any) => formatDate(d, { useRelativeDay: true }),
   };
 };

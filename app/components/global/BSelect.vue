@@ -394,7 +394,7 @@ export default defineComponent({
             } else if (isOpen.value) {
                 classes.push('border-primary');
             } else {
-                classes.push('border-surface-variant-2');
+                classes.push('border-outline');
             }
 
             // --- Shadow Logic ---
