@@ -10,13 +10,14 @@
                         'is-focused': isFocus,
                         'is-readonly': readonly,
                         'is-disabled': disabled,
+                        'b-input-password-mask': type === 'password' && !showPassword && (autocomplete === 'off' || autocomplete === 'new-password')
                     },
                     textAlign
                 ]" :tabindex="tabindex" :autocomplete="finalAutocomplete" :enterkeyhint="enterkeyhint"
                 :inputmode="type === 'phone' || type === 'number' ? 'numeric' : undefined" :placeholder="placeholder"
                 @keypress="handleKeypress" @keydown.enter="handleSubmit" @paste="handlePaste" @focus="handleFocus"
                 @blur="handleBlur" :disabled="disabled" />
- <input autocomplete="false" name="hidden" type="text" style="display:none;">
+            <input autocomplete="false" name="hidden" type="text" style="display:none;">
 
             <textarea v-if="textarea" ref="inputField" :readonly="readonly" :maxlength="maxlength"
                 :type="finalInputType" v-model="inputValue" class="b-input b-input--textarea"
@@ -333,7 +334,19 @@ const iconClicked = () => emit('action');
 
 /* --- COMPUTEDS --- */
 const finalInputType = computed(() => {
-    if (props.type === 'password') return showPassword.value ? 'text' : 'password';
+    // If it's a password field...
+    if (props.type === 'password') {
+        // If the user clicks "show password", obviously show text
+        if (showPassword.value) return 'text';
+
+        // THE TRICK: If autocomplete is off, render as 'text' (the CSS will hide the letters)
+        if (props.autocomplete === 'off' || props.autocomplete === 'new-password') return 'text';
+
+        // Otherwise, render as a normal password field
+        return 'password';
+    }
+
+    // For non-password types
     if (['phone', 'number', 'slug'].includes(props.type)) return 'text';
     return props.type;
 });
@@ -515,5 +528,10 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
     width: 100%;
     color: var(--color-on-surface);
     font-size: var(--i-caption-size);
+}
+
+.b-input-password-mask {
+    -webkit-text-security: disc !important;
+    text-security: disc !important;
 }
 </style>

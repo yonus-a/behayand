@@ -3,13 +3,12 @@
     <BInput v-model="email.value" :color="email.color" :message="email.message" :title="t('auth.register.email')"
       :placeholder="t('auth.register.emailPlaceholder')" />
 
-    <BInput type="password" autocomplete="off" newPassword :title="t('auth.password.title')"
+    <BInput type="password" autocomplete="new-password" newPassword :title="t('auth.password.title')"
       :placeholder="t('auth.password.passwordPlaceholder')" v-model="password.value" :color="password.color"
       :message="password.message" />
 
-    <input type="password" id="pass" name="password" minlength="8" required />
 
-    <BInput type="password" autocomplete="off" newPassword :title="t('auth.password.repeatPassword')"
+    <BInput type="password" autocomplete="new-password" newPassword :title="t('auth.password.repeatPassword')"
       :placeholder="t('auth.password.repeatPasswordPlaceholder')" v-model="passwordRepeat.value"
       :color="passwordRepeat.color" :message="passwordRepeat.message" />
 
