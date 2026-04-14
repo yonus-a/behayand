@@ -35,7 +35,7 @@ const authStore = useAuthStore();
 const router = useRouter();
 const { t } = useI18n();
 const { validatePhoneNumber } = useValidation();
-
+const localePath = useLocalePath()
 const hasErrors = ref(false);
 const isSending = ref(false);
 const isVerified = ref(false);
@@ -97,15 +97,15 @@ const submitField = async () => {
       if (isNewUser) {
         await authStore.requestOtp()
       }
-      return isNewUser ? router.push('/auth/verify') : router.push('/auth/password');
+      return isNewUser ? router.push(localePath('/auth/verify')) : router.push(localePath('/auth/password'));
     }
 
     const success = await authStore.requestOtp();
     if (success) {
       if (isNewUser) {
-        router.push('/auth/verify');
+        router.push(localePath('/auth/verify'));
       } else {
-        router.push('/auth/password');
+        router.push(localePath('/auth/password'));
       }
     }
   } catch (error) {

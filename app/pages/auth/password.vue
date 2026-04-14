@@ -1,7 +1,8 @@
 <template>
   <div class="w-full">
-    <BInput @submit="validateFields" type="password" :title="t('auth.password.title')" :placeholder="t('auth.password.passwordPlaceholder')"
-      v-model="password.value" :color="password.color" :message="password.message" />
+    <BInput @submit="validateFields" type="password" :title="t('auth.password.title')"
+      :placeholder="t('auth.password.passwordPlaceholder')" v-model="password.value" :color="password.color"
+      :message="password.message" />
 
     <BCheckBox v-model="rememberMe" :label="t('auth.password.rememberMe')" />
 
@@ -11,9 +12,9 @@
 
       <BButton color="secondary" class="min-w-full" :text="t('auth.password.loginViaCode')" @click="loginByOtp" />
 
-      <RouterLink to="/auth" class="w-full">
+      <NuxtLinkLocale to="/auth" class="w-full">
         <BButton type="ghost" class="min-w-full" :text="t('auth.password.changeNumber')" />
-      </RouterLink>
+      </NuxtLinkLocale>
     </div>
   </div>
 </template>
@@ -27,7 +28,7 @@ const router = useRouter()
 const { t } = useI18n();
 const { validatePassword } = useValidation();
 const authStore = useAuthStore();
-
+const localePath = useLocalePath()
 // State
 const isSending = ref(false);
 const hasErrors = ref(false);
@@ -76,7 +77,7 @@ const submitPassword = async () => {
     console.log(`Attempting login for: ${authStore.loginIdentifier}`);
 
     // Example: const success = await authStore.loginWithPassword(password.value.value);
-    // if (success) router.push('/dashboard');
+    // if (success) router.push(localePath('/dashboard'));
 
   } catch (error) {
     password.value.message = t('auth.password.incorrect');
@@ -89,7 +90,7 @@ const submitPassword = async () => {
 const loginByOtp = async () => {
   if (authStore.isRequesting) return
   authStore.requestOtp()
-  router.push('/auth/verify')
+  router.push(localePath('/auth/verify'))
 }
 
 // Clear error state when the user starts typing again

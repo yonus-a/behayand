@@ -17,11 +17,11 @@
             <div class="text-body-sm select-none text-error">
                 {{ t('auth.identity.idNotMatched') }}
             </div>
-            <RouterLink to="/auth">
+            <NuxtLinkLocale to="/auth">
                 <div class="text-primary cursor-pointer text-body-sm select-none">
                     {{ t('auth.identity.changeNumber') }}
                 </div>
-            </RouterLink>
+            </NuxtLinkLocale>
         </div>
 
         <div class=" w-full md:flex-auto flex-1 flex items-end">
@@ -38,6 +38,7 @@ import MobileNavigation from '~/components/auth/MobileNavigation.vue';
 // Composables
 const router = useRouter();
 const { t } = useI18n();
+const localePath = useLocalePath()
 const { checkIsNationalCode, validateForeignCode } = useValidation();
 
 // State
@@ -107,7 +108,7 @@ const submitFields = async () => {
     try {
         // API logic for identity verification would go here
         // If successful:
-        router.push('/auth/profile');
+        router.push(localePath('/auth/profile'));
     } catch (error) {
         console.error("Identity submission failed", error);
         idNotMatched.value = true;

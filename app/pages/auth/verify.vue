@@ -27,9 +27,9 @@
             <BButton @click="validateAndSend" class="w-full" :text="buttonTitle" :loading="isVerifying"
                 :disabled="isSubmitDisabled" />
 
-            <RouterLink to="/auth" class="w-full">
+            <NuxtLinkLocale to="/auth" class="w-full">
                 <BButton class="min-w-full" type="ghost" :text="t('auth.password.changeNumber')" />
-            </RouterLink>
+            </NuxtLinkLocale>
         </div>
     </div>
 </template>
@@ -37,7 +37,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n, useAuthStore } from '#imports';
 import { formatCountdown } from '~/utils/format';
-
+const localePath = useLocalePath()
 const { t } = useI18n();
 const authStore = useAuthStore();
 const hasErrors = ref(false);
@@ -78,9 +78,9 @@ const validateAndSend = async () => {
 
         // if successful proceed to this block
         if (authStore.isRegistering) {
-            router.push('/auth/register')
+            router.push(localePath('/auth/register'))
         } else {
-            router.push('/dashboard')
+            router.push(localePath('/dashboard'))
         }
     } finally {
         isVerifying.value = false;

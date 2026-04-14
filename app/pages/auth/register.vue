@@ -15,9 +15,9 @@
       <i18n-t keypath="auth.register.termsOfService" tag="span" class="text-body-md text-on-surface">
         <template #link>
           <span class="text-primary font-bold cursor-pointer hover:underline decoration-primary/30">
-            <RouterLink to="/terms-of-service">
+            <NuxtLinkLocale to="/terms-of-service">
               {{ t('auth.register.termsLink') }}
-            </RouterLink>
+            </NuxtLinkLocale>
           </span>
         </template>
       </i18n-t>
@@ -26,9 +26,9 @@
     <div class="w-full flex flex-col gap-y-3">
       <BButton @click="validateFields" class="mt-4 min-w-full" :text="t('auth.register.continue')" :loading="isSending"
         :disabled="hasErrors" />
-      <RouterLink to="/auth" class="w-full">
+      <NuxtLinkLocale to="/auth" class="w-full">
         <BButton class="min-w-full" type="ghost" :text="t('auth.register.back')" />
-      </RouterLink>
+      </NuxtLinkLocale>
     </div>
   </div>
 </template>
@@ -39,6 +39,7 @@ import { useI18n, useValidation } from '#imports';
 const router = useRouter()
 // State
 const { t } = useI18n();
+const localePath = useLocalePath()
 const { validatePassword, validateEmail } = useValidation();
 
 const isSending = ref(false);
@@ -115,7 +116,7 @@ const sendUserDetails = async () => {
     // Add your API call here
 
     // if successful call the line below :
-    router.push('/auth/identity')
+    router.push(localePath('/auth/identity'))
   } catch (error) {
     console.error(error);
   } finally {

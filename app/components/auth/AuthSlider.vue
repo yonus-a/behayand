@@ -88,11 +88,12 @@ import BImage from '~/components/global/BImage.vue';
 import loginImage from '/images/auth/login.webp';
 import verifyImage from '/images/auth/verify.webp';
 import profileImage from '/images/auth/profile.webp';
-
+import { useLocalePath } from '#imports';
 export default defineComponent({
     name: 'AuthSlider',
     components: { BImage },
     setup() {
+        const localePath = useLocalePath()
         const route = useRoute();
         const router = useRouter();
         const authStore = useAuthStore();
@@ -203,7 +204,7 @@ export default defineComponent({
 
         const testNavigation = (isNewUser: boolean, path: string) => {
             authStore.isRegistering = isNewUser;
-            router.push(path);
+            router.push(localePath(path));
         };
 
         return {

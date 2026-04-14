@@ -5,6 +5,7 @@ import { useRouter, useCookie, useValidation } from "#imports";
 export const useAuthStore = defineStore("auth", () => {
   const { toEnglishNumbers } = useValidation();
   const router = useRouter();
+  const localePath = useLocalePath();
 
   // Persistent state using cookies to survive page refreshes
   const token = useCookie("auth_token", { maxAge: 60 * 60 * 24 * 7 });
@@ -82,7 +83,7 @@ export const useAuthStore = defineStore("auth", () => {
     token.value = null;
     loginIdentifier.value = null;
     isRegistering.value = false;
-    router.push("/auth");
+    router.push(localePath("/auth"));
   };
 
   const resetLoginData = () => {
