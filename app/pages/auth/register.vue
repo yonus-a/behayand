@@ -3,15 +3,17 @@
     <BInput v-model="email.value" :color="email.color" :message="email.message" :title="t('auth.register.email')"
       :placeholder="t('auth.register.emailPlaceholder')" />
 
-    <BInput type="password" autocomplete="new-password" :title="t('auth.password.title')" newPassword
+    <BInput type="password" autocomplete="off" newPassword :title="t('auth.password.title')"
       :placeholder="t('auth.password.passwordPlaceholder')" v-model="password.value" :color="password.color"
       :message="password.message" />
 
-    <BInput type="password" autocomplete="new-password" :title="t('auth.password.repeatPassword')"
+    <input type="password" id="pass" name="password" minlength="8" required />
+
+    <BInput type="password" autocomplete="off" newPassword :title="t('auth.password.repeatPassword')"
       :placeholder="t('auth.password.repeatPasswordPlaceholder')" v-model="passwordRepeat.value"
       :color="passwordRepeat.color" :message="passwordRepeat.message" />
 
-    <BCheckBox v-model="agreeToTerms">
+    <BCheckBox :color="agreeToTerms.color" v-model="agreeToTerms.value">
       <i18n-t keypath="auth.register.termsOfService" tag="span" class="text-body-md text-on-surface">
         <template #link>
           <span class="text-primary font-bold cursor-pointer hover:underline decoration-primary/30">
@@ -44,7 +46,10 @@ const { validatePassword, validateEmail } = useValidation();
 const { openToast } = useAppToast();
 const isSending = ref(false);
 const hasErrors = ref(false);
-const agreeToTerms = ref(false);
+const agreeToTerms = ref({
+  value: false,
+  color: 'primary'
+});
 
 const email = ref({ value: '', color: 'primary', message: '' });
 const password = ref({ value: '', color: 'primary', message: '' });
@@ -96,8 +101,9 @@ const validateFields = () => {
   }
 
   // 4. Terms of Service Check
-  if (!agreeToTerms.value) {
+  if (!agreeToTerms.value.value) {
     console.log("[Validation] User has not agreed to terms.");
+    agreeToTerms.value.color = 'error'
     openToast(t('validation.agreeToTerms'), 'error');
     // Toast logic would go here
     hasErrors.value = true;
@@ -130,5 +136,5 @@ const sendUserDetails = async () => {
 watch(() => email.value.value, () => resetFieldState(email.value));
 watch(() => password.value.value, () => resetFieldState(password.value));
 watch(() => passwordRepeat.value.value, () => resetFieldState(passwordRepeat.value));
-watch(agreeToTerms, () => { hasErrors.value = false; });
+watch(() => agreeToTerms.value.value, () => { hasErrors.value = false; agreeToTerms.value.color = 'primary' });
 </script>

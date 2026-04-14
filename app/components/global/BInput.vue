@@ -3,7 +3,8 @@
 
         <div class=" text-label-sm mb-1.5 select-none text-on-surface">{{ title }}</div>
         <div :style="inputStyle" class="w-full relative">
-            <input v-if="!textarea" ref="inputField" :readonly="readonly" :maxlength="maxlength" :type="finalInputType"
+            <input v-if="!textarea" ref="inputField" :id="`b-input-${uniqueId}`" :name="`field-${uniqueId}`"
+                :readonly="readonly || (type === 'password' && !isFocus)" :maxlength="maxlength" :type="finalInputType"
                 v-model="inputValue" class="b-input" :class="[
                     {
                         'is-focused': isFocus,
@@ -15,7 +16,7 @@
                 :inputmode="type === 'phone' || type === 'number' ? 'numeric' : undefined" :placeholder="placeholder"
                 @keypress="handleKeypress" @keydown.enter="handleSubmit" @paste="handlePaste" @focus="handleFocus"
                 @blur="handleBlur" :disabled="disabled" />
-
+ <input autocomplete="false" name="hidden" type="text" style="display:none;">
 
             <textarea v-if="textarea" ref="inputField" :readonly="readonly" :maxlength="maxlength"
                 :type="finalInputType" v-model="inputValue" class="b-input b-input--textarea"
@@ -59,8 +60,7 @@
                 </div>
             </div>
         </div>
-        <PasswordQuality v-if="newPassword && type === 'password' && autocomplete === 'new-password'"
-            :new-password="modelValue" />
+        <PasswordQuality v-if="newPassword && type === 'password'" :new-password="modelValue" />
         <div v-if="caption.trim().length > 0" class="b-input-caption select-none">
             {{ caption }}
         </div>
@@ -81,6 +81,7 @@ import { useTemplateRef, type PropType, watch, computed, ref, onMounted, onUnmou
 import defaultCountries from '~/assets/data/countries.json';
 import BMenu from './BMenu.vue';
 import PasswordQuality from '../auth/PasswordQuality.vue';
+import { useId } from 'vue';
 interface MenuOption {
     title: string;
     key: string;
@@ -88,6 +89,8 @@ interface MenuOption {
     icon?: string;
     imageUrl?: string;
 }
+const uniqueId = useId();
+
 
 /* =========================================================================
    INPUT CONFIGURATION OBJECT (THE SINGLE SOURCE OF TRUTH)
@@ -336,8 +339,20 @@ const finalInputType = computed(() => {
 });
 
 const passwordIcon = computed(() => showPassword.value ? 'PhEyeSlash' : 'PhEye');
-const finalAutocomplete = computed(() => props.autocomplete === 'off' ? 'new-password' : (props.type === 'password' && props.autocomplete === '' ? 'password' : props.autocomplete));
+const finalAutocomplete = computed(() => {
+    // Browsers ignore "off". Passing an unrecognized string forces them to disable autofill completely.
+    if (props.autocomplete === 'off') return 'new-password';
 
+    // Respect explicit custom strings
+    if (props.autocomplete === 'new-password') return 'new-password';
+
+    // Default handling for password types when no specific autocomplete is provided
+    if (props.type === 'password' && (props.autocomplete === 'on' || props.autocomplete === '')) {
+        return props.newPassword ? 'new-password' : 'current-password';
+    }
+
+    return props.autocomplete;
+});
 const showMessage = ref(props.message.trim().length > 0);
 const displayedMessage = ref(props.message);
 const messageColor = computed(() => INPUT_CONFIG.variants(props.color).message);
