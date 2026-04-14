@@ -41,7 +41,7 @@ const router = useRouter()
 const { t } = useI18n();
 const localePath = useLocalePath()
 const { validatePassword, validateEmail } = useValidation();
-
+const { openToast } = useAppToast();
 const isSending = ref(false);
 const hasErrors = ref(false);
 const agreeToTerms = ref(false);
@@ -98,6 +98,7 @@ const validateFields = () => {
   // 4. Terms of Service Check
   if (!agreeToTerms.value) {
     console.log("[Validation] User has not agreed to terms.");
+    openToast(t('validation.agreeToTerms'), 'error');
     // Toast logic would go here
     hasErrors.value = true;
   }

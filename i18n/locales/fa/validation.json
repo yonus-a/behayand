@@ -28,7 +28,8 @@
     "invalid_year": "سال نامعتبر",
     "invalid_date": "تاریخ نامعتبر .",
     "future_date": "تاریخ نامعتبر .",
-    "too_old_date": "تاریخ نامعتبر ."
+    "too_old_date": "تاریخ نامعتبر .",
+    "agreeToTerms":"لطفا قوانین را مطالعه نموده و بپذیرید."
   },
   "addresses": {
     "errors": {
