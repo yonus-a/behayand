@@ -19,6 +19,7 @@
     "@tailwindcss/vite": "^4.2.2",
     "@tanstack/vue-virtual": "^3.13.23",
     "altcha": "^3.0.2",
+    "chart.js": "^4.5.1",
     "nuxt": "^4.4.2",
     "primevue": "^4.5.5",
     "tailwindcss": "^4.2.2",

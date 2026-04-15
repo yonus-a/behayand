@@ -18,7 +18,7 @@
                 class=" rounded-full w-6 h-4.5 text-white select-none bg-gradient-error flex justify-center items-center absolute z-10 ltr:left-0 rtl:right-0 top-0">
                 <div class=" text-label-sm">1</div>
             </div>
-            <BIcon icon="PhBell" class=" w-5 h-5 fill-on-surface/50" />
+            <BIcon icon="PhBell" class=" w-5 h-5  fill-primary" />
         </div>
         <div class=" w-10 aspect-square flex justify-center items-center">
             <div class=" cursor-pointer w-5 h-5 rounded-full overflow-hidden">

@@ -4,6 +4,46 @@
       "hello": "سلام {name}",
       "imBehno": "من بهنو هستم.",
       "text": "ما در هر ساعت از شبانه روز، هرجا و هر زمان که بخواهید درکنار شما هستیم."
+    },
+    "cards": {
+      "status": {
+        "bad": "ضعیف",
+        "medium": "متوسط",
+        "good": "خوب",
+        "great": "عالی"
+      },
+      "states": {
+        "all": "سلامت کلی",
+        "mental": {
+          "title": "سلامت روانی",
+          "fields": {
+            "stress": "اضطراب‌(استرس)",
+            "focus": "تمرکز",
+            "spiritualState": "حالات روحی",
+            "sleeplessness": "کم خوابی"
+          }
+        },
+        "physical": {
+          "title": "سلامت جسمی",
+          "fields": {
+            "bloodPressure": "فشار خون",
+            "bloodOxygen": "اکسیژن خون",
+            "bloodSugar": "قند خون",
+            "heartRate": "ضربان قلب"
+          }
+        },
+
+        "social": {
+          "title": "سلامت اجتماعی",
+          "fields": {
+            "support": "حمایت اجتماعی",
+            "interactions": "تعاملات اجتماعی",
+            "lifeMeaning": "معنای زندگی",
+            "calmness": "آرامش"
+          }
+        }
+      },
+      "total": "وضعیت کلی"
     }
   }
 }
