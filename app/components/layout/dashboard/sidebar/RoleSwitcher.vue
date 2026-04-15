@@ -1,5 +1,5 @@
 <template>
-    <div @click="toggleMenu" class=" px-2.5 py-3 select-none cursor-pointer flex items-center gap-x-2">
+    <div @click="toggleMenu" class=" px-2.5 py-3 h-17 select-none cursor-pointer flex items-center gap-x-2">
         <div class=" select-none cursor-pointer rounded-full overflow-hidden w-5 h-5">
             <div class=" w-full h-full rounded-full bg-primary"></div>
         </div>

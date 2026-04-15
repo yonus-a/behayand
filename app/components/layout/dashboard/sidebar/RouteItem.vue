@@ -32,7 +32,7 @@
 import { defineComponent, ref, computed, type PropType } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import type { NavSubItem } from '~/types/components/nav-sub-item';
-
+import { useLocalePath } from '#imports';
 export default defineComponent({
     name: 'RouteItem',
     props: {
@@ -46,6 +46,7 @@ export default defineComponent({
         }
     },
     setup(props) {
+        const localePath = useLocalePath()
         const router = useRouter();
         const route = useRoute();
         const isExpanded = ref(false);
@@ -69,7 +70,7 @@ export default defineComponent({
             if (hasChildren.value) {
                 isExpanded.value = !isExpanded.value;
             } else if (props.item.to && props.item.to !== '#') {
-                router.push(props.item.to);
+                router.push(localePath(props.item.to));
             }
         };
 

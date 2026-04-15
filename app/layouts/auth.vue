@@ -33,10 +33,10 @@ import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from '#imports';
 import backgroundImage from '/images/auth/auth-bg.webp';
-import AuthHeader from '@/components/auth/FormHeader.vue';
+import AuthHeader from '~/components/layout/auth/FormHeader.vue';
 import ThemeSwitch from '~/components/general/ThemeSwitch.vue';
 import LocaleSwitch from '~/components/general/LocaleSwitch.vue';
-import AuthSlider from '~/components/auth/AuthSlider.vue';
+import AuthSlider from '~/components/layout/auth/AuthSlider.vue';
 const authStore = useAuthStore()
 const { dir } = useLocale()
 const { t } = useI18n();

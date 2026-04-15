@@ -1,6 +1,6 @@
 <template>
     <div class="w-full h-full flex flex-col">
-        <div class="shrink-0 border-b border-surface-variant-2 w-full px-2.5 py-3">
+        <div class="shrink-0 border-b border-b-outline/50 w-full">
             <RoleSwitcher />
         </div>
 

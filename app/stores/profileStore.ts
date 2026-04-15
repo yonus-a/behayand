@@ -14,16 +14,16 @@ export const useProfileStore = defineStore("profile", () => {
 
   // 1. Initialize the Cookie
   // maxAge is set to 30 days
-  const chosenRoleCookie = useCookie<UserRoleKey>("auth_chosen_role", { 
+  const chosenRoleCookie = useCookie<UserRoleKey>("auth_chosen_role", {
     maxAge: 60 * 60 * 24 * 30,
-    path: '/' 
+    path: "/",
   });
 
   // --- State ---
   const isLoading = ref(false);
   const isLoaded = ref(false);
   const userRoles = ref<UserRoleKey[]>(["user"]);
-  
+
   // 2. Sync state with Cookie on initialization
   const chosenRole = ref<UserRoleKey>(chosenRoleCookie.value || "user");
 
@@ -32,6 +32,7 @@ export const useProfileStore = defineStore("profile", () => {
     lastName: "",
     nationality: "iranian",
     nationalId: "",
+    imageUrl: "",
     gender: "",
     birthDate: null as Date | null,
   });
@@ -46,11 +47,16 @@ export const useProfileStore = defineStore("profile", () => {
 
   // --- Getters ---
   const availableRoles = computed(() => {
-    return allRoleDetails.value.filter((role) => userRoles.value.includes(role.key));
+    return allRoleDetails.value.filter((role) =>
+      userRoles.value.includes(role.key),
+    );
   });
 
   const currentRole = computed(() => {
-    return allRoleDetails.value.find((role) => role.key === chosenRole.value) || allRoleDetails.value;
+    return (
+      allRoleDetails.value.find((role) => role.key === chosenRole.value) ||
+      allRoleDetails.value
+    );
   });
 
   const otherRoles = computed(() => {
@@ -61,24 +67,24 @@ export const useProfileStore = defineStore("profile", () => {
 
   /**
    * Switches the role, persists it to the cookie, and reloads the page.
-   * A hard reload ensures all layout-level logic and navigation guards 
+   * A hard reload ensures all layout-level logic and navigation guards
    * re-evaluate based on the new role.
    */
   const switchRole = (roleKey: UserRoleKey) => {
     if (!userRoles.value.includes(roleKey)) {
-        console.error(`Unauthorized role switch attempt: ${roleKey}`);
-        return;
+      console.error(`Unauthorized role switch attempt: ${roleKey}`);
+      return;
     }
 
     // Update Store
     chosenRole.value = roleKey;
-    
+
     // Update Cookie
     chosenRoleCookie.value = roleKey;
 
     // Refresh the page
     if (process.client) {
-        window.location.reload();
+      window.location.reload();
     }
   };
 
@@ -95,11 +101,12 @@ export const useProfileStore = defineStore("profile", () => {
         nationality: "iranian",
         nationalId: "1234567890",
         gender: "male",
+        imageUrl:'imageUrl',
         birthDate: new Date("1999-11-25T00:00:00Z"),
       };
-      
+
       // Assume backend returns these roles
-      userRoles.value = ["user", "business"]; 
+      userRoles.value = ["user", "business"];
       isLoaded.value = true;
     } catch (error) {
       console.error(error);
