@@ -12,7 +12,9 @@
             <div class=" basis-1/2">
                 <HealthScore />
             </div>
-
+        </div>
+        <div class=" grid grid-cols-3 gap-x-4">
+            
         </div>
     </div>
 </template>
