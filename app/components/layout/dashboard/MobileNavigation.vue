@@ -1,7 +1,7 @@
 <template>
     <Teleport to="body">
         <div
-            class=" fixed h-14 shadow-medium gap-x-2 bottom-0 left-0 w-dvw bg-surface z-50 px-3 flex items-center justify-between">
+            class=" fixed h-14 shadow-medium gap-x-2 bottom-0 left-0 w-dvw bg-surface z-50 lg:hidden px-3 flex items-center justify-between">
             <div @click="openRoute(route.route)" v-for="route in routes" :key="route.key">
                 <div v-if="route.label && route.label.trim().length > 0"
                     class=" h-14 aspect-square flex justify-center items-center cursor-pointer select-none">
