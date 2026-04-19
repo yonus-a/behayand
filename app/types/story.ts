@@ -4,4 +4,5 @@ export interface Story {
   mediaUrl: string;
   thumbnail: string;
   isRead: boolean;
+  type: "video" | "image";
 }

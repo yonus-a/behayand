@@ -24,7 +24,7 @@
                 </div>
             </div>
         </div>
-        <div class=" shrink-0 h-full flex items-center gap-x-2">
+        <div class=" shrink-0 h-full flex-row-reverse flex items-center gap-x-2">
             <StoryDisplay v-for="story in allStories" :key="story.id" :story="story" />
         </div>
     </div>

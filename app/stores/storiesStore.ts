@@ -10,6 +10,7 @@ export const useStoriesStore = defineStore("stories", () => {
       date: new Date(),
       mediaUrl: "",
       isRead: false,
+      type: "image",
     },
     {
       id: 1,
@@ -17,6 +18,7 @@ export const useStoriesStore = defineStore("stories", () => {
       date: new Date(),
       mediaUrl: "",
       isRead: false,
+      type: "video",
     },
     {
       id: 1,
@@ -24,6 +26,7 @@ export const useStoriesStore = defineStore("stories", () => {
       date: new Date(),
       mediaUrl: "",
       isRead: false,
+      type: "image",
     },
     {
       id: 1,
@@ -31,6 +34,7 @@ export const useStoriesStore = defineStore("stories", () => {
       date: new Date(),
       mediaUrl: "",
       isRead: true,
+      type: "video",
     },
   ]);
 
