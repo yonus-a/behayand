@@ -123,9 +123,9 @@ const activeColor = computed(() => {
 
 const activeGradient = computed(() => {
     const map = {
-        bad: 'var(--background-image-diamond-error)',
-        medium: 'var(--background-image-diamond-warning)',
-        good: 'var(--background-image-diamond-primary)',
+        bad: 'var(--background-image-diamond-primary-secondary)',
+        medium: 'var(--background-image-diamond-primary-secondary)',
+        good: 'var(--background-image-diamond-primary-secondary)',
         great: 'var(--background-image-diamond-primary-secondary)'
     };
     return map[healthState.value];
