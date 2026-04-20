@@ -1,5 +1,5 @@
 <template>
-    <div class=" bg-surface w-dvw h-dvh flex items-center">
+    <div class=" bg-surface w-dvw h-dvh overflow-hidden flex items-center">
         <div class=" lg:block hidden shrink-0 h-full">
             <SideBar />
         </div>

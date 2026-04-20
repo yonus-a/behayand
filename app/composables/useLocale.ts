@@ -30,14 +30,10 @@ export const useLocale = () => {
 
   // Updated currentCountry to include the native title
   const currentCountry = computed(() => {
-    const code = localeToCountryMap[locale.value] || "US";
-    const baseCountry = countries.find((c: any) => c.code.toUpperCase() === code) || 
-                        countries.find((c: any) => c.code === "IR");
-    
-    return {
-      ...baseCountry,
-      title: localeTitles[locale.value] || locale.value,
-    };
+    return (
+      languages.value.find((lang) => lang.code === locale.value) ||
+      languages.value
+    );
   });
 
   const flagUrl = computed(() => {
@@ -47,7 +43,9 @@ export const useLocale = () => {
   });
 
   const dir = computed(() => {
-    const currentLocaleObj = locales.value.find((l: any) => l.code === locale.value);
+    const currentLocaleObj = locales.value.find(
+      (l: any) => l.code === locale.value,
+    );
     return currentLocaleObj?.dir || "ltr";
   });
 
@@ -60,7 +58,7 @@ export const useLocale = () => {
 
   const switchLocale = async (newLocale: string) => {
     await setLocale(newLocale);
-    localStorage.setItem('user-locale', newLocale);
+    localStorage.setItem("user-locale", newLocale);
     window.location.reload();
   };
 

@@ -14,7 +14,18 @@
                     <CategoryItem :is-active="isRouteActive(category)" @click="setActiveCategory(category)"
                         :route-item="category" v-for="category in getCategories" :key="category.key" />
                 </div>
-                <SidebarLocaleSwitch />
+                <div class=" flex flex-col items-center gap-y-2">
+                    <div class=" w-10 h-10 flex justify-center items-center">
+                        <BIcon class=" w-5 h-5 fill-on-surface cursor-pointer" weight="bold" :icon="themeButtonIcon"
+                            @click="toggleTheme" />
+                    </div>
+                    <div class=" w-10 h-10 flex justify-center items-center">
+                        <NuxtLinkLocale to="/dashboard/settings">
+                            <BIcon class=" w-5 h-5 fill-on-surface cursor-pointer" weight="bold" icon="PhGear" />
+                        </NuxtLinkLocale>
+                    </div>
+                    <SidebarLocaleSwitch />
+                </div>
             </div>
         </div>
         <div class=" transition-all duration-300 ease-in-out overflow-hidden text-wrap whitespace-nowrap"
@@ -26,7 +37,6 @@
     </div>
 </template>
 <script lang="ts">
-import { useI18n } from '#imports';
 import { ref, defineComponent, onMounted } from '#imports';
 import logo from '/images/logo/logo.svg'
 import { useNavigation } from '#imports';
@@ -35,9 +45,8 @@ import RouteItem from './sidebar/RouteItem.vue';
 import { useRoute, useRouter } from 'vue-router';
 import SidebarLocaleSwitch from './sidebar/SidebarLocaleSwitch.vue';
 import type { NavItem } from '~/types/components/nav-item';
-import { V } from 'vue-router/dist/index-BzEKChPW.js';
 import RouteList from './sidebar/RouteList.vue';
-
+import { useTheme } from '#imports';
 export default defineComponent({
     name: 'Sidebar',
     components: {
@@ -47,11 +56,13 @@ export default defineComponent({
         RouteList,
     },
     setup() {
+        const { toggleTheme, colorMode } = useTheme()
         const route = useRoute()
         const router = useRouter()
         const isOpen = ref(false)
         const { getCategories, getRoutesByCategory } = useNavigation()
         const activeCategory = ref('')
+        const themeButtonIcon = computed(() => colorMode.value === 'light' ? 'PhMoon' : 'PhSun')
 
 
         onMounted(() => {
@@ -100,8 +111,10 @@ export default defineComponent({
             logo,
             isRouteActive,
             activeCategory,
+            toggleTheme,
             routeList,
             getCategories,
+            themeButtonIcon,
         }
     }
 })
