@@ -118,6 +118,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
     maxPages,
     fetchNotifications,
     loadNextPage,
+    hasNextPage,
     unreadCount,
     currentPage,
     displayedNotifications,

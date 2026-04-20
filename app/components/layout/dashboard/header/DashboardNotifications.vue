@@ -15,13 +15,15 @@
                 <BIcon @click="closeNotifications" icon="PhX" class=" cursor-pointer fill-on-surface/50 w-6 h-6" />
                 <div class=" select-none text-on-surface text-label-lg">{{ t('notifications.title') }}</div>
             </div>
-            <div class=" w-full overflow-y-auto flex-1" v-if="notificationCount > 0 || isLoading">
-                <NotificationDisplay :loading="isLoading" @click="handleNotificationClick(notification)"
-                    v-for="notification in notifications" :key="notification.id" :notification="notification" />
-            </div>
-            <div v-else class=" w-full flex-1 flex items-center justify-center">
-                <NoDataDisplay :image-path="NoData" :title="t('notifications.noNotifications')" />
-            </div>
+            <BVirtualVerticalList v-if="isLoading || notifications.length > 0" :items="notifications"
+                :loading="isLoading" :has-next-page="hasNextPage" @load-more="loadNextPage">
+                <template #item="{ item }">
+                    <NotificationDisplay :loading="isLoading && currentPage < 2" :notification="item"
+                        @click="handleNotificationClick(item)" />
+                </template>
+            </BVirtualVerticalList>
+
+            <NoDataDisplay v-else :image-path="NoData" :title="t('notifications.noNotifications')" />
             <div v-if="notificationCount > 0 || isLoading"
                 class=" w-full shrink-0 h-17 flex items-center justify-between border-t border-t-outline-variant px-5">
                 <BButton size="sm" @click="markAllAsRead" :loading="isMarkingAllAsRead" type="ghost"
@@ -32,7 +34,7 @@
     </BMenu>
 </template>
 <script lang="ts">
-import { defineComponent, computed, onMounted, useTemplateRef } from 'vue';
+import { defineComponent, computed, onMounted, watch } from 'vue';
 import { useNotificationsStore } from '#imports';
 import type { Menu } from '~/types/components/menu';
 import CardLink from '~/components/general/CardLink.vue';
@@ -59,6 +61,8 @@ export default defineComponent({
         const menuRef = ref<Menu | null>(null);
         const isMarkingAllAsRead = computed(() => notificationsStore.isMarkingAllAsRead)
         const { width } = useWindowWidth();
+        const hasNextPage = computed(() => notificationsStore.hasNextPage)
+        const currentPage = computed(() => notificationsStore.currentPage)
 
         // 2. Compute isMobile based on the shared width
         const isMobile = computed(() => width.value < 768);
@@ -69,6 +73,12 @@ export default defineComponent({
                 navigateTo(localePath('/dashboard/notifications'));
             }
         };
+
+        watch(() => width.value, () => {
+            if (width.value < 768) {
+                closeNotifications()
+            }
+        })
 
         const formatTime = (date: Date) => {
             return new Intl.DateTimeFormat('fa-IR', { hour: '2-digit', minute: '2-digit' }).format(date);
@@ -90,17 +100,22 @@ export default defineComponent({
 
 
         const handleNotificationClick = (notification: Notification) => {
-            if (isLoading.value) return
+            if (isLoading.value && currentPage.value === 1) return
             // use the notification details to handle the action
         }
 
 
+        const loadNextPage = () => {
+            notificationsStore.loadNextPage()
+        }
 
 
         return {
+            loadNextPage,
             formatTime,
             markAllAsRead,
             closeNotifications,
+            currentPage,
             unreadCount,
             notificationCount,
             t,
@@ -109,6 +124,7 @@ export default defineComponent({
             handleNotificationClick,
             menuRef,
             isLoading,
+            hasNextPage,
             NoData,
             handleTriggerClick,
         }
