@@ -1,0 +1,28 @@
+{
+  "chat": {
+    "title": "پیام ها",
+    "filters": {
+      "active": "فعال",
+      "ended": "خاتمه یافته",
+      "online": "آنلاین ها"
+    },
+    "lastSeen": "آخرین بازدید {time} {scale} پیش",
+    "nationalId": "کد ملی",
+    "age": "سن",
+    "ageText": "{years} سال",
+    "attachements": "پیوست ها",
+    "options": {
+      "end": "خاتمه",
+      "refer": "ارجاع",
+      "voiceCall": "تماس",
+      "videoCall": "تصویری"
+    },
+    "attachementTypes": {
+      "image": "عکس",
+      "file": "فایل",
+      "voice": "پیام صوتی"
+    },
+    "noConversationSelected": "هنوز مکالمه ای انتخاب نشده",
+    "noMessages": "هیچ پیامی تبادل نشده"
+  }
+}

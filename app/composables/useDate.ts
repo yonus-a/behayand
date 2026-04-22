@@ -367,6 +367,67 @@ export const useDate = () => {
     return localizeDigits(combined, lang);
   };
 
+  const formatRelativeDate = (dateInput: string | Date): string => {
+    const date = parseDate(dateInput);
+    const now = new Date();
+    const lang = getLang();
+
+    // Difference in seconds
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    // 1. Relative Minutes (less than 1 hour)
+    if (diffInSeconds < 3600 && diffInSeconds >= 0) {
+      const mins = Math.max(Math.floor(diffInSeconds / 60), 1);
+      return localizeDigits(
+        `${mins} ${dict[lang].min} ${dict[lang].ago}`,
+        lang,
+      );
+    }
+
+    // 2. Relative Hours (less than 24 hours AND same calendar day)
+    if (diffInSeconds < 86400 && date.toDateString() === now.toDateString()) {
+      const hrs = Math.floor(diffInSeconds / 3600);
+      return localizeDigits(`${hrs} ${dict[lang].hr} ${dict[lang].ago}`, lang);
+    }
+
+    // 3. Yesterday
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+      return dict[lang].yesterday;
+    }
+
+    // 4. Absolute Date (Current Year vs Previous Year)
+    let isCurrentYear = false;
+    let y, m, d;
+
+    if (lang === "fa") {
+      const [nowJy] = g2j(now.getFullYear(), now.getMonth() + 1, now.getDate());
+      const [jy, jm, jd] = g2j(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        date.getDate(),
+      );
+
+      isCurrentYear = jy === nowJy;
+      [y, m, d] = [
+        jy,
+        String(jm).padStart(2, "0"),
+        String(jd).padStart(2, "0"),
+      ];
+    } else {
+      isCurrentYear = date.getFullYear() === now.getFullYear();
+      [y, m, d] = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0"),
+      ];
+    }
+
+    const result = isCurrentYear ? `${m}/${d}` : `${y}/${m}/${d}`;
+    return localizeDigits(result, lang);
+  };
+
   return {
     parseDate,
     formatDate,
@@ -378,5 +439,6 @@ export const useDate = () => {
     g2j,
     j2g,
     getRelativeTime: (d: any) => formatDate(d, { useRelativeDay: true }),
+    formatRelativeDate,
   };
 };

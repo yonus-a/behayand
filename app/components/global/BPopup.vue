@@ -51,7 +51,7 @@
 <script lang="ts">
 import { ref, defineComponent, watch, computed, onUnmounted } from 'vue';
 import type { Popup } from '~/types/components/popup';
-import { useWindowWidth } from '~/composables/useWindowWidth'
+import { useWindowWidth } from '~/composables/useWindowSize'
 export default defineComponent({
     name: 'ThePopup',
     emits: ['closed', 'close'],

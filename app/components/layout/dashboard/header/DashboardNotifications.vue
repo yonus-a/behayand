@@ -91,7 +91,9 @@ export default defineComponent({
         const isLoading = computed(() => notificationsStore.isLoading);
 
         onMounted(() => {
-            notificationsStore.fetchNotifications();
+            if (!notificationsStore.hasLoadedFirstPage) {
+                notificationsStore.fetchNotifications();
+            }
         });
 
         const markAllAsRead = () => {

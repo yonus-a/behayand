@@ -1,15 +1,22 @@
 <template>
     <div>
-        <div :class="[
-            'relative inline-flex items-center justify-center select-none rounded-full transition-all duration-200',
+        <div @click="emit('click')" :class="[
+            'relative inline-flex items-center justify-center select-none rounded-full transition-all duration-200 ease-in-out',
             sizeClasses,
             colorClasses,
             paddingClasses,
             { 'border-gradient-active': type === 'bold' || (type === 'outline' && hasGradient) }
         ]" :style="styleOverrides">
-            <BIcon v-if="icon" :icon="icon" :class="['shrink-0 z-10', iconSizeClass, { 'rtl:ml-0 ltr:mr-0': !text }]"
-                :style="{ order: isRtl ? 2 : 1 }" />
-            <span v-if="text" :class="['z-10 truncate', textSizeClass]"
+
+            <Transition name="icon-expand">
+                <div v-if="icon"
+                    :class="['shrink-0 z-10 flex items-center justify-center overflow-hidden', iconSizeClass, { 'rtl:ml-0 ltr:mr-0': !text }]"
+                    :style="{ order: isRtl ? 2 : 1 }">
+                    <BIcon @click.stop="emit('action')" :icon="icon" class="w-full h-full" />
+                </div>
+            </Transition>
+
+            <span v-if="text" :class="['z-10 truncate transition-all duration-200 ease-in-out', textSizeClass]"
                 :style="{ order: isRtl ? 1 : 2, marginInlineStart: icon ? gapSize : '0' }">
                 {{ text }}
             </span>
@@ -48,6 +55,7 @@ const props = defineProps({
 const { dir } = useLocale();
 const isRtl = computed(() => dir.value === 'rtl');
 
+const emit = defineEmits(['click', 'action']);
 // --- Sizing Logic ---
 const sizeClasses = computed(() => {
     switch (props.size) {
@@ -58,6 +66,7 @@ const sizeClasses = computed(() => {
     }
 });
 
+// Used on the wrapper now to control the animated width
 const iconSizeClass = computed(() => {
     switch (props.size) {
         case 'sm': return 'w-4 h-4'; // 16px
@@ -151,6 +160,10 @@ const styleOverrides = computed(() => {
         '--label-gradient': gradients[props.color] || gradients.primary
     };
 });
+
+const iconClicked = () => {
+    emit('action')
+}
 </script>
 
 <style scoped>
@@ -158,7 +171,6 @@ const styleOverrides = computed(() => {
 .border-gradient-active {
     position: relative;
     border: none !important;
-    /* Remove standard border if gradient is active */
 }
 
 .border-gradient-active::after {
@@ -166,13 +178,26 @@ const styleOverrides = computed(() => {
     position: absolute;
     inset: 0;
     border-radius: 9999px;
-    /* rounded-full */
     padding: 1px;
-    /* border-width */
     background: var(--label-gradient);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
+}
+
+/* 3. Icon Animation Classes */
+.icon-expand-enter-active,
+.icon-expand-leave-active {
+    /* Synchronize with the 200ms duration of the text span and container */
+    transition: width 200ms ease-in-out, opacity 200ms ease-in-out, transform 200ms ease-in-out;
+}
+
+.icon-expand-enter-from,
+.icon-expand-leave-to {
+    /* Shrink the width to 0, fade out, and slightly scale down */
+    width: 0 !important;
+    opacity: 0;
+    transform: scale(0.5);
 }
 </style>

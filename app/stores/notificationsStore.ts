@@ -7,6 +7,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
   const isLoading = ref(false);
   const notifications = ref<Notification[]>([]);
   const isMarkingAllAsRead = ref(false);
+  const hasLoadedFirstPage = ref(false);
 
   // --- Pagination State ---
   const itemsPerPage = ref(10);
@@ -41,6 +42,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
 
   // 3. Loading Simulation Function
   const fetchNotifications = async (page: number = 1) => {
+    hasLoadedFirstPage.value = true;
     if (isLoading.value) return;
 
     isLoading.value = true;
@@ -118,6 +120,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
     maxPages,
     fetchNotifications,
     loadNextPage,
+    hasLoadedFirstPage,
     hasNextPage,
     unreadCount,
     currentPage,

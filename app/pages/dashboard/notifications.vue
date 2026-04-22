@@ -67,7 +67,9 @@ export default defineComponent({
         };
 
         onMounted(() => {
-            notificationsStore.fetchNotifications(1);
+            if (!notificationsStore.hasLoadedFirstPage) {
+                notificationsStore.fetchNotifications(1);
+            }
         });
 
         return {
