@@ -1,5 +1,5 @@
 <template>
-    <div class=" h-full shrink-0 flex ">
+    <div class=" shadow-floating relative z-10 h-full shrink-0 flex ">
         <div class=" h-full transition-all duration-200 shadow-floating ease-in-out w-18 flex flex-col"
            >
             <div class=" shrink-0 w-full aspect-square flex items-center justify-center">

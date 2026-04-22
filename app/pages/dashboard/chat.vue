@@ -3,8 +3,9 @@
         <div class="h-full flex-1 relative">
             <NuxtPage />
         </div>
-        
+
         <div class="w-80 h-full shrink-0 border-l border-outline-variant">
+            <ChatList />
         </div>
     </div>
 </template>
@@ -13,13 +14,15 @@
 import { defineComponent } from 'vue';
 import { useI18n, useSeoMeta } from '#imports';
 import ChatList from '~/components/chat/ChatList.vue';
-
 definePageMeta({
     layout: 'dashboard' // Keeps your Sidebar perfectly intact
 })
 
 export default defineComponent({
     name: 'ChatWrapper',
+    components: {
+        ChatList,
+    },
     setup() {
         const { t } = useI18n()
 

@@ -43,7 +43,7 @@ import NotificationDisplay from './NotificationDisplay.vue';
 import type { Notification } from '~/types/notification';
 import NoData from '/images/dashboard/no-notifications.webp'
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
-import { useWindowWidth } from '#imports';
+import { useWindowSize } from '#imports';
 export default defineComponent({
     name: 'DashboardNotifications',
     components: {
@@ -60,7 +60,7 @@ export default defineComponent({
         const notificationCount = computed(() => notifications.value.length)
         const menuRef = ref<Menu | null>(null);
         const isMarkingAllAsRead = computed(() => notificationsStore.isMarkingAllAsRead)
-        const { width } = useWindowWidth();
+        const { width } = useWindowSize();
         const hasNextPage = computed(() => notificationsStore.hasNextPage)
         const currentPage = computed(() => notificationsStore.currentPage)
 

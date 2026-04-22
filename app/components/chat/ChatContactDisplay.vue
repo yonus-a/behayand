@@ -3,7 +3,8 @@
         class="rounded-xl w-full transition-all duration-200 ease-in-out cursor-pointer p-2.5 flex justify-between gap-x-3 items-center h-19">
 
         <div class="relative shrink-0 h-11 w-11">
-            <BImage class="min-w-full min-h-full max-w-full rounded-full overflow-hidden max-h-full h-full w-full"
+            <BImage v-loading="isLoading"
+                class="min-w-full min-h-full max-w-full rounded-full overflow-hidden max-h-full h-full w-full"
                 :src="contact.imageUrl" />
             <div v-if="contact.isOnline"
                 class="absolute right-0 bottom-0 bg-primary rounded-full w-2.5 h-2.5 border-2 border-surface"></div>
@@ -11,9 +12,9 @@
 
         <div class="select-none flex-1 overflow-hidden">
             <div class="w-full flex items-center justify-between">
-                <div class="text-label-md text-on-surface truncate">{{ contact.name }} {{ contact.lastName }}</div>
+                <div class="text-label-md text-on-surface min-w-20 truncate" v-loading="isLoading">{{ contact.name }} {{ contact.lastName }}</div>
                 <div v-if="contact.lastMessage" class="flex gap-x-1.5 items-center shrink-0">
-                    <div class="text-on-surface/50 text-[11px]">{{ formatRelativeDate(contact.lastMessage.date) }}</div>
+                    <div v-loading="isLoading" class="text-on-surface/50 text-[11px]">{{ formatRelativeDate(contact.lastMessage.date) }}</div>
                     <BIcon v-if="lastMessageIcon.icon !== ''" :icon="lastMessageIcon.icon"
                         :class="lastMessageIcon.color" class="w-4 h-4" />
                 </div>
@@ -24,13 +25,14 @@
                     <BIcon v-if="attachmentIcon && contact.lastMessage" weight="bold" :icon="attachmentIcon"
                         class="w-4 h-4 fill-primary shrink-0" />
 
-                    <div v-if="contact.lastMessage" :class="['max-w-full truncate text-body-sm transition-colors', lastMessageColor]">
+                    <div v-loading="isLoading" v-if="contact.lastMessage"
+                        :class="['max-w-full truncate text-body-sm transition-colors', lastMessageColor]">
                         {{ lastMessageText }}
                     </div>
                 </div>
 
                 <div class="h-full flex items-center shrink-0 ms-2">
-                    <div v-if="contact.unreadCount > 0"
+                    <div v-loading="isLoading" v-if="contact.unreadCount > 0"
                         class="rounded-full justify-center min-w-6 px-1.5 h-5 flex bg-gradient-error items-center select-none">
                         <div dir="ltr" class="text-white text-[10px] font-bold text-center">
                             {{ contact.unreadCount > 99 ? '+99' : contact.unreadCount }}
@@ -131,6 +133,8 @@ export default defineComponent({
             return 'text-on-surface/50';
         });
 
+        const isLoading = computed(() => props.loading)
+
         return {
             lastMessageIcon,
             attachmentIcon,
@@ -138,6 +142,7 @@ export default defineComponent({
             openChat,
             formatRelativeDate,
             lastMessageText,
+            isLoading,
             lastMessageColor,
             t
         }

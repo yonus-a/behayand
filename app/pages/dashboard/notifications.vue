@@ -28,7 +28,7 @@ import { useNotificationsStore } from '#imports';
 import { useRouter } from 'vue-router';
 import type { Notification } from '~/types/notification';
 import NotificationDisplay from '~/components/layout/dashboard/header/NotificationDisplay.vue';
-import { useWindowWidth } from '#imports';
+import { useWindowSize } from '#imports';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
 import NoData from '/images/dashboard/no-notifications.webp'
 
@@ -43,7 +43,7 @@ export default defineComponent({
         const router = useRouter();
         const { t } = useI18n();
         const notificationsStore = useNotificationsStore();
-        const { width } = useWindowWidth()
+        const { width } = useWindowSize()
 
         watch(() => width.value, () => {
             if (width.value > 768) {

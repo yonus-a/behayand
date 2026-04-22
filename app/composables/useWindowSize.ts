@@ -1,3 +1,4 @@
+// app/composables/.ts
 import { ref, onMounted, onUnmounted } from 'vue';
 
 export const useWindowSize = () => {

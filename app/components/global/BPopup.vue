@@ -51,7 +51,7 @@
 <script lang="ts">
 import { ref, defineComponent, watch, computed, onUnmounted } from 'vue';
 import type { Popup } from '~/types/components/popup';
-import { useWindowWidth } from '~/composables/useWindowSize'
+import { useWindowSize } from '~/composables/useWindowSize'
 export default defineComponent({
     name: 'ThePopup',
     emits: ['closed', 'close'],
@@ -71,7 +71,7 @@ export default defineComponent({
     },
     setup(_, { emit, expose }) {
         const isOpen = ref(false);
-        const { width } = useWindowWidth();
+        const { width } = useWindowSize();
         const isMobile = computed(() => width.value < 768);
 
         const isDragging = ref(false);

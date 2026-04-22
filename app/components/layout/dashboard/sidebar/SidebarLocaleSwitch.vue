@@ -45,7 +45,6 @@ export default defineComponent({
         return {
             switchLocale,
             isSelected,
-            isSelected,
             handleLocaleSwitch,
             currentCountry,
             languages,

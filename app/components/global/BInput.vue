@@ -80,7 +80,6 @@
 <script setup lang="ts">
 import { useTemplateRef, type PropType, watch, computed, ref, onMounted, onUnmounted } from 'vue';
 import defaultCountries from '~/assets/data/countries.json';
-import BMenu from './BMenu.vue';
 import PasswordQuality from '../auth/PasswordQuality.vue';
 import { useId } from 'vue';
 interface MenuOption {

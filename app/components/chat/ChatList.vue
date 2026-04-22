@@ -3,37 +3,45 @@
         <ChatListSearch v-model="searchText" />
 
         <div class="flex-1 w-full flex flex-col overflow-hidden">
+
             <div class="w-full shrink-0 px-5 py-2 flex items-center gap-x-2">
                 <BLabel class="cursor-pointer" size="lg" :text="filter.label" @action="setFilter('')"
                     :color="filterProps(filter.key).color" v-for="filter in filters"
                     :icon="filterProps(filter.key).icon" :key="filter.key" @click="setFilter(filter.key)" />
             </div>
 
-            <div class="w-full flex-1 p-2.5">
+            <div v-if="currentState.loading || chats.length > 0"
+                class="w-full flex-1 px-2.5 py-2.5 overflow-hidden relative">
                 <BVirtualVerticalList ref="listRef" :items="chats" :loading="currentState.loading"
-                    :has-next-page="currentState.hasNextPage" @load-more="chatStore.loadNextPage(activeFilter)">
+                    :has-next-page="currentState.hasNextPage" @load-more="chatStore.loadNextPage(activeFilter)"
+                    class="h-full w-full">
                     <template #item="{ item }">
                         <ChatContactDisplay :contact="item"
-                            :loading="currentState.loading && currentState.page === 1" />
+                            :loading="currentState.loading && currentState.page === 0" />
                     </template>
                 </BVirtualVerticalList>
+            </div>
+            <div v-else class=" w-full flex-1 flex items-center justify-center">
+                <NoDataDisplay :image-path="NoData" :title="t('chat.noMessages')" />
             </div>
         </div>
     </div>
 </template>
-
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch } from 'vue';
-import { useChatStore, useI18n } from '#imports';
+import { computed, defineComponent, onMounted } from 'vue';
+import { useChatStore } from '#imports';
+import { useI18n } from '#imports';
 import type { ChatFilter, FilterKeys } from '~/types/chat';
 import ChatContactDisplay from './ChatContactDisplay.vue';
 import ChatListSearch from './ChatListSearch.vue';
-
+import NoDataDisplay from '../general/NoDataDisplay.vue';
+import NoData from '/images/dashboard/no-contacts.webp'
 export default defineComponent({
     name: 'ChatList',
     components: {
         ChatContactDisplay,
         ChatListSearch,
+        NoDataDisplay,
     },
     setup() {
         const { t } = useI18n();
@@ -43,6 +51,8 @@ export default defineComponent({
         const listRef = ref(null);
 
         const currentState = computed(() => chatStore.conversationStates[activeFilter.value]);
+        const isLoading = computed(() => chatStore.conversationStates[activeFilter.value].loading)
+        const currentPage = computed(() => chatStore.conversationStates[activeFilter.value].page)
         const chats = computed(() => chatStore.getDisplayedContacts(activeFilter.value));
 
         const filters = computed<ChatFilter[]>(() => [
@@ -78,6 +88,23 @@ export default defineComponent({
                 : { color: 'neutral', icon: '' };
         };
 
+        let searchTimeout: any = null;
+
+        watch(searchText, (newQuery) => {
+            // Clear the pending search every time a new letter is typed
+            if (searchTimeout) clearTimeout(searchTimeout);
+
+            // Only trigger after 500ms of "silence"
+            searchTimeout = setTimeout(() => {
+                // Reset to page 1 and pass the search query
+                chatStore.fetchConversations(activeFilter.value, 1, newQuery);
+
+                // Optional: Scroll the virtual list back to top for new results
+                const scrollEl = listRef.value?.$el;
+                if (scrollEl) scrollEl.scrollTop = 0;
+            }, 500);
+        });
+
         return {
             setFilter,
             t,
@@ -88,7 +115,10 @@ export default defineComponent({
             currentState,
             searchText,
             listRef,
-            chatStore
+            chatStore,
+            currentPage,
+            NoData,
+            isLoading,
         };
     }
 })

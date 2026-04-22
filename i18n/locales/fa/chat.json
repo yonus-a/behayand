@@ -6,7 +6,7 @@
       "ended": "خاتمه یافته",
       "online": "آنلاین ها"
     },
-    "lastSeen": "آخرین بازدید {time} {scale} پیش",
+    "lastSeen": "آخرین بازدید {time}",
     "nationalId": "کد ملی",
     "age": "سن",
     "ageText": "{years} سال",
@@ -22,6 +22,15 @@
       "file": "فایل",
       "voice": "پیام صوتی"
     },
+    "barOptions": {
+      "prescribeMedications": "تجویز نسخه",
+      "addPerson": "افزودن شخص",
+      "refer": "ارجاع",
+      "endChat": "خاتمه مکالمه",
+      "deleteMessages": "حذف پیام ها"
+    },
+    "placeholder":"بنویسید ...",
+    "chatLocked":"گفتگو تمام شده",
     "noConversationSelected": "هنوز مکالمه ای انتخاب نشده",
     "noMessages": "هیچ پیامی تبادل نشده"
   }
