@@ -69,29 +69,39 @@ export const useChatStore = defineStore("chat", () => {
 
     const largePool: Contact[] = [];
     for (let i = 0; i < 70; i++) {
-      const template = basePool[i % basePool.length];
-      const uniqueId = i + 1;
-      const messageDate = new Date(
-        now.getTime() - Math.floor(Math.random() * 10000) * 60000,
-      );
+const template = basePool[i % basePool.length];
+    const uniqueId = i + 1;
+    const messageDate = new Date(now.getTime() - Math.floor(Math.random() * 10000) * 60000);
 
-      // 2. Explicitly map all required fields to satisfy the Contact type
-      largePool.push({
-        ...template,
-        id: uniqueId,
-        name: `${template.name} ${uniqueId}`,
-        lastName: template.lastName, // Explicitly assigned
-        serviceType: template.serviceType || "chat",
-        lastMessage: template.lastMessage
-          ? {
-              ...template.lastMessage,
-              id: 10000 + uniqueId,
-              conversationId: uniqueId,
-              date: messageDate,
-            }
-          : undefined,
-      });
-    }
+    // Explicitly mapping every property to satisfy the strict Contact type
+    // and bypass the spread operator inference bug causing the 500 error.
+    largePool.push({
+      id: uniqueId,
+      name: `${template.name} ${uniqueId}`,
+      lastName: template.lastName,
+      isOnline: template.isOnline,
+      lastSeen: template.lastSeen,
+      imageUrl: template.imageUrl,
+      isActive: template.isActive,
+      unreadCount: template.unreadCount,
+      serviceType: template.serviceType,
+      lastMessage: template.lastMessage
+        ? {
+            id: 10000 + uniqueId,
+            conversationId: uniqueId,
+            date: messageDate,
+            type: template.lastMessage.type,
+            text: template.lastMessage.text,
+            imageUrl: template.lastMessage.imageUrl,
+            fileUrl: template.lastMessage.fileUrl,
+            voiceUrl: template.lastMessage.voiceUrl,
+            isEdited: template.lastMessage.isEdited,
+            senderId: template.lastMessage.senderId,
+            isSent: template.lastMessage.isSent,
+            isRead: template.lastMessage.isRead,
+          }
+        : undefined,
+    });
 
     let filtered = largePool;
     if (filter === "online") filtered = largePool.filter((c) => c.isOnline);

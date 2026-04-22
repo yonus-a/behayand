@@ -5,7 +5,6 @@
         </div>
         
         <div class="w-80 h-full shrink-0 border-l border-outline-variant">
-            <ChatList />
         </div>
     </div>
 </template>
@@ -21,7 +20,6 @@ definePageMeta({
 
 export default defineComponent({
     name: 'ChatWrapper',
-    components: { ChatList },
     setup() {
         const { t } = useI18n()
 
