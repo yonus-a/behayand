@@ -35,7 +35,7 @@
 <script lang="ts">
 import { defineComponent, computed, onMounted } from 'vue';
 import { useI18n, useNotificationsStore, useWindowSize, useLocalePath } from '#imports';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import NotificationDisplay from '~/components/layout/dashboard/header/NotificationDisplay.vue';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
 import NoData from '/images/dashboard/no-notifications.webp'
@@ -55,6 +55,7 @@ export default defineComponent({
     },
     setup() {
         const router = useRouter();
+        const route = useRoute()
         const localePath = useLocalePath();
         const { t } = useI18n();
         const { width } = useWindowSize();
@@ -69,8 +70,15 @@ export default defineComponent({
 
         // 2. Writable Computed for Pagination (Cleanest Practice)
         const desktopCurrentPage = computed({
-            get: () => notificationsStore.currentPage,
-            set: (val) => notificationsStore.fetchNotifications(val)
+            get: () => {
+                const queryPage = route.query.page;
+                return queryPage ? parseInt(queryPage as string) : 1;
+            },
+            set: (val) => {
+                router.push({
+                    query: { ...route.query, page: val.toString() }
+                });
+            }
         });
 
         // 3. Dynamic Notifications Source
@@ -102,6 +110,13 @@ export default defineComponent({
             // The Pinia store "Circuit Breaker" handles whether it actually hits the API.
             notificationsStore.fetchNotifications(1);
         });
+
+        watch(() => route.query.page, (newPage) => {
+            if (!isMobile.value) {
+                const page = newPage ? parseInt(newPage as string) : 1;
+                notificationsStore.fetchNotifications(page);
+            }
+        }, { immediate: true });
 
         return {
             t,
