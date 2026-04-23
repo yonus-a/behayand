@@ -1,5 +1,10 @@
 <template>
-    <div>Hello</div>
+    <div class=" w-full h-full">
+        <div v-if="hasNotificationToDisplay">Hello</div>
+        <div v-else class=" w-full h-full flex items-center justify-center">
+            <NoDataDisplay />
+        </div>
+    </div>
 </template>
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';

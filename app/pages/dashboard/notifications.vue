@@ -8,14 +8,18 @@
                     <BButton size="sm" @click="markAllAsRead" :loading="isMarkingAllAsRead" type="ghost"
                         :text="t('sidebar.readAll')" right-icon="PhChecks" />
                 </div>
-                <BVirtualVerticalList :pagination="isMobile" scrollbar v-if="notifications.length > 0 || isLoading"
-                    :items="notifications" :loading="isLoading" :has-next-page="hasNextPage"
-                    @load-more="notificationsStore.loadNextPage">
-                    <template #item="{ item }">
-                        <NotificationDisplay :loading="showLoading" :notification="item"
-                            @click="handleNotificationClick(item)" />
-                    </template>
-                </BVirtualVerticalList>
+                <div v-if="notifications.length > 0 || isLoading" class=" w-full flex-1">
+                    <div class=" max-h-full">
+                        <BVirtualVerticalList :pagination="isMobile" :scrollbar="!isMobile" :items="notifications"
+                            :loading="showLoading" :has-next-page="hasNextPage"
+                            @load-more="notificationsStore.loadNextPage">
+                            <template #item="{ item }">
+                                <NotificationDisplay :loading="showLoading" :notification="item"
+                                    @click="handleNotificationClick(item)" />
+                            </template>
+                        </BVirtualVerticalList>
+                    </div>
+                </div>
                 <div v-else class="h-full w-full flex items-center justify-center">
                     <NoDataDisplay :image-path="NoData" :title="t('notifications.noNotifications')" />
                 </div>
@@ -64,7 +68,7 @@ export default defineComponent({
         const desktopNotifications = ref<Notification[]>([])
         const isLoadingDesktopNotifications = ref(true)
 
-        
+
         // Store Bindings
 
         const isLoading = computed(() => {
@@ -103,7 +107,11 @@ export default defineComponent({
 
         onMounted(() => {
             if (!notificationsStore.hasLoadedFirstPage) {
-                notificationsStore.fetchNotifications(1);
+                if (!isMobile.value) {
+                    fetchDesktopNotifications()
+                } else {
+                    notificationsStore.fetchNotifications(1);
+                }
             }
         });
 
@@ -134,7 +142,6 @@ export default defineComponent({
         return {
             t,
             goBack,
-            isLoading,
             notifications,
             hasNextPage,
             notificationsStore,
@@ -144,6 +151,7 @@ export default defineComponent({
             currentPage,
             markAllAsRead,
             isMarkingAllAsRead,
+            isLoading,
             desktopCurrentPage,
             maxPages,
             isMobile,

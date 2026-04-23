@@ -1,6 +1,6 @@
 <template>
     <div class=" cursor-pointer py-4 px-5 w-full  transition-all select-none flex flex-col gap-y-2 duration-200 ease-in-out"
-        :class="[notification.isRead ? ' bg-surface-variant' : ' bg-surface-variant/0']">
+        :class="[!notification.isRead ? ' bg-surface-variant' : ' bg-surface-variant/0']">
         <div class=" flex items-center select-none text-on-surface/50 shrink-0 text-body-sm gap-x-2">
             <div class=" flex items-center gap-x-1">
                 <BIcon v-loading="isLoading" class=" w-4.5 h-4.5" icon="PhClock" />
@@ -15,7 +15,7 @@
         <p v-loading="isLoading" class=" w-full text-on-surface text-body-sm shrink-0 text-justify select-none">
             {{ notification.description }}
         </p>
-        <div v-show="notification.isRead" class=" w-full flex justify-end items-end flex-1">
+        <div v-show="!notification.isRead" class=" w-full flex justify-end items-end flex-1">
             <div 
                 class=" text-primary select-none text-label-sm flex items-center justify-center gap-x-1">
                 <div v-loading="isLoading">{{ t('notifications.seen') }}</div>
