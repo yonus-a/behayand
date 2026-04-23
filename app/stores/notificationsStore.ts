@@ -18,13 +18,13 @@ export const useNotificationsStore = defineStore("notifications", () => {
   const hasNextPage = computed(() => currentPage.value < maxPages.value);
 
   const mockNotification: Notification = {
-    id: 0,
-    title: "در حال بارگذاری...",
-    description: "لطفا شکیبا باشید...",
+    id: 1,
+    title: "در حال بارگذاری",
+    description: "لطفا صبر کنید",
     date: new Date(),
     isRead: false,
     tag: "request",
-    path: "#",
+    path: "",
   };
 
   const generateMockData = (page: number): Notification[] => {
@@ -131,6 +131,32 @@ export const useNotificationsStore = defineStore("notifications", () => {
     return unreadNotifications.length;
   });
 
+  const fetchNotificationById = async (id: number) => {
+    // Return existing if found
+    const existing = notifications.value.find((n) => n.id === id);
+    if (existing) return existing;
+
+    try {
+      // Mock API Call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const mock: Notification = {
+        id,
+        title: `اطلاعیه شماره ${id}`,
+        description: "این متن از دیتابیس واکشی شده است.",
+        date: new Date(),
+        isRead: true,
+        tag: "request",
+        path: "#",
+      };
+
+      notifications.value.push(mock);
+      return mock;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
   return {
     markAllAsRead,
     isMarkingAllAsRead,
@@ -142,6 +168,8 @@ export const useNotificationsStore = defineStore("notifications", () => {
     hasLoadedFirstPage,
     hasNextPage,
     unreadCount,
+    fetchNotificationById,
+    mockNotification,
     currentPage,
     getDesktopPageItems,
     displayedNotifications,

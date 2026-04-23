@@ -1,6 +1,7 @@
 {
   "notifications": {
     "title": "اعلانات",
+    "detailsTitle": "اعلان",
     "types": {
       "request": "درخواست",
       "wallet": "کیف پول",
@@ -9,7 +10,7 @@
     },
     "time": "تاریخ",
     "subject": "موضوع",
-    "seen":"خوانده شده",
-    "noNotifications":"هیچ اعلانی ندارید."
+    "seen": "خوانده شده",
+    "noNotifications": "هیچ اعلانی ندارید."
   }
 }

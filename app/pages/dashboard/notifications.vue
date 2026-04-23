@@ -1,13 +1,13 @@
 <template>
     <div class=" w-full h-full flex items-stretch center gap-x-6">
-        <div class="flex flex-col h-full basis-full md:basis-1/2 min-w-0">
+        <div v-if="!isMobile || !hasNotificationToDisplay" class="flex flex-col h-full basis-full md:basis-1/2 min-w-0">
             <div class="w-full flex-1 flex flex-col overflow-hidden md:border md:rounded-xl md:border-outline-variant">
 
                 <div
                     class="select-none md:flex hidden bg-surface border-b border-b-outline-variant items-center justify-between p-5">
                     <div class="text-on-surface text-label-lg">{{ t('notifications.title') }}</div>
-                    <BButton size="sm" @click="markAllAsRead" :loading="isMarkingAllAsRead" type="ghost"
-                        :text="t('sidebar.readAll')" right-icon="PhChecks" />
+                    <BButton :disabled="unreadCount === 0" size="sm" @click="markAllAsRead"
+                        :loading="isMarkingAllAsRead" type="ghost" :text="t('sidebar.readAll')" right-icon="PhChecks" />
                 </div>
 
                 <div v-if="notifications.length > 0 || isLoading" class="w-full flex-1 overflow-hidden relative">
@@ -15,8 +15,8 @@
                         :items="notifications" :loading="showLoading" :has-next-page="hasNextPage"
                         @load-more="notificationsStore.loadNextPage">
                         <template #item="{ item }">
-                            <NotificationDisplay :loading="showLoading" :notification="item"
-                                @click="handleNotificationClick(item)" />
+                            <NotificationDisplay :active="Number($route.params.id) === item.id" :loading="showLoading"
+                                :notification="item" @click="handleNotificationClick(item)" />
                         </template>
                     </BVirtualVerticalList>
                 </div>
@@ -25,9 +25,10 @@
                 <BPagination v-model="desktopCurrentPage" :max-pages="maxPages" />
             </div>
         </div>
-        <div class=" p-4 h-full md:block hidden md:basis-1/2 bg-surface-variant rounded-3xl">
+        <div :class="[!isMobile || !hasNotificationToDisplay ? 'md:block hidden md:basis-1/2' : ' basis-full block']"
+            class=" p-3 md:p-4 h-full  md:bg-surface-variant md:rounded-3xl">
             <NuxtPage v-slot="{ Component }">
-                <component :is="Component" />
+                <component :can-show="hasNotificationToDisplay" :is="Component" />
             </NuxtPage>
         </div>
     </div>
@@ -44,7 +45,7 @@ definePageMeta({
     layout: 'responsive',
     layoutTransition: false,
     headerTitle: 'notifications.title',
-    backPath: '/dashboard'
+    backPath: '/dashboard',
 });
 
 export default defineComponent({
@@ -60,6 +61,7 @@ export default defineComponent({
         const { t } = useI18n();
         const { width } = useWindowSize();
         const notificationsStore = useNotificationsStore();
+        const unreadCount = computed(() => notificationsStore.unreadCount)
 
         // 1. Unified State from Store
         const isMobile = computed(() => width.value <= 768);
@@ -67,6 +69,12 @@ export default defineComponent({
         const isLoading = computed(() => notificationsStore.isLoading);
         const isMarkingAllAsRead = computed(() => notificationsStore.isMarkingAllAsRead);
         const hasNextPage = computed(() => notificationsStore.hasNextPage);
+
+
+        const hasNotificationToDisplay = computed(() => {
+            const id = route.params.id;
+            return !!id && !isNaN(Number(id));
+        });
 
         // 2. Writable Computed for Pagination (Cleanest Practice)
         const desktopCurrentPage = computed({
@@ -82,11 +90,18 @@ export default defineComponent({
         });
 
         // 3. Dynamic Notifications Source
-        const notifications = computed(() => {
-            return isMobile.value
-                ? notificationsStore.displayedNotifications // Flat list for mobile
-                : notificationsStore.getDesktopPageItems;   // Paginated for desktop
-        });
+        const notifications = computed(() => notificationsStore.displayedNotifications)
+
+        watch(hasNotificationToDisplay, (isViewingDetail) => {
+            if (isViewingDetail) {
+                route.meta.headerTitle = 'notifications.detailsTitle';
+                route.meta.backPath = localePath('/dashboard/notifications');
+            } else {
+                // Reset meta to default list view state
+                route.meta.headerTitle = 'notifications.title';
+                route.meta.backPath = '/dashboard';
+            }
+        }, { immediate: true });
 
         // 4. Unified Loading Logic
         const showLoading = computed(() => {
@@ -102,12 +117,17 @@ export default defineComponent({
 
         const handleNotificationClick = (notification: any) => {
             if (isLoading.value && notificationsStore.currentPage === 1) return;
-            router.push(localePath(`/dashboard/notifications/${notification.id}`));
+
+            router.push({
+                path: localePath(`/dashboard/notifications/${notification.id}`),
+                query: route.query
+            });
         };
 
+
+
         onMounted(() => {
-            // Always attempt to fetch page 1. 
-            // The Pinia store "Circuit Breaker" handles whether it actually hits the API.
+
             notificationsStore.fetchNotifications(1);
         });
 
@@ -128,10 +148,12 @@ export default defineComponent({
             NoData,
             markAllAsRead,
             isMarkingAllAsRead,
+            unreadCount,
             isLoading,
             desktopCurrentPage,
             maxPages,
             isMobile,
+            hasNotificationToDisplay,
         };
     }
 })

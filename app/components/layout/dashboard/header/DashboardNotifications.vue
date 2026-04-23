@@ -18,16 +18,16 @@
             <BVirtualVerticalList v-if="isLoading || notifications.length > 0" :items="notifications"
                 :loading="isLoading" :has-next-page="hasNextPage" @load-more="loadNextPage">
                 <template #item="{ item }">
-                    <NotificationDisplay :loading="isLoading && currentPage < 2" :notification="item"
-                        @click="handleNotificationClick(item)" />
+                    <NotificationDisplay :active="item.isRead" :loading="isLoading && currentPage < 2"
+                        :notification="item" @click="handleNotificationClick(item)" />
                 </template>
             </BVirtualVerticalList>
 
             <NoDataDisplay v-else :image-path="NoData" :title="t('notifications.noNotifications')" />
             <div v-if="notificationCount > 0 || isLoading"
                 class=" w-full shrink-0 h-17 flex items-center justify-between border-t border-t-outline-variant px-5">
-                <BButton size="sm" @click="markAllAsRead" :loading="isMarkingAllAsRead" type="ghost"
-                    :text="t('sidebar.readAll')" right-icon="PhChecks" />
+                <BButton :disabled="unreadCount == 0" size="sm" @click="markAllAsRead" :loading="isMarkingAllAsRead"
+                    type="ghost" :text="t('sidebar.readAll')" right-icon="PhChecks" />
                 <CardLink :title="t('general.viewAll')" to="/dashboard/notifications" />
             </div>
         </div>
