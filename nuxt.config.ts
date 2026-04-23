@@ -24,6 +24,9 @@ export default defineNuxtConfig({
     },
     plugins: [tailwindcss()],
   },
+  future: {
+    compatibilityVersion: 4,
+  },
   runtimeConfig: {
     public: {
       apiBaseUrl: "https://api.behayand.ir",

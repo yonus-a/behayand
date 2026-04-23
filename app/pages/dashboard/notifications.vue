@@ -1,37 +1,49 @@
 <template>
-    <div class="flex flex-col w-full h-dvh bg-surface">
-        <div class="w-full shrink-0 h-16 flex justify-between items-center px-5 border-b border-b-outline-variant">
-            <div class="w-5"></div>
-            <div class="select-none text-on-surface text-label-lg font-bold">{{ t('notifications.title') }}</div>
-            <BIcon icon="PhArrowLeft" class="cursor-pointer w-6 h-6 fill-on-surface" @click="goBack" />
-        </div>
-
-        <div class="w-full flex-1 overflow-hidden">
-            <BVirtualVerticalList v-if="notifications.length > 0 || isLoading" :items="notifications"
-                :loading="isLoading" :has-next-page="hasNextPage" @load-more="notificationsStore.loadNextPage">
-                <template #item="{ item }">
-                    <NotificationDisplay :loading="isLoading && item.id <= 0" :notification="item"
-                        @click="handleNotificationClick(item)" />
-                </template>
-            </BVirtualVerticalList>
-
-            <div v-else class="h-full w-full flex items-center justify-center">
-                <NoDataDisplay :image-path="NoData" :title="t('notifications.noNotifications')" />
+    <div class=" w-full h-full flex items-stretch center gap-x-6">
+        <div class="  flex flex-col h-full basis-full md:basis-1/2">
+            <div class="  w-full flex-1 md:border md:overflow-hidden md:rounded-xl md:border-outline-variant">
+                <div
+                    class=" select-none  md:flex hidden bg-surface border-b border-b-outline-variant items-center justify-between p-5">
+                    <div class=" text-on-surface text-label-lg">{{ t('notifications.title') }}</div>
+                    <BButton size="sm" @click="markAllAsRead" :loading="isMarkingAllAsRead" type="ghost"
+                        :text="t('sidebar.readAll')" right-icon="PhChecks" />
+                </div>
+                <BVirtualVerticalList v-if="notifications.length > 0 || isLoading" :items="notifications"
+                    :loading="isLoading" :has-next-page="hasNextPage" @load-more="notificationsStore.loadNextPage">
+                    <template #item="{ item }">
+                        <NotificationDisplay :loading="isLoading && item.id <= 0" :notification="item"
+                            @click="handleNotificationClick(item)" />
+                    </template>
+                </BVirtualVerticalList>
+                <div v-else class="h-full w-full flex items-center justify-center">
+                    <NoDataDisplay :image-path="NoData" :title="t('notifications.noNotifications')" />
+                </div>
             </div>
+            <div class=" shrink-0 w-full flex items-center justify-center pt-4">
+                <BPagination v-model="desktopCurrentPage" :max-pages="maxPages" />
+            </div>
+        </div>
+        <div class=" p-4 h-full md:block hidden md:basis-1/2 bg-surface-variant rounded-3xl">
+            <NuxtPage v-slot="{ Component }">
+                <component :is="Component" />
+            </NuxtPage>
         </div>
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, computed, onMounted, watch } from 'vue';
-import { useI18n } from '#imports';
-import { useNotificationsStore } from '#imports';
+import { defineComponent, computed, onMounted } from 'vue';
+import { useI18n, useNotificationsStore, useLocalePath } from '#imports';
 import { useRouter } from 'vue-router';
 import type { Notification } from '~/types/notification';
 import NotificationDisplay from '~/components/layout/dashboard/header/NotificationDisplay.vue';
-import { useWindowSize } from '#imports';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
 import NoData from '/images/dashboard/no-notifications.webp'
 
+definePageMeta({
+    layout: 'responsive',
+    layoutTransition: false,
+    headerTitle: 'notifications.title',
+});
 
 export default defineComponent({
     name: 'NotificationsPage',
@@ -40,22 +52,25 @@ export default defineComponent({
         NoDataDisplay,
     },
     setup() {
+
         const router = useRouter();
+        const localePath = useLocalePath()
         const { t } = useI18n();
         const notificationsStore = useNotificationsStore();
-        const { width } = useWindowSize()
-
-        watch(() => width.value, () => {
-            if (width.value > 768) {
-                router.go(-1)
-            }
-        })
+        const desktopCurrentPage = ref(1)
+        const maxPages = computed(() => notificationsStore.maxPages)
 
         // Store Bindings
         const isLoading = computed(() => notificationsStore.isLoading);
         const notifications = computed(() => notificationsStore.displayedNotifications);
         const hasNextPage = computed(() => notificationsStore.hasNextPage);
-        const currentPage = computed(() => notificationsStore.currentPage)
+        const currentPage = computed(() => notificationsStore.currentPage);
+        const isMarkingAllAsRead = computed(() => notificationsStore.isMarkingAllAsRead);
+
+
+        const markAllAsRead = () => {
+            notificationsStore.markAllAsRead()
+        }
 
         const goBack = () => {
             router.go(-1);
@@ -63,7 +78,7 @@ export default defineComponent({
 
         const handleNotificationClick = (notification: Notification) => {
             if (isLoading.value && currentPage.value === 1) return
-            /// handle what happens next based on notification
+            router.push(localePath(`/dashboard/notifications/${notification.id}`))
         };
 
         onMounted(() => {
@@ -81,6 +96,10 @@ export default defineComponent({
             notificationsStore,
             handleNotificationClick,
             NoData,
+            markAllAsRead,
+            isMarkingAllAsRead,
+            desktopCurrentPage,
+            maxPages,
         };
     }
 })

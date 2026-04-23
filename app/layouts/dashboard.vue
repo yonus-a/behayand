@@ -1,9 +1,9 @@
 <template>
     <div class=" bg-surface w-dvw h-dvh overflow-hidden flex items-center">
-        <div class=" lg:block hidden shrink-0 h-full">
+        <div class=" md:block hidden shrink-0 h-full">
             <SideBar />
         </div>
-        <div class=" flex-1 h-full flex flex-col">
+        <div class="flex-1 h-full flex flex-col min-w-0">
             <div v-if="hasHeader" class=" w-full shrink-0">
                 <DashboardHeader />
             </div>

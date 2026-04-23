@@ -2,7 +2,7 @@
     <ClientOnly>
         <Teleport to="body">
             <div
-                class="fixed bottom-0 inset-x-0 h-14 shadow-medium gap-x-2 w-full bg-surface z-50 lg:hidden py-1 px-3 flex items-center justify-between">
+                class="fixed bottom-0 inset-x-0 h-14 shadow-medium gap-x-2 w-full bg-surface z-50 md:hidden py-1 px-3 flex items-center justify-between">
                 <div @click="openRoute(route.route)" v-for="route in routes" :key="route.key" class="basis-1/5 h-full">
                     <div class="h-full w-full rounded-xl flex-col gap-y-0.5 flex justify-center items-center transition-all duration-200 ease-in-out cursor-pointer select-none"
                         :class="[isRouteActive(route.route) ? 'bg-primary/10' : 'bg-primary/0']">

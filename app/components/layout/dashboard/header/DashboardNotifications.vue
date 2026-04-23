@@ -35,15 +35,14 @@
 </template>
 <script lang="ts">
 import { defineComponent, computed, onMounted, watch } from 'vue';
-import { useNotificationsStore } from '#imports';
+import { useNotificationsStore, useWindowSize, useI18n, useLocalePath } from '#imports';
 import type { Menu } from '~/types/components/menu';
 import CardLink from '~/components/general/CardLink.vue';
-import { useI18n, useLocalePath } from '#imports';
 import NotificationDisplay from './NotificationDisplay.vue';
 import type { Notification } from '~/types/notification';
 import NoData from '/images/dashboard/no-notifications.webp'
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
-import { useWindowSize } from '#imports';
+import { useRouter } from 'vue-router';
 export default defineComponent({
     name: 'DashboardNotifications',
     components: {
@@ -52,6 +51,7 @@ export default defineComponent({
         NoDataDisplay,
     },
     setup() {
+        const router = useRouter()
         const { t } = useI18n()
         const localePath = useLocalePath();
         const notificationsStore = useNotificationsStore();
@@ -103,6 +103,10 @@ export default defineComponent({
 
         const handleNotificationClick = (notification: Notification) => {
             if (isLoading.value && currentPage.value === 1) return
+            menuRef.value?.close()
+            setTimeout(() => {
+                router.push(localePath(`/dashboard/notifications/${notification.id}`))
+            }, 300)
             // use the notification details to handle the action
         }
 
