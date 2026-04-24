@@ -20,6 +20,7 @@
     "@tanstack/vue-virtual": "^3.13.24",
     "altcha": "^3.0.2",
     "chart.js": "^4.5.1",
+    "emoji-picker-element": "^1.29.1",
     "nuxt": "^4.4.2",
     "primevue": "^4.5.5",
     "tailwindcss": "^4.2.2",

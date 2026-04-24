@@ -29,9 +29,11 @@
       "endChat": "خاتمه مکالمه",
       "deleteMessages": "حذف پیام ها"
     },
-    "placeholder":"بنویسید ...",
-    "chatLocked":"گفتگو تمام شده",
+    "placeholder": "بنویسید ...",
+    "chatLocked": "گفتگو تمام شده",
     "noConversationSelected": "هنوز مکالمه ای انتخاب نشده",
-    "noMessages": "هیچ پیامی تبادل نشده"
+    "noMessages": "هیچ پیامی تبادل نشده",
+    "swipeToCancel": "برای لغو بکشید",
+    "cancel":"لغو"
   }
 }

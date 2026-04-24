@@ -26,7 +26,13 @@
   background: var(--background-image-gradient-primary-secondary);
   border-radius: 10px;
 }
-
+@font-face {
+  font-family: "AppleColorEmoji";
+  src: url("@/assets/fonts/apple-color-emoji.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 /* --- Standard IranYekan (Latin Numbers) --- */
 @font-face {
   font-family: "IranYekan";
@@ -101,14 +107,23 @@
 
 /* Default font (Latin Numbers for EN or others) */
 html {
-  font-family: "IranYekan", sans-serif;
   interpolate-size: allow-keywords;
 }
-
+html,
+body,
+input,
+textarea,
+button,
+.chat-bubble,
+.contact-name {
+  font-family:
+    "IranYekanFaNum", "IranYekan", "AppleColorEmoji", sans-serif !important;
+}
 /* Persian/Arabic font (Force Persian Numbers) */
 html[lang="fa"],
 html[lang="ar"] {
-  font-family: "IranYekanFaNum", sans-serif;
+  font-family:
+    "IranYekanFaNum", "AppleColorEmoji", sans-serif; /* Added AppleColorEmoji here */
 }
 
 /* Force font on stubborn form elements */
@@ -118,7 +133,8 @@ html[lang="fa"] button,
 html[lang="ar"] input,
 html[lang="ar"] textarea,
 html[lang="ar"] button {
-  font-family: "IranYekanFaNum", "IranYekan", sans-serif !important;
+  font-family:
+    "IranYekanFaNum", "AppleColorEmoji", sans-serif; /* Added AppleColorEmoji here */
 }
 
 .border-diamond {
