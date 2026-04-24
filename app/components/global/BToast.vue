@@ -3,7 +3,7 @@
         <div class="w-full md:max-w-203 max-w-dvw p-5 fixed bottom-0 z-100 pointer-events-none">
             <div 
                 class="py-3 px-4 rounded-xl flex items-center transition-all duration-300 ease-in-out gap-x-2 pointer-events-auto"
-                :class="[backgroundColor, isOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0']"
+                :class="[backgroundColor, isOpen ? 'translate-y-0 opacity-100' : 'translate-y-15 opacity-0']"
             >
                 <BIcon :icon="toastIcon" class="w-5 h-5 fill-white shrink-0" />
                 <div class="flex-1 select-none text-white text-label-md">{{ toastMessage }}</div>

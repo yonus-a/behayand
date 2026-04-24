@@ -268,12 +268,21 @@ export const useNavigation = () => {
     return false;
   };
 
+  const shouldShowBottomNav = computed(() => {
+    if (route.path.startsWith("/dashboard/chat")) {
+      return !route.params.id;
+    }
+    const leafMeta = route.matched[route.matched.length - 1]?.meta;
+    return leafMeta?.hideBottomNav !== true;
+  });
+
   return {
     menuItems,
     getCategories,
     getRoutesByCategory,
     isRouteActive,
     secondaryRoutes,
+    shouldShowBottomNav,
     isParentActive,
   };
 };

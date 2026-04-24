@@ -1,15 +1,26 @@
 <template>
-    <div dir="rtl" ref="rootElements" :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
+    <div dir="rtl" ref="rootElements"
+        :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
         class=" transition-all duration-200 ease-in-out min-h-[76px] py-4 w-full bg-surface flex items-end border-t border-t-outline-variant gap-x-5 relative overflow-visible select-none touch-none">
 
         <div class="relative flex items-center justify-center shrink-0 z-30 mb-0.5" :style="{
             transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)`,
             transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
         }">
-            <div v-if="isRecording && !isLocked"
-                class="absolute -top-20 flex flex-col items-center justify-center bg-surface shadow-floating rounded-full w-9 py-3 gap-y-3 transition-opacity pointer-events-none"
+            <div v-if="isRecording"
+                class="absolute -top-20 flex flex-col items-center justify-center bg-surface shadow-floating rounded-full w-9 transition-opacity"
+                :class="[isLocked ? 'pointer-events-auto py-1.5' : 'pointer-events-none py-3 gap-y-3']"
                 :style="{ opacity: lockOpacity }">
-                <BIcon icon="PhLockKey" class="w-5 h-5 fill-on-surface" />
+
+                <template v-if="!isLocked">
+                    <BIcon icon="PhLockKey" class="w-5 h-5 fill-on-surface" />
+                </template>
+
+                <template v-else>
+                    <div class="w-full h-9 flex items-center justify-center cursor-pointer" @click="togglePause">
+                        <BIcon :icon="isPaused ? 'PhPlayCircle' : 'PhPauseCircle'" class="w-6 h-6 fill-primary" />
+                    </div>
+                </template>
                 <BIcon icon="PhCaretUp" class="w-4 h-4 fill-on-surface/60 animate-bounce" />
             </div>
 
@@ -203,7 +214,20 @@ export default defineComponent({
         const isRecording = ref(false);
         const isLocked = ref(false);
         const recordingTime = ref(0);
+        const isPaused = ref(false);
         let timerInterval: ReturnType<typeof setInterval> | null = null;
+
+        const togglePause = () => {
+            if (isPaused.value) {
+                isPaused.value = false;
+                timerInterval = setInterval(() => {
+                    recordingTime.value++;
+                }, 1000);
+            } else {
+                isPaused.value = true;
+                if (timerInterval) clearInterval(timerInterval);
+            }
+        };
 
         const isDragging = ref(false);
         const startX = ref(0);
@@ -241,6 +265,7 @@ export default defineComponent({
 
         const startRecording = () => {
             isRecording.value = true;
+            isPaused.value = false; // ADDED
             recordingTime.value = 0;
             timerInterval = setInterval(() => {
                 recordingTime.value++;
@@ -251,6 +276,7 @@ export default defineComponent({
             if (timerInterval) clearInterval(timerInterval);
             isRecording.value = false;
             isLocked.value = false;
+            isPaused.value = false; // ADDED
             recordingTime.value = 0;
             resetDrag();
         };
@@ -459,6 +485,8 @@ export default defineComponent({
             adjustHeight,
             sendRecording,
             cancelRecording,
+            isPaused,
+            togglePause,
             menuRef,
             rootElements,
             sendMessage,

@@ -29,7 +29,9 @@ import { useRoute } from 'vue-router';
 import { useNotificationsStore, useDate, useI18n } from '#imports';
 import type { Notification } from '~/types/notification';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
-
+definePageMeta({
+    hideBottomNav: true
+})
 export default defineComponent({
     name: 'NotificationDetails',
     props: {

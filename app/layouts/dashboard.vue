@@ -13,7 +13,7 @@
                 </div>
             </div>
         </div>
-        <MobileNavigation />
+        <MobileNavigation v-if="shouldShowBottomNav" />
     </div>
 </template>
 <script lang="ts" setup>
@@ -22,7 +22,7 @@ import DashboardHeader from '~/components/layout/dashboard/DashboardHeader.vue';
 import MobileNavigation from '~/components/layout/dashboard/MobileNavigation.vue';
 const profileStore = useProfileStore()
 const route = useRoute()
-
+const { shouldShowBottomNav } = useNavigation()
 const hasHeader = computed(() => !route.path.startsWith('/dashboard/chat'))
 
 onBeforeMount(() => {

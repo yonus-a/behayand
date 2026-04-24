@@ -1,10 +1,10 @@
 <template>
     <div class="flex w-full max-h-dvh h-dvh overflow-hidden">
-        <div class="h-full flex-1 relative">
-            <NuxtPage />
+        <div v-if="showMessagingSection" class="h-full flex-1 relative">
+            <NuxtPage v-if="isInChat" />
         </div>
 
-        <div class="w-80 h-full shrink-0 border-l border-outline-variant">
+        <div v-if="showContactList" class="md:w-80 w-full h-full shrink-0 border-l border-outline-variant">
             <ChatList />
         </div>
     </div>
@@ -13,7 +13,9 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { useI18n, useSeoMeta } from '#imports';
+import { useRoute } from 'vue-router';
 import ChatList from '~/components/chat/ChatList.vue';
+import { useWindowSize } from '#imports';
 definePageMeta({
     layout: 'dashboard' // Keeps your Sidebar perfectly intact
 })
@@ -24,7 +26,33 @@ export default defineComponent({
         ChatList,
     },
     setup() {
+        const { width } = useWindowSize()
         const { t } = useI18n()
+        const route = useRoute()
+
+        const isMobile = computed(() => width.value < 768)
+        const isInChat = computed(() => {
+            const id = route.params.id;
+            return id ? true : false;
+        });
+
+        const showContactList = computed(() => {
+            if (isMobile.value) {
+                return !isInChat.value
+            } else {
+                return true
+            }
+        })
+
+        const showMessagingSection = computed(() => {
+            if (isMobile.value) {
+                return isInChat.value
+            }
+            return true
+        })
+
+
+
 
         useSeoMeta({
             title: () => t('seo.dashboard.chat.title'),
@@ -32,7 +60,12 @@ export default defineComponent({
             ogTitle: () => `${t('seo.siteName')} - ${t('seo.dashboard.chat.title')}`,
         });
 
-        return {}
+        return {
+            isInChat,
+            isMobile,
+            showContactList,
+            showMessagingSection,
+        }
     }
 })
 </script>
