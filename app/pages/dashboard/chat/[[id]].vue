@@ -1,11 +1,14 @@
 <template>
     <div class="  w-full bg-surface-variant h-full">
-        <div class=" flex w-full flex-col justify-between items-center h-full" v-show="chatId">
-            <div class=" w-full bg-surface h-20">
-                <ChatPageBar :contact="selectedChat" />
-            </div>
+        <div class=" w-full flex">
+            <ChatProfileOverview :profile="selectedChat" />
+            <div class=" flex flex-1 flex-col justify-between items-center h-full" v-show="chatId">
+                <div class=" w-full bg-surface h-20">
+                    <ChatPageBar :contact="selectedChat" />
+                </div>
 
-            <ChatInput ref="chatInput" :is-active="selectedChat?.isActive" />
+                <ChatInput ref="chatInput" :is-active="selectedChat?.isActive" />
+            </div>
         </div>
         <div v-show="!chatId" class=" w-full h-full flex items-center justify-center">
             <NoDataDisplay :image-path="NoChatSelected" :title="t('chat.noConversationSelected')" />
@@ -23,6 +26,7 @@ import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
 import NoChatSelected from '/images/dashboard/no-chat-selected.webp';
 import { useChatStore } from '#imports';
 import { type ChatTextField } from '~/types/components/chat-input';
+import ChatProfileOverview from '~/components/chat/ChatProfileOverview.vue';
 definePageMeta({
     layout: 'dashboard'
 })
@@ -34,6 +38,7 @@ export default defineComponent({
         ChatList,
         ChatInput,
         NoDataDisplay,
+        ChatProfileOverview,
     },
     setup() {
         const chatStore = useChatStore()
