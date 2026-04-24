@@ -18,7 +18,7 @@
 
                 <template v-else>
                     <div class="w-full h-9 flex items-center justify-center cursor-pointer" @click="togglePause">
-                        <BIcon :icon="isPaused ? 'PhPlayCircle' : 'PhPauseCircle'" class="w-6 h-6 fill-primary" />
+                        <BIcon :icon="isPaused ? 'PhPlayCircle' : 'PhPauseCircle'" class="w-6 h-6 fill-on-surface" />
                     </div>
                 </template>
                 <BIcon icon="PhCaretUp" class="w-4 h-4 fill-on-surface/60 animate-bounce" />

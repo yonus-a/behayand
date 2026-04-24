@@ -14,7 +14,7 @@
             <NuxtLinkLocale class=" md:block hidden" to="/dashboard/chat">
                 <BButton type="ghost" icon="PhChatText" />
             </NuxtLinkLocale>
-            <NuxtLinkLocale class=" md:block hidden" to="/dashboard/calendar/reminder">
+            <NuxtLinkLocale class=" md:block hidden" to="/dashboard/calendar">
                 <BButton type="ghost" icon="PhCalendarDots" />
             </NuxtLinkLocale>
             <DashboardNotifications />

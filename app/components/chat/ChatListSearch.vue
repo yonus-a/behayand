@@ -1,6 +1,6 @@
 <template>
     <div class="w-full">
-        <div class="px-5 h-20 w-full shrink-0 border-b border-b-outline-variant flex justify-between items-center">
+        <div class="px-5 h-16 md:h-20 w-full shrink-0 border-b border-b-outline-variant flex justify-between items-center">
             <div :class="[isOpen ? 'opacity-0 max-w-0' : 'max-w-37.5 opacity-100']"
                 class="transition-all duration-300 overflow-hidden text-nowrap ease-in-out select-none text-on-surface text-label-lg">
                 {{ t('chat.title') }}
