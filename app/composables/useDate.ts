@@ -428,7 +428,29 @@ export const useDate = () => {
     return localizeDigits(result, lang);
   };
 
+  /**
+   * Calculates the number of full years passed since the given date (e.g., age).
+   * @param date - The starting date to calculate from.
+   * @returns The number of full years passed.
+   */
+  const getYearsPassed = (date: Date): number => {
+    const today = new Date();
+    let years = today.getFullYear() - date.getFullYear();
+    const monthDiff = today.getMonth() - date.getMonth();
+
+    // Adjust if the anniversary hasn't occurred yet in the current year
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < date.getDate())
+    ) {
+      years--;
+    }
+
+    return years;
+  };
+
   return {
+    getYearsPassed,
     parseDate,
     formatDate,
     formatNumericDate,

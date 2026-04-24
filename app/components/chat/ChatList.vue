@@ -11,7 +11,7 @@
             </div>
 
             <div v-if="currentState.loading || chats.length > 0"
-                class="w-full flex-1 px-2.5 py-2.5 overflow-hidden relative">
+                class="w-full flex-1 px-2.5 pt-2.5 overflow-hidden relative">
                 <BVirtualVerticalList ref="listRef" :items="chats" :loading="currentState.loading"
                     :has-next-page="currentState.hasNextPage" @load-more="chatStore.loadNextPage(activeFilter)"
                     class="h-full w-full">

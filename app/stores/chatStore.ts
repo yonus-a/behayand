@@ -12,6 +12,27 @@ export const useChatStore = defineStore("chat", () => {
     return Math.floor((h - 138) / 76) + 1;
   });
 
+  const now = new Date();
+
+  // Helper for "28 years ago and few months/days"
+  const getSpecificBirthDate = () => {
+    const date = new Date();
+    date.setFullYear(now.getFullYear() - 28);
+    date.setMonth(now.getMonth() - (Math.floor(Math.random() * 11) + 1));
+    date.setDate(now.getDate() - (Math.floor(Math.random() * 28) + 1));
+    return date;
+  };
+
+  // Helper for random between 18 and 50 years ago
+  const getRandomBirthDate = () => {
+    const yearsAgo = Math.floor(Math.random() * (50 - 18 + 1)) + 18;
+    const date = new Date();
+    date.setFullYear(now.getFullYear() - yearsAgo);
+    date.setMonth(Math.floor(Math.random() * 12));
+    date.setDate(Math.floor(Math.random() * 28) + 1);
+    return date;
+  };
+
   // --- STATE ---
   const activeConversationId = ref<number | null>(null);
   const messagesMap = ref<Record<number, Message[]>>({});
@@ -54,6 +75,9 @@ export const useChatStore = defineStore("chat", () => {
         isActive: false,
         unreadCount: 2,
         serviceType: "chat",
+        birthDate: getRandomBirthDate(),
+        phoneNumber: "09134168227",
+        nationalCode: "1235678901",
         lastMessage: {
           id: 101,
           conversationId: 1,
@@ -76,7 +100,10 @@ export const useChatStore = defineStore("chat", () => {
         imageUrl: "https://i.pravatar.cc/150?u=2",
         isActive: true,
         unreadCount: 0,
-        serviceType: "video-call",
+        serviceType: "voice-call",
+        birthDate: getSpecificBirthDate(),
+        phoneNumber: "09134168227",
+        nationalCode: "1235678901",
         lastMessage: {
           id: 102,
           conversationId: 2,
@@ -112,6 +139,9 @@ export const useChatStore = defineStore("chat", () => {
         isActive: template.isActive,
         unreadCount: template.unreadCount,
         serviceType: template.serviceType,
+        phoneNumber: template.phoneNumber,
+        nationalCode: template.nationalCode,
+        birthDate: template.birthDate,
         lastMessage: template.lastMessage
           ? {
               id: 10000 + uniqueId,

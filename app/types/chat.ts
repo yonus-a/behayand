@@ -1,15 +1,15 @@
-export type MessageType = 'text' | 'image' | 'voice' | 'file';
+export type MessageType = "text" | "image" | "voice" | "file";
 
 export interface Message {
   id: number;
-  conversationId: number; 
+  conversationId: number;
   date: Date;
   type: MessageType;
   text?: string;
   imageUrl?: string[];
   fileUrl?: string[];
   voiceUrl?: string;
-  isEdited: boolean; 
+  isEdited: boolean;
   senderId: number;
   isSent: boolean;
   isRead: boolean;
@@ -22,16 +22,18 @@ export interface Contact {
   isOnline: boolean;
   lastSeen: Date;
   imageUrl: string;
+  nationalCode?: string;
+  phoneNumber: string;
   isActive: boolean;
+  birthDate: Date;
   lastMessage?: Message;
-  unreadCount: number; 
+  unreadCount: number;
   serviceType: "video-call" | "voice-call" | "chat";
 }
 
-
-export type FilterKeys = '' | 'online' | 'ended' | 'active';
+export type FilterKeys = "" | "online" | "ended" | "active";
 
 export interface ChatFilter {
-  key:FilterKeys;
-  label:string;
+  key: FilterKeys;
+  label: string;
 }

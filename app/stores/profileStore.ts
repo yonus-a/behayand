@@ -2,12 +2,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useI18n, useCookie } from "#imports";
 import blankProfile from "/images/dashboard/blank-profile.webp";
-export type UserRoleKey = "user" | "employee" | "business" | "support";
-
-export interface RoleDetail {
-  label: string;
-  key: UserRoleKey;
-}
+import type { UserRoleKey, Profile, RoleDetail } from "~/types/profile";
 
 export const useProfileStore = defineStore("profile", () => {
   const { t } = useI18n();
@@ -28,15 +23,15 @@ export const useProfileStore = defineStore("profile", () => {
   const totalDiscounts = ref(300000);
 
   // 2. Sync state with Cookie on initialization
-  const chosenRole = ref<UserRoleKey>(chosenRoleCookie.value || "user");
+  const chosenRole = ref<UserRoleKey>(chosenRoleCookie.value || "employee");
 
-  const userData = ref({
+  const userData = ref<Profile>({
     name: "",
     lastName: "",
     nationality: "iranian",
     nationalId: "",
     imageUrl: "",
-    gender: "",
+    gender: null,
     birthDate: null as Date | null,
     balance: 1000000,
   });

@@ -6,6 +6,12 @@
       "ended": "خاتمه یافته",
       "online": "آنلاین ها"
     },
+    "info": {
+      "nationalCode": "کد ملی",
+      "phoneNumber": "شماره تماس",
+      "age": "سن",
+      "ageDisplay": "{year} سال"
+    },
     "lastSeen": "آخرین بازدید {time}",
     "nationalId": "کد ملی",
     "age": "سن",
@@ -34,6 +40,7 @@
     "noConversationSelected": "هنوز مکالمه ای انتخاب نشده",
     "noMessages": "هیچ پیامی تبادل نشده",
     "swipeToCancel": "برای لغو بکشید",
-    "cancel":"لغو"
+    "cancel": "لغو",
+    "online": "آنلاین"
   }
 }

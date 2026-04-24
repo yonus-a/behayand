@@ -18,8 +18,8 @@
         </div>
 
         <div class="flex items-center gap-x-4">
-            <BIcon v-for="action in actions" :key="action.key" :icon="action.icon"
-                class="w-6 h-6 fill-on-surface/50 cursor-pointer" @click="handleAction(action.key)" />
+            <BIcon icon="PhPhone" v-if="selectedChat.serviceType !== 'chat'"
+                class="w-6 h-6 fill-on-surface/50 cursor-pointer" @click="handleAction('call')" />
 
 
             <BMenu ref="menuRef">

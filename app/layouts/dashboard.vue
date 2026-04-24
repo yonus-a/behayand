@@ -7,7 +7,7 @@
             <div v-if="hasHeader" class=" w-full shrink-0">
                 <DashboardHeader />
             </div>
-            <div class=" h-full  flex-1 w-full overflow-y-auto">
+            <div class="flex-1 w-full overflow-y-auto">
                 <div class=" h-full w-full" :class="[hasHeader ? 'px-3 md:px-8 py-6' : '']">
                     <NuxtPage />
                 </div>

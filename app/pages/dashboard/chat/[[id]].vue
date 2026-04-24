@@ -1,10 +1,10 @@
 <template>
     <div class="  w-full bg-surface-variant h-full">
-        <div class=" w-full flex">
+        <div class=" h-full w-full flex">
             <ChatProfileOverview :profile="selectedChat" />
             <div class=" flex flex-1 flex-col justify-between items-center h-full" v-show="chatId">
                 <div class=" w-full bg-surface h-20">
-                    <ChatPageBar :contact="selectedChat" />
+                    <ChatPageBar @open-profile="openProfile" :contact="selectedChat" />
                 </div>
 
                 <ChatInput ref="chatInput" :is-active="selectedChat?.isActive" />
@@ -20,7 +20,7 @@ import { defineComponent, computed } from 'vue';
 import { useI18n, useSeoMeta } from '#imports';
 import ChatPageBar from '~/components/chat/ChatPageBar.vue';
 import ChatList from '~/components/chat/ChatList.vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import ChatInput from '~/components/chat/ChatInput.vue';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
 import NoChatSelected from '/images/dashboard/no-chat-selected.webp';
@@ -43,6 +43,7 @@ export default defineComponent({
     setup() {
         const chatStore = useChatStore()
         const route = useRoute()
+        const router = useRouter()
         const { t } = useI18n()
         const chatInput = ref<ChatTextField | null>(null)
 
@@ -74,11 +75,16 @@ export default defineComponent({
             ogTitle: () => `${t('seo.siteName')} - ${t('seo.dashboard.chat.title')}`,
         });
 
+        const openProfile = () => {
+            router.push({ query: { ...route.query, view: 'profile' } })
+        }
+
         return {
             t,
             chatId,
             NoChatSelected,
             chatInput,
+            openProfile,
             selectedChat,
         }
     }

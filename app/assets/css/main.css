@@ -26,13 +26,7 @@
   background: var(--background-image-gradient-primary-secondary);
   border-radius: 10px;
 }
-@font-face {
-  font-family: "AppleColorEmoji";
-  src: url("@/assets/fonts/apple-color-emoji.woff2") format("woff2");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+
 /* --- Standard IranYekan (Latin Numbers) --- */
 @font-face {
   font-family: "IranYekan";
