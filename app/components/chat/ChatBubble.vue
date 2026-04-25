@@ -12,7 +12,7 @@
                         <div v-if="messageType === 'text' || messageType === 'file'" class="  p-3 rounded-xl "
                             :class="[roundingClasses, isMine ? 'bg-surface-variant-2' : 'bg-surface', messageType === 'text' ? 'text-body-sm text-on-surface' : '']">
                             <p v-if="messageType === 'text'" class=" max-w-full">{{ message.text }}</p>
-                            <FileDisplay v-else :url="message.fileUrl" />
+                            <FileDisplay :is-mine="isMine" v-else-if="message.fileUrl" :url="message.fileUrl" />
                         </div>
                         <div v-else-if="message.imageUrl && messageType === 'image'"
                             class=" cursor-pointer overflow-hidden rounded-xl w-85 h-40.5">

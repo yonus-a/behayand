@@ -1,7 +1,7 @@
 <template>
     <div dir="rtl" ref="rootElements"
         :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
-        class=" transition-all duration-200 ease-in-out min-h-[76px] py-4 w-full bg-surface flex items-end border-t border-t-outline-variant gap-x-5 relative overflow-visible select-none touch-none">
+        class=" transition-all duration-200 ease-in-out min-h-19 py-4 w-full bg-surface flex items-end border-t border-t-outline-variant gap-x-5 relative overflow-visible select-none touch-none">
 
         <div class="relative flex items-center justify-center shrink-0 z-30 mb-0.5" :style="{
             transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)`,
@@ -53,9 +53,19 @@
                         <BEmojiPicker @select="handleEmojiSelect" />
                     </div>
                 </BMenu>
-
-                <BIcon icon="PhPaperclipHorizontal"
-                    class="-rotate-90 cursor-pointer w-6 h-6 fill-on-surface shrink-0" />
+                <BMenu ref="attachementMenu">
+                    <template #trigger>
+                        <BIcon icon="PhPaperclip" class=" cursor-pointer w-6 h-6 fill-on-surface shrink-0" />
+                    </template>
+                    <div class=" w-41 bg-surface rounded-2xl p-3 flex flex-col gap-y-1">
+                        <div @click="handleAttachementOption(option.key)" v-for="option in attachementOptions"
+                            :key="option.key"
+                            class=" px-3 transition-all duration-200 ease-in-out bg-surface-variant-2/0 hover:bg-surface-variant-2 cursor-pointer select-none w-full flex items-center gap-x-2 h-11 rounded-xl ">
+                            <BIcon :icon="option.icon" class=" w-5 h-5 fill-on-surface/50" />
+                            <div class=" text-body-sm text-on-surface/70">{{ option.title }}</div>
+                        </div>
+                    </div>
+                </BMenu>
             </div>
         </div>
 
@@ -65,7 +75,7 @@
                 <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
                 <span v-else class="text-primary cursor-pointer px-4 py-2 z-20" @click="cancelRecording">{{
                     t('chat.cancel')
-                    }}</span>
+                }}</span>
             </div>
 
             <div class="absolute left-6 flex items-center gap-x-2 shrink-0 z-10">
@@ -75,7 +85,7 @@
                 </div>
                 <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
                     formattedTime
-                    }}</span>
+                }}</span>
             </div>
         </div>
 
@@ -101,6 +111,25 @@ export default defineComponent({
         const micPermissionStatus = ref<PermissionState | 'unknown'>('unknown');
         const cameraPermissionStatus = ref<PermissionState | 'unknown'>('unknown');
         const menuRef = ref<Menu | null>(null)
+        const attachementMenu = ref<Menu | null>(null)
+
+
+        const attachementOptions = computed(() => [
+            {
+                icon: 'PhImage',
+                key: 'media',
+                title: t('chat.file.attachMedia')
+            },
+            {
+                icon: 'PhFile',
+                key: 'file',
+                title: t('chat.file.attachFile')
+            },
+        ])
+
+        const handleAttachementOption = (action: string) => {
+            attachementMenu.value?.close()
+        }
 
         const handleMenuClose = () => {
             menuRef.value?.close()
@@ -488,8 +517,11 @@ export default defineComponent({
             isPaused,
             togglePause,
             menuRef,
+            attachementMenu,
             rootElements,
             sendMessage,
+            attachementOptions,
+            handleAttachementOption,
         };
     }
 })

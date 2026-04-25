@@ -120,17 +120,12 @@ export default defineComponent({
 
         // 4. Mock Data Generation (dates now span multiple days)
         const generateMockMessages = (page: number): Message[] => {
-            // 7 scenarios instead of 6 to break the "even/odd" sync with senderId
             const scenarios = ["text", "voice", "image", "multiImage", "video", "file", "text"];
 
             return Array.from({ length: 20 }).map((_, i) => {
                 const id = 1000 - ((page - 1) * 20 + (19 - i));
                 const scenario = scenarios[id % scenarios.length];
-
-                // 8-hour jumps to cross day boundaries
                 const dateOffset = ((page - 1) * 20 + (19 - i)) * 1000 * 60 * 60 * 8;
-
-                // Use a different modulus for sender to ensure both people use all message types
                 const isMe = id % 5 === 0 || id % 3 === 0;
 
                 return {
@@ -139,29 +134,38 @@ export default defineComponent({
                     date: new Date(Date.now() - dateOffset),
                     type: (scenario === 'multiImage' ? 'image' : scenario) as MessageType,
 
-                    // --- Content Scenarios ---
                     text: scenario === "text"
-                        ? `Mock Message ${id}: This is a text message from ${isMe ? 'me' : 'the other side'}.`
+                        ? `Mock Message ${id}: Testing the live assets for ${scenario}.`
                         : undefined,
 
                     imageUrl: scenario === "image"
-                        ? [`https://picsum.photos/400/400?sig=${id}`]
+                        ? [`https://picsum.photos/600/600?sig=${id}`]
                         : scenario === "multiImage"
                             ? [
-                                `https://picsum.photos/400/400?sig=${id}_1`,
-                                `https://picsum.photos/400/400?sig=${id}_2`
+                                `https://picsum.photos/600/600?sig=${id}_1`,
+                                `https://picsum.photos/600/600?sig=${id}_2`
                             ]
                             : undefined,
 
-                    fileUrl: scenario === "file" ? `/docs/specification_${id}.pdf` : undefined,
-                    voiceUrl: scenario === "voice" ? `/audio/voice_${id}.mp3` : undefined,
-                    videoUrl: scenario === "video" ? 'https://www.w3schools.com/html/mov_bbb.mp4' : undefined,
+                    // Real PDF from Mozilla
+                    fileUrl: scenario === "file"
+                        ? `https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf?id=${id}`
+                        : undefined,
 
-                    // --- States ---
-                    isEdited: id % 7 === 0, // Every 7th message shows as edited
-                    senderId: isMe ? profileStore.userData.id : 2,
-                    isSent: id % 15 !== 0, // Every 15th message is "pending" (false)
-                    isRead: id % 4 !== 0,  // Mix of read/unread states
+                    // Real MP3 from Google Demos
+                    voiceUrl: scenario === "voice"
+                        ? `https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/theme.mp3?id=${id}`
+                        : undefined,
+
+                    // Real Video from W3Schools
+                    videoUrl: scenario === "video"
+                        ? 'https://www.w3schools.com/html/mov_bbb.mp4'
+                        : undefined,
+
+                    isEdited: id % 7 === 0,
+                    senderId: id % 2 === 0 ? profileStore.userData.id : 2,
+                    isSent: id % 15 !== 0,
+                    isRead: id % 4 !== 0,
                 };
             });
         };

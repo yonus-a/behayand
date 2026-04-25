@@ -41,6 +41,11 @@
     "noMessages": "هیچ پیامی تبادل نشده",
     "swipeToCancel": "برای لغو بکشید",
     "cancel": "لغو",
-    "online": "آنلاین"
+    "online": "آنلاین",
+    "file": {
+      "calculating": "در حال محاسبه",
+      "attachMedia": "عکس یا ویدیو",
+      "attachFile": "فایل"
+    }
   }
 }
