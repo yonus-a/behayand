@@ -1,7 +1,6 @@
 <template>
     <div :class="[isMine ? ' justify-start' : 'justify-end']" class=" flex items-center  w-full">
         <div class=" w-full">
-            {{ messageType }}
 
             <div v-if="message.isFirstInDate" class=" py-5 w-full flex items-center justify-center">
                 <div class=" rounded-full bg-on-surface/10 flex items-center justify-center px-4 py-0.5">
