@@ -449,6 +449,40 @@ export const useDate = () => {
     return years;
   };
 
+  const formatDateShort = (dateInput: string | Date): string => {
+    const date = parseDate(dateInput);
+    const now = new Date();
+    const lang = getLang();
+
+    if (lang === "fa") {
+      const [nowJy] = g2j(now.getFullYear(), now.getMonth() + 1, now.getDate());
+      const [jy, jm, jd] = g2j(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        date.getDate(),
+      );
+
+      // Format: "Day Month"
+      let result = `${jd} ${getJalaaliMonthName(jm)}`;
+
+      // Append " Year" if it's not the current Jalaali year
+      if (jy !== nowJy) {
+        result += ` ${jy}`;
+      }
+
+      return localizeDigits(result, lang);
+    } else {
+      const isSameYear = date.getFullYear() === now.getFullYear();
+
+      // Use Intl for standard locales
+      return new Intl.DateTimeFormat(lang === "ar" ? "ar-EG" : "en-US", {
+        day: "numeric",
+        month: "long",
+        year: isSameYear ? undefined : "numeric",
+      }).format(date);
+    }
+  };
+
   return {
     getYearsPassed,
     parseDate,
@@ -456,6 +490,7 @@ export const useDate = () => {
     formatNumericDate,
     getAbsoluteDateTime,
     getAbsoluteDate,
+    formatDateShort,
     formatDateTime,
     formatTime,
     g2j,

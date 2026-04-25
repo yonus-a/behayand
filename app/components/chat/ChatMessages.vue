@@ -1,6 +1,6 @@
 <template>
-    <div id="list" ref="scrollContainer"
-        class="h-full w-full overflow-y-auto pb-4 hide-scrollbar flip-vertical px-2 bg-surface-variant/30"
+    <div dir="rtl" id="list" ref="scrollContainer"
+        class="h-full w-full overflow-y-auto pb-4 hide-scrollbar flip-vertical px-5 bg-surface-variant/30"
         @scroll="handleScroll" @wheel.prevent="handleWheel">
 
         <div v-show="messages.length">
@@ -120,28 +120,48 @@ export default defineComponent({
 
         // 4. Mock Data Generation (dates now span multiple days)
         const generateMockMessages = (page: number): Message[] => {
-            const types: MessageType[] = ["text", "voice", "image", "file"];
+            // 7 scenarios instead of 6 to break the "even/odd" sync with senderId
+            const scenarios = ["text", "voice", "image", "multiImage", "video", "file", "text"];
+
             return Array.from({ length: 20 }).map((_, i) => {
                 const id = 1000 - ((page - 1) * 20 + (19 - i));
-                const type = types[id % types.length] as MessageType;
+                const scenario = scenarios[id % scenarios.length];
 
-                // Create significant date jumps (jumping back ~8 hours per message)
-                // This ensures we cross day boundaries every 3-4 messages
+                // 8-hour jumps to cross day boundaries
                 const dateOffset = ((page - 1) * 20 + (19 - i)) * 1000 * 60 * 60 * 8;
+
+                // Use a different modulus for sender to ensure both people use all message types
+                const isMe = id % 5 === 0 || id % 3 === 0;
 
                 return {
                     id,
                     conversationId: Number(route.params.id) || 101,
                     date: new Date(Date.now() - dateOffset),
-                    type,
-                    text: type === 'text' ? `Message ${id}. This message should fall on a specific date for testing separators.` : undefined,
-                    imageUrl: type === 'image' ? ['https://picsum.photos/400/400?sig=' + id] : undefined,
-                    fileUrl: type === 'file' ? ['/docs/contract.pdf'] : undefined,
-                    voiceUrl: type === 'voice' ? '/audio/voice.mp3' : undefined,
-                    isEdited: false,
-                    senderId: id % 2 === 0 ? profileStore.userData.id : 2,
-                    isSent: true,
-                    isRead: id % 2 === 0,
+                    type: (scenario === 'multiImage' ? 'image' : scenario) as MessageType,
+
+                    // --- Content Scenarios ---
+                    text: scenario === "text"
+                        ? `Mock Message ${id}: This is a text message from ${isMe ? 'me' : 'the other side'}.`
+                        : undefined,
+
+                    imageUrl: scenario === "image"
+                        ? [`https://picsum.photos/400/400?sig=${id}`]
+                        : scenario === "multiImage"
+                            ? [
+                                `https://picsum.photos/400/400?sig=${id}_1`,
+                                `https://picsum.photos/400/400?sig=${id}_2`
+                            ]
+                            : undefined,
+
+                    fileUrl: scenario === "file" ? `/docs/specification_${id}.pdf` : undefined,
+                    voiceUrl: scenario === "voice" ? `/audio/voice_${id}.mp3` : undefined,
+                    videoUrl: scenario === "video" ? 'https://www.w3schools.com/html/mov_bbb.mp4' : undefined,
+
+                    // --- States ---
+                    isEdited: id % 7 === 0, // Every 7th message shows as edited
+                    senderId: isMe ? profileStore.userData.id : 2,
+                    isSent: id % 15 !== 0, // Every 15th message is "pending" (false)
+                    isRead: id % 4 !== 0,  // Mix of read/unread states
                 };
             });
         };

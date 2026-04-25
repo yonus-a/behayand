@@ -7,8 +7,9 @@ export interface Message {
   type: MessageType;
   text?: string;
   imageUrl?: string[];
-  fileUrl?: string[];
+  fileUrl?: string;
   voiceUrl?: string;
+  videoUrl?: string;
   isEdited: boolean;
   senderId: number;
   isSent: boolean;
