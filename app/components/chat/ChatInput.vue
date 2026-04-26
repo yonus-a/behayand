@@ -1,7 +1,7 @@
 <template>
     <div dir="rtl" ref="rootElements"
         :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
-        class=" transition-all duration-200 ease-in-out min-h-19 py-4 w-full bg-surface flex items-end border-t border-t-outline-variant gap-x-5 relative overflow-visible select-none touch-none">
+        class=" transition-all duration-200 ease-in-out min-h-19 py-4 w-full bg-surface flex items-end border-t border-t-outline-variant gap-x-5 relative overflow-visible select-none ">
 
         <div class="relative flex items-center justify-center shrink-0 z-30 mb-0.5" :style="{
             transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)`,
@@ -24,7 +24,7 @@
                 <BIcon icon="PhCaretUp" class="w-4 h-4 fill-on-surface/60 animate-bounce" />
             </div>
 
-            <div class="flex items-center w-11 h-11 justify-center transition-all duration-200"
+            <div class="flex items-center w-11 touch-none h-11 justify-center transition-all duration-200"
                 :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? ' rounded-full bg-primary/10' : 'w-6 h-6 bg-primary/0']"
                 @pointerdown="!isLocked ? handlePointerDown($event) : null"
                 @click="!isLocked ? toggleSecondaryMessageType() : null">
