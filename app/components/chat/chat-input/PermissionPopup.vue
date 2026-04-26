@@ -19,7 +19,7 @@
 import { defineComponent, nextTick } from 'vue';
 import { useI18n } from '#imports';
 import type { Popup } from '~/types/components/popup';
-type popupStates = 'permission' | 'mic-error' | 'cam-error'
+type popupStates = 'permission' | 'mic-error' | 'cam-error' | 'mic-permission' | 'cam-permission'
 
 export default defineComponent({
     name: 'PermissionPopup',
@@ -34,12 +34,12 @@ export default defineComponent({
 
         const popupIcon = computed(() => {
             return {
-                icon: popupMode.value === 'permission' ? 'PhWarningCircle' : 'PhWarningOctagon',
-                color: popupMode.value === 'permission' ? 'fill-primary' : 'fill-error'
+                icon: popupMode.value.endsWith('permission') ? 'PhWarningCircle' : 'PhWarningOctagon',
+                color: popupMode.value.endsWith('permission') ? 'fill-primary' : 'fill-error'
             }
         })
 
-        const actionButtonText = computed(() => popupMode.value === 'permission' ? t('chat.permissions.allow') : t('chat.permissions.retry'))
+        const actionButtonText = computed(() => popupMode.value.endsWith('permission') ? t('chat.permissions.allow') : t('chat.permissions.retry'))
 
         const popupContent = computed(() => {
             switch (popupMode.value) {
@@ -57,6 +57,16 @@ export default defineComponent({
                     return {
                         title: t('chat.permissions.camError.title'),
                         description: t('chat.permissions.camError.description')
+                    }
+                case 'cam-permission':
+                    return {
+                        title: t('chat.permissions.cam.title'),
+                        description: t('chat.permissions.cam.description')
+                    }
+                case 'mic-permission':
+                    return {
+                        title: t('chat.permissions.mic.title'),
+                        description: t('chat.permissions.mic.description')
                     }
             }
         })

@@ -64,7 +64,7 @@
                 <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
                 <span v-else class="text-primary cursor-pointer px-4 py-2 z-20" @click="cancelRecording">{{
                     t('chat.cancel')
-                }}</span>
+                    }}</span>
             </div>
 
             <div class="absolute left-6 flex items-center gap-x-2 shrink-0 z-10">
@@ -74,7 +74,7 @@
                 </div>
                 <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
                     formattedTime
-                }}</span>
+                    }}</span>
             </div>
         </div>
         <PermissionPopup ref="permissionPopup" @action="handlePopupAction" @cancel="handlePopupCancel" />
@@ -150,7 +150,7 @@ export default defineComponent({
             }
 
             // 3. Open prompt and pause execution
-            permissionPopup.value?.open('permission');
+            permissionPopup.value?.open(isVideo ? 'cam-permission' : 'mic-permission');
             return new Promise<boolean>((resolve) => {
                 permissionResolver = resolve;
             });
