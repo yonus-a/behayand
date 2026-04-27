@@ -2,11 +2,11 @@
     <div class="  transition-none md:transition-all duration-300 ease-in-out h-full overflow-hidden rtl:border-l-surface-variant ltr:border-surface-variant ltr:border-r rtl:border-l bg-surface shrink-0"
         :class="[isOpen ? ' w-dvw md:w-80' : 'w-0 border-none!']">
         <div class=" w-full h-full flex flex-col">
-            <div class=" pt-16.5 px-2 w-full h-full">
+            <div class=" md:pt-16.5 md:px-2 w-full h-full">
                 <div class=" w-full  relative">
                     <div class=" w-full h-29">
                         <BImage
-                            class=" rounded-xl overflow-hidden w-full h-full max-w-full min-w-full max-h-full min-h-full"
+                            class=" md:rounded-xl overflow-hidden w-full h-full max-w-full min-w-full max-h-full min-h-full"
                             :src="profileBackground">
                             <div class=" w-full h-full p-2">
                                 <BIcon icon="PhX" class=" fill-white w-5 h-5 cursor-pointer" @click="closeSidebar" />
@@ -15,11 +15,6 @@
                     </div>
                     <div class=" w-full absolute z-20 flex justify-center items-center -translate-y-1/2">
                         <div class=" w-25 h-25 rounded-full overflow-hidden">
-                            <!--  
-                            <BImage v-loading="isLoading"
-                            class=" w-full h-full min-w-full min-h-full max-w-full max-h-full "
-                            :src="localProfile.imageUrl" />
-                            -->
                             <ContactAvatar v-if="profile" :contact="profile" />
                         </div>
                     </div>

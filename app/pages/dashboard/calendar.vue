@@ -1,12 +1,9 @@
 <template>
     <div></div>
 </template>
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
 definePageMeta({
     layout: 'dashboard'
 })
-export default defineComponent({
-    name:'CalendarPage'
-})
+
 </script>

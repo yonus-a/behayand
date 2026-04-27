@@ -16,7 +16,8 @@
 
                     <div class="flip-vertical"
                         :class="[getSpacingClass(virtualRow.index, reversedMessages[virtualRow.index]), virtualRow.index === 0 ? 'pb-2' : '']">
-                        <ChatBubble :message="reversedMessages[virtualRow.index]"
+                        <ChatBubble :is-first-unread="reversedMessages[virtualRow.index].id === firstUnreadId"
+                            :message="reversedMessages[virtualRow.index]"
                             :is-self="reversedMessages[virtualRow.index].senderId === currentUserId"
                             :contact="contact" />
                     </div>
@@ -127,58 +128,51 @@ export default defineComponent({
         };
 
         // 4. Mock Data Generation (dates now span multiple days)
+        const firstUnreadId = computed(() => {
+            const unreadMsg = messages.value.find(m => !m.isRead && m.senderId !== profileStore.userData.id);
+            return unreadMsg ? unreadMsg.id : null;
+        });
+
+        // 2. REPLACE YOUR ENTIRE generateMockMessages FUNCTION WITH THIS:
         const generateMockMessages = (page: number): Message[] => {
             const scenarios = ["text", "voice", "text", "image", "file", "multiImage", "text", "video", "text", "voice"];
 
             return Array.from({ length: 20 }).map((_, i) => {
-                const id = 1000 - ((page - 1) * 20 + (19 - i));
+                const globalIndex = (page - 1) * 20 + (19 - i); // 0 is absolute newest
+                const id = 1000 - globalIndex;
                 const scenario = scenarios[id % scenarios.length];
-                const clumpIndex = Math.floor(id / 3);
-                const isMe = clumpIndex % 2 === 0;
+
+                // Conversational grouping: Swap sender every 2 messages so both users talk on the same day
+                const isMe = Math.floor(globalIndex / 2) % 2 === 0;
                 const senderId = isMe ? profileStore.userData.id : 2;
-                const baseOffset = ((page - 1) * 20 + (19 - i)) * 1000 * 60 * 60 * 6;
-                const jitter = (id % 5) * 1000 * 60 * 15;
-                const messageDate = new Date(Date.now() - (baseOffset + jitter));
+
+                // Date Logic: 
+                // Group messages into clumps of 5. Each clump jumps back 1.5 days.
+                // Inside the clump, messages are spaced out by 15 minutes.
+                const daysOffset = Math.floor(globalIndex / 5) * 1.5;
+                const minutesOffset = (globalIndex % 5) * 15;
+
+                // Add 30 mins base offset so the absolute newest message is always ~30 mins old (under 6 hour limit)
+                const totalOffset = daysOffset * 24 * 60 * 60 * 1000 + minutesOffset * 60 * 1000 + 30 * 60 * 1000;
+                const messageDate = new Date(Date.now() - totalOffset);
+
+                // Make the 4 newest messages unread to test the divider
+                const isRead = globalIndex > 3;
 
                 return {
                     id,
                     conversationId: Number(route.params.id) || 101,
                     date: messageDate,
                     type: (scenario === 'multiImage' ? 'image' : scenario) as MessageType,
-
-                    text: scenario === "text"
-                        ? `Message ${id}: ${isMe ? 'Sent by me.' : 'Received from them.'} Testing grouping and CORS.`
-                        : undefined,
-
-                    imageUrl: scenario === "image"
-                        ? [`https://picsum.photos/600/600?sig=${id}`]
-                        : scenario === "multiImage"
-                            ? [
-                                `https://picsum.photos/600/600?sig=${id}_1`,
-                                `https://picsum.photos/600/600?sig=${id}_2`,
-                                `https://picsum.photos/600/600?sig=${id}_3`
-                            ]
-                            : undefined,
-
-                    // CORS-FRIENDLY PDF (W3C Sample)
-                    fileUrl: scenario === "file"
-                        ? `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf?id=${id}`
-                        : undefined,
-
-                    // CORS-FRIENDLY VOICE (MDN Sample)
-                    voiceUrl: scenario === "voice"
-                        ? `https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3?id=${id}`
-                        : undefined,
-
-                    // VIDEO (W3Schools usually allows standard streaming)
-                    videoUrl: scenario === "video"
-                        ? 'https://www.w3schools.com/html/mov_bbb.mp4'
-                        : undefined,
-
+                    text: scenario === "text" ? `Message ${id}: ${isMe ? 'Sent by me.' : 'Received from them.'}` : undefined,
+                    imageUrl: scenario === "image" ? [`https://picsum.photos/600/600?sig=${id}`] : scenario === "multiImage" ? [`https://picsum.photos/600/600?sig=${id}_1`, `https://picsum.photos/600/600?sig=${id}_2`, `https://picsum.photos/600/600?sig=${id}_3`] : undefined,
+                    fileUrl: scenario === "file" ? `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf?id=${id}` : undefined,
+                    voiceUrl: scenario === "voice" ? `https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3?id=${id}` : undefined,
+                    videoUrl: scenario === "video" ? 'https://www.w3schools.com/html/mov_bbb.mp4' : undefined,
                     isEdited: id % 8 === 0,
                     senderId: senderId,
-                    isSent: id % 20 !== 0,
-                    isRead: isMe ? (id % 3 !== 0) : true,
+                    isSent: true,
+                    isRead: isMe ? true : isRead, // My messages are always read by me
                 };
             });
         };
@@ -257,6 +251,7 @@ export default defineComponent({
             t, scrollContainer, loaderRef, virtualizer, reversedMessages,
             messages, handleWheel, isLoading, currentUserId, loading,
             NoMessages, getSpacingClass, handleScroll,
+            firstUnreadId,
         };
     }
 });
