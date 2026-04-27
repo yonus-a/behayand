@@ -27,8 +27,11 @@
                                     <div v-if="messageType === 'text' && message.repliedTo"
                                         class=" text-body-sm select-none w-full h-10 gap-x-2 flex items-center rounded-lg justify-between p-2"
                                         :class="[isMine ? ' bg-surface-variant-3' : 'bg-surface-variant']">
-                                        <div class=" text-on-surface/50 shrink-0"></div>
-                                        <div class=" text-on-surface flex-1"></div>
+                                        <div class=" text-on-surface/50 shrink-0">{{ replyName }} :</div>
+                                        <div class=" text-on-surface flex-1">
+                                            <div class=" w-full overflow-hidden text-ellipsis line-clamp-1">{{
+                                                replyContent }}</div>
+                                        </div>
                                         <BIcon icon="PhArrowUUpLeft" class=" w-5 h-5 fill-on-surface/20"
                                             weight="fill" />
                                     </div>
@@ -66,7 +69,7 @@
                                         :class="[message.isRead ? 'fill-primary' : 'fill-on-surface/50']" />
                                     <div class=" select-none  text-body-sm text-on-surface/50">{{
                                         formatTime(message.date)
-                                        }}
+                                    }}
                                     </div>
                                 </div>
                             </div>
@@ -213,10 +216,29 @@ export default defineComponent({
             }
         })
 
+        const replyName = computed(() => {
+            if (!props.message.repliedTo) return ''
+            let message = props.message.repliedTo
+            if (message.senderId === profileStore.userData.id) return t('chat.you')
+            return props.contact.name
+        })
+
+        const replyContent = computed(() => {
+            if (!props.message.repliedTo) return ''
+            let message = props.message.repliedTo
+            if (message.videoUrl && message.videoUrl.trim().length > 0) return t('chat.attachementTypes.video')
+            if (message.voiceUrl && message.voiceUrl.trim().length > 0) return t('chat.attachementTypes.voice')
+            if (message.fileUrl && message.fileUrl.trim().length > 0) return t('chat.attachementTypes.file')
+            if (message.imageUrl && message.imageUrl.length > 0) return t('chat.attachementTypes.image')
+            return message.text
+        })
+
         return {
             formatTime,
             isMine,
+            replyContent,
             messageType,
+            replyName,
             checkIcon,
             formatDateShort,
             roundingClasses,
