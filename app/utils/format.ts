@@ -74,9 +74,25 @@ export const replaceDigitsByLocale = (
 /**
  * Formats a phone number into a readable standard.
  * Example: 9134168227 -> 913 416 8227
+ * @param bytes - The raw string or number
+ */
+export const formatBytes = (bytes: number) => {
+  if (bytes === 0) return "0 KB";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+};
+
+/**
+ * Formats a phone number into a readable standard.
+ * Example: 9134168227 -> 913 416 8227
  * @param phoneNumber - The raw string or number
  */
-export const formatPhoneNumber = (identifier: string, dir: string = 'ltr'): string => {
+export const formatPhoneNumber = (
+  identifier: string,
+  dir: string = "ltr",
+): string => {
   if (!identifier) return "";
 
   const clean = identifier.replace(/\D/g, "");
@@ -84,7 +100,7 @@ export const formatPhoneNumber = (identifier: string, dir: string = 'ltr'): stri
   if (clean.length === 11 && clean.startsWith("09")) {
     const formatted = `${clean.slice(0, 4)} ${clean.slice(4, 7)} ${clean.slice(7)}`;
 
-    return dir === 'rtl' ? `\u200E${formatted}` : formatted;
+    return dir === "rtl" ? `\u200E${formatted}` : formatted;
   }
 
   return clean;
@@ -92,12 +108,12 @@ export const formatPhoneNumber = (identifier: string, dir: string = 'ltr'): stri
 
 export const formatCountdown = (totalSeconds: number): string => {
   if (totalSeconds <= 0) return "00 : 00";
-  
+
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  
-  const paddedMins = minutes.toString().padStart(2, '0');
-  const paddedSecs = seconds.toString().padStart(2, '0');
-  
+
+  const paddedMins = minutes.toString().padStart(2, "0");
+  const paddedSecs = seconds.toString().padStart(2, "0");
+
   return `${paddedMins} : ${paddedSecs}`;
 };

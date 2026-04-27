@@ -34,6 +34,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue';
 import { useI18n, useLocale } from '#imports';
+import { formatBytes } from '#imports';
 export default defineComponent({
     name: 'FileDisplay',
     props: {
@@ -104,14 +105,7 @@ export default defineComponent({
             }
             return 'FILE';
         });
-        // --- Size Formatting ---
-        const formatBytes = (bytes: number) => {
-            if (bytes === 0) return '0 KB';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-        };
+
 
         const formattedSize = computed(() => {
             if (status.value === 'downloading' && fetchedSize.value) {

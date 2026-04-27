@@ -6,13 +6,13 @@
             </template>
             <div class=" w-41 bg-surface rounded-2xl p-3 flex flex-col gap-y-1">
 
-                <div v-image-pick="{ multiple: true, onSelect: handleMediaSelected }" @click="handleAttachementOption"
+                <div v-image-pick="{ multiple: true, onSelect: handleMediaSelected }" @click="resetSelections"
                     class=" px-3 transition-all duration-200 ease-in-out bg-surface-variant-2/0 hover:bg-surface-variant-2 cursor-pointer select-none w-full flex items-center gap-x-2 h-11 rounded-xl ">
                     <BIcon icon="PhImage" class=" w-5 h-5 fill-on-surface/50" />
                     <div class=" text-body-sm text-on-surface/70">{{ t('chat.file.attachMedia') }}</div>
                 </div>
 
-                <div v-file-pick="{ multiple: true, onSelect: handleFilesSelected }" @click="handleAttachementOption"
+                <div v-file-pick="{ multiple: true, onSelect: handleFilesSelected }" @click="resetSelections"
                     class=" px-3 transition-all duration-200 ease-in-out bg-surface-variant-2/0 hover:bg-surface-variant-2 cursor-pointer select-none w-full flex items-center gap-x-2 h-11 rounded-xl ">
                     <BIcon icon="PhFile" class=" w-5 h-5 fill-on-surface/50" />
                     <div class=" text-body-sm text-on-surface/70">{{ t('chat.file.attachFile') }}</div>
@@ -20,7 +20,7 @@
 
             </div>
         </BMenu>
-        <BPopup no-padding ref="popup">
+        <BPopup @close="resetSelections" no-padding ref="popup">
             <div class=" md:max-w-114 w-dvw">
                 <div class=" border-b border-b-outline-variant w-full flex items-center gap-x-3 p-5">
                     <BIcon @click="closePopup" icon="PhX" class=" w-5 h-5 cursor-pointer fill-on-surface/50" />
@@ -35,19 +35,24 @@
                             </div>
                         </div>
                     </div>
-                    <div v-else-if="popupMode === 'multi-image'" class=" w-full">
+                    <div v-else-if="popupMode === 'multi-image'" class=" max-h-109 overflow-y-auto w-full">
                         <div class=" w-full grid grid-cols-4 gap-x-3">
                             <div class=" h-25" v-for="(image, index) in selectedMedia" :key="index">
-                                <BImage class=" w-full h-full min-w-full min-h-full max-w-full max-h-full"
+                                <BImage fit="cover"
+                                    class=" overflow-hidden rounded-xl w-full h-full min-w-full min-h-full max-w-full max-h-full"
                                     :src="image.path" />
                             </div>
                         </div>
+                    </div>
+                    <div v-else-if="popupMode === 'file'"
+                        class=" flex flex-col gap-y-3 w-full max-h-109 overflow-y-auto">
+                        <AttachementFileDisplay v-for="(file, index) in selectedFiles" :key="index" :file="file" />
                     </div>
                     <BInput class=" min-w-full" textarea :placeholder="t('chat.caption')" v-model="caption" />
                 </div>
                 <div class="border-t border-t-outline-variant w-full p-5 flex items-center gap-x-3">
                     <div class=" basis-1/2">
-                        <BButton class=" min-w-full" :text="t('chat.send')" />
+                        <BButton @click="sendMessages" class=" min-w-full" :text="t('chat.send')" />
                     </div>
                     <div class=" basis-1/2">
                         <BButton @click="closePopup" color="secondary" class=" min-w-full"
@@ -64,10 +69,15 @@ import { defineComponent, ref, computed } from 'vue';
 import { useI18n, useAppToast } from '#imports';
 import type { Menu } from '~/types/components/menu';
 import type { Popup } from '~/types/components/popup';
+import AttachementFileDisplay from './AttachementFileDisplay.vue';
 type PopupMode = 'single-image' | 'multi-image' | 'file'
 export default defineComponent({
     name: 'InputAttachement',
-    setup() {
+    components: {
+        AttachementFileDisplay,
+    },
+    emits: ['send'],
+    setup(props, { emit }) {
         const popup = ref<Popup | null>(null)
         const { t } = useI18n()
         const { openToast } = useAppToast()
@@ -106,17 +116,16 @@ export default defineComponent({
             selectedFiles.value = [...selectedFiles.value, ...files];
             console.log('Files Selected:', selectedFiles.value);
             popupMode.value = 'file'
-            popup.value?.close()
+            popup.value?.open()
         }
 
         const closePopup = () => {
             popup.value?.close()
         }
 
-        const handleAttachementOption = () => {
+        const resetSelections = () => {
             selectedMedia.value = [];
             selectedFiles.value = [];
-
             attachementMenu.value?.close();
         }
 
@@ -132,10 +141,18 @@ export default defineComponent({
             }
         })
 
+        const sendMessages = () => {
+            popup.value?.close()
+            resetSelections()
+            emit('send')
+        }
+
+
         return {
+            sendMessages,
             t,
             attachementMenu,
-            handleAttachementOption,
+            resetSelections,
             handleMediaSelected,
             handleFilesSelected,
             closePopup,
