@@ -51,7 +51,6 @@ export default defineComponent({
             const adjustedX = Math.min(x, window.innerWidth - 250);
             const adjustedY = Math.min(y, window.innerHeight - 300);
 
-            console.log('fuck 4')
             position.value = { x: adjustedX, y: adjustedY };
             isOpen.value = true;
             chatActionStore.isMenuOpen = true;

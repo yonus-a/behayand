@@ -22,13 +22,18 @@ export const useChatActionStore = defineStore("chatAction", () => {
   const canReply = computed(() => selectedMessages.value.size <= 1);
 
   const canEdit = computed(() => {
-    if (selectedMessages.value.size > 1) return false;
-    const msg = selectedArray.value;
+    // 1. Must have exactly 1 message
+    if (selectedMessages.value.size !== 1) return false;
+
+    // 2. Access the FIRST element of the array
+    const msg = selectedArray.value[0];
     if (!msg) return false;
 
+    // 3. Perform the checks on the actual message object
     const isMine = msg.senderId === profileStore.userData.id;
     const hoursPassed =
       (Date.now() - new Date(msg.date).getTime()) / (1000 * 60 * 60);
+
     return isMine && hoursPassed < editWindowHours.value;
   });
 

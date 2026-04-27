@@ -1,53 +1,64 @@
 <template>
-    <div dir="rtl" id="list" ref="scrollContainer"
-        class="h-full w-full overflow-y-auto pb-4 hide-scrollbar flip-vertical px-5 bg-surface-variant/30"
-        @scroll="handleScroll" @wheel.prevent="handleWheel">
+    <div class="relative w-full h-full overflow-hidden">
 
-        <div v-show="messages.length">
-            <div :style="{ height: virtualizer.getTotalSize() + 'px', width: '100%', position: 'relative' }">
-                <div v-for="virtualRow in virtualizer.getVirtualItems()" :key="reversedMessages[virtualRow.index].id"
-                    :data-index="virtualRow.index" :ref="(el) => el && virtualizer.measureElement(el)" :style="{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        transform: `translateY(${virtualRow.start}px)`
-                    }">
+        <div class="absolute top-4 left-0 right-0 z- flex justify-center pointer-events-none transition-opacity duration-200"
+            :style="{ opacity: headerOpacity }">
+            <div v-if="floatingHeader"
+                class="rounded-full bg-on-surface/10 flex items-center justify-center px-4 py-0.5">
+                <div class="text-on-surface select-none text-label-sm">{{ floatingHeader }}</div>
+            </div>
+        </div>
+        <div dir="rtl" id="list" ref="scrollContainer"
+            class="h-full w-full overflow-y-auto pb-4 hide-scrollbar flip-vertical px-5 bg-surface-variant/30"
+            @scroll="handleScroll" @wheel.prevent="handleWheel">
 
-                    <div class="flip-vertical"
-                        :class="[getSpacingClass(virtualRow.index, reversedMessages[virtualRow.index]), virtualRow.index === 0 ? 'pb-2' : '']">
-                        <ChatBubble :is-first-unread="reversedMessages[virtualRow.index].id === firstUnreadId"
-                            :message="reversedMessages[virtualRow.index]"
-                            :is-self="reversedMessages[virtualRow.index].senderId === currentUserId"
-                            :contact="contact" />
+            <div v-show="messages.length">
+                <div :style="{ height: virtualizer.getTotalSize() + 'px', width: '100%', position: 'relative' }">
+                    <div v-for="virtualRow in virtualizer.getVirtualItems()"
+                        :key="reversedMessages[virtualRow.index].id" :data-index="virtualRow.index"
+                        :ref="(el) => el && virtualizer.measureElement(el)" :style="{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            transform: `translateY(${virtualRow.start}px)`
+                        }">
+
+                        <div class="flip-vertical"
+                            :class="[getSpacingClass(virtualRow.index, reversedMessages[virtualRow.index]), virtualRow.index === 0 ? 'pb-2' : '']">
+                            <ChatBubble :is-first-unread="reversedMessages[virtualRow.index].id === firstUnreadId"
+                                :message="reversedMessages[virtualRow.index]"
+                                :is-self="reversedMessages[virtualRow.index].senderId === currentUserId"
+                                :contact="contact" />
+                        </div>
+
                     </div>
+                </div>
 
+                <div ref="loaderRef" v-show="isLoading"
+                    class="w-full flex h-16 justify-center items-center shrink-0 overflow-hidden transition-all duration-300 flip-vertical py-4">
+                    <div>
+                        <LottieAnimation :animation-data="loading" :height="52" :width="52" :loop="true"
+                            :auto-play="true" />
+                    </div>
                 </div>
             </div>
 
-            <div ref="loaderRef" v-show="isLoading"
-                class="w-full flex h-16 justify-center items-center shrink-0 overflow-hidden transition-all duration-300 flip-vertical py-4">
-                <div>
-                    <LottieAnimation :animation-data="loading" :height="52" :width="52" :loop="true"
-                        :auto-play="true" />
-                </div>
+            <div v-show="messages.length === 0 && !isLoading"
+                class="h-full flex items-center justify-center text-on-surface/50 text-body-md flip-vertical">
+                <NoDataDisplay :title="t('chat.noMessages')" :image-path="NoMessages" />
             </div>
-        </div>
-
-        <div v-show="messages.length === 0 && !isLoading"
-            class="h-full flex items-center justify-center text-on-surface/50 text-body-md flip-vertical">
-            <NoDataDisplay :title="t('chat.noMessages')" :image-path="NoMessages" />
-        </div>
-        <div v-show="messages.length === 0 && isLoading"
-            class=" w-full flex h-full flip-vertical items-center justify-center">
-            <LottieAnimation :animation-data="loading" :height="52" :width="52" :loop="true" :auto-play="true" />
+            <div v-show="messages.length === 0 && isLoading"
+                class=" w-full flex h-full flip-vertical items-center justify-center">
+                <LottieAnimation :animation-data="loading" :height="52" :width="52" :loop="true" :auto-play="true" />
+            </div>
         </div>
     </div>
 </template>
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onBeforeUnmount, watch, type PropType } from 'vue';
 import { useRoute } from 'vue-router';
-import { useI18n, useChatStore } from '#imports';
+import { useI18n, useChatStore, useDate } from '#imports';
 import { useVirtualizer } from '@tanstack/vue-virtual';
 import ChatBubble from './ChatBubble.vue';
 import type { Message, MessageType, Contact, ExtendedMessage } from '~/types/chat';
@@ -55,7 +66,6 @@ import loading from '@/assets/lottie/loading.json'
 import NoDataDisplay from '../general/NoDataDisplay.vue';
 import NoMessages from '/images/chat/no-messages.webp'
 import { useProfileStore } from '#imports';
-
 
 export default defineComponent({
     name: 'ChatMessages',
@@ -74,7 +84,7 @@ export default defineComponent({
         const scrollContainer = ref<HTMLElement | null>(null);
         const loaderRef = ref<HTMLElement | null>(null);
         let observer: IntersectionObserver | null = null;
-
+        const { formatDateShort } = useDate();
         const messages = ref<Message[]>([]);
         const isLoading = ref(false);
         const currentPage = ref(1);
@@ -187,10 +197,36 @@ export default defineComponent({
             isLoading.value = false;
         };
 
+        const headerOpacity = ref(0);
+        let scrollTimer: any = null;
+
         const handleScroll = () => {
             const el = scrollContainer.value;
+
+            headerOpacity.value = 1; // Show header when scrolling
+            if (scrollTimer) clearTimeout(scrollTimer);
+
+            scrollTimer = setTimeout(() => {
+                headerOpacity.value = 0; // Fade out after 3 seconds of inactivity
+            }, 3000);
+
             if (el && (el.scrollHeight - el.scrollTop - el.clientHeight < 100) && !isLoading.value && messages.value.length > 0) {
                 fetchMessages(currentPage.value + 1);
+            }
+            const items = virtualizer.value.getVirtualItems();
+            if (items.length > 0) {
+                const visualTopPhysical = el.scrollTop + el.clientHeight;
+                let closestIndex = items.index;
+                let minDiff = Infinity;
+
+                for (const item of items) {
+                    const diff = Math.abs(item.start - visualTopPhysical);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestIndex = item.index;
+                    }
+                }
+                topVisibleMessageIndex.value = closestIndex;
             }
         };
 
@@ -245,13 +281,24 @@ export default defineComponent({
         onBeforeUnmount(() => {
             if (observer) observer.disconnect();
             if (animationFrame) cancelAnimationFrame(animationFrame);
+            if (scrollTimer) clearTimeout(scrollTimer);
+        });
+
+        const topVisibleMessageIndex = ref(0);
+        const floatingHeader = computed(() => {
+            const msg = reversedMessages.value[topVisibleMessageIndex.value];
+            if (!msg) return null;
+            // Show "Unread Messages" if hovering exactly over the unread marker, otherwise show Date
+            if (msg.id === firstUnreadId.value) return t('chat.unreadMessages');
+            return formatDateShort(msg.date);
         });
 
         return {
+            floatingHeader,
             t, scrollContainer, loaderRef, virtualizer, reversedMessages,
             messages, handleWheel, isLoading, currentUserId, loading,
             NoMessages, getSpacingClass, handleScroll,
-            firstUnreadId,
+            firstUnreadId, headerOpacity,
         };
     }
 });

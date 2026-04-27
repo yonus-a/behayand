@@ -168,7 +168,7 @@ export default defineComponent({
         const handleRightClick = (event: MouseEvent) => {
             if (!chatActionStore.isSelectMode) {
                 chatActionStore.selectedMessages.clear();
-                chatActionStore.selectedMessages.set(props.message.id, props.message);
+                chatActionStore.toggleSelection(props.message);
             }
             console.log(event.clientX, event.clientY)
             bubbleOptionsRef.value?.openMenu(event.clientX, event.clientY);
