@@ -1,7 +1,6 @@
 <template>
     <Teleport to="body">
-        <div 
-            :style="{ position: 'fixed', top: `${position.y}px`, left: `${position.x}px`, zIndex: 99999, pointerEvents: 'none' }"
+        <div :style="{ position: 'fixed', top: `${position.y}px`, left: `${position.x}px`, zIndex: 99999, pointerEvents: 'none' }"
             dir="rtl">
 
             <BMenu ref="menuRef" @closed="onMenuClosed">
@@ -27,15 +26,22 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, nextTick } from 'vue';
+import { defineComponent, ref, computed, nextTick, type PropType } from 'vue';
 import { useI18n, useAppToast } from '#imports';
 import { useChatActionStore } from '~/stores/chatActionStore';
 import { useProfileStore, useDate } from '#imports';
 import type { Menu } from '~/types/components/menu';
+import type { ExtendedMessage } from '~/types/chat';
 
 export default defineComponent({
     name: 'BubbleOptions',
-    setup(_, { expose }) {
+    props: {
+        message: {
+            type: Object as PropType<ExtendedMessage>,
+            required: true,
+        }
+    },
+    setup(props, { expose }) {
         const { t } = useI18n();
         const { openToast } = useAppToast();
         const { formatDateShort, formatTime } = useDate();
@@ -73,12 +79,24 @@ export default defineComponent({
 
         expose({ openMenu, closeMenu });
 
+        const isTargetSelected = computed(() => chatActionStore.selectedMessages.has(props.message.id));
+
+        const showAsDeselect = computed(() => {
+            return chatActionStore.isSelectMode && chatActionStore.selectedMessages.has(props.message.id);
+        });
+        //PhXCircle
+        //t('chat.messageOptions.deselect')
         const options = computed(() => {
             const allOptions = [
                 { icon: 'PhArrowBendUpLeft', key: 'reply', title: t('chat.messageOptions.reply'), canShow: chatActionStore.canReply },
                 { icon: 'PhPencilSimpleLine', key: 'edit', title: t('chat.messageOptions.edit'), canShow: chatActionStore.canEdit },
                 { icon: 'PhCopy', key: 'copy', title: t('chat.messageOptions.copy'), canShow: true },
-                { icon: 'PhCheckCircle', key: 'select', title: t('chat.messageOptions.select'), canShow: !chatActionStore.isSelectMode },
+                {
+                    icon: showAsDeselect.value ? 'PhXCircle' : 'PhCheckCircle',
+                    key: 'select_toggle',
+                    title: showAsDeselect.value ? t('chat.messageOptions.deselect') : t('chat.messageOptions.select'),
+                    canShow: true
+                },
                 { icon: 'PhTrash', key: 'delete', title: t('chat.messageOptions.delete'), canShow: chatActionStore.canDelete, color: 'error' }
             ];
             return allOptions.filter((option) => option.canShow);
@@ -86,26 +104,34 @@ export default defineComponent({
 
         const handleOption = (key: string) => {
             const targets = chatActionStore.selectedArray;
-
-            switch (key) {
-                case 'delete':
-                    chatActionStore.clearActions();
-                    break;
-                case 'select':
-                    chatActionStore.startSelectMode(targets); // FIXED: Pass single object, not array
-                    break;
-                case 'edit':
-                    chatActionStore.editingMessage = targets;
-                    break;
-                case 'reply':
-                    chatActionStore.replyingTo = targets;
-                    break;
-                case 'copy':
-                    copyMessageText(targets);
-                    chatActionStore.clearActions();
-                    break;
-            }
             closeMenu();
+
+            setTimeout(() => {
+
+                switch (key) {
+                    case 'delete':
+                        chatActionStore.clearActions();
+                        break;
+                    case 'select_toggle':
+                        if (!chatActionStore.isSelectMode) {
+                            chatActionStore.startSelectMode(props.message);
+                        } else {
+                            chatActionStore.toggleSelection(props.message);
+                        }
+                        break;
+                    case 'edit':
+                        chatActionStore.editingMessage = props.message;
+                        break;
+                    case 'reply':
+                        chatActionStore.replyingTo = props.message;
+                        break;
+                    case 'copy':
+                        copyMessageText(targets);
+                        chatActionStore.clearActions();
+                        break;
+                }
+
+            }, 300)
         };
 
         const copyMessageText = (messages: any[]) => {

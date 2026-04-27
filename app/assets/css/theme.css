@@ -161,6 +161,12 @@
     var(--color-gray-25)
   );
 
+  --background-image-diamond-surface: radial-gradient(
+    circle at 70% 0%,
+    var(--color-black-700),
+    var(--color-black-400)
+  );
+
   --color-primary: var(--color-primary-600);
   --color-on-primary: #ffffff;
   --color-on-primary-container: var(--color-primary-900);
@@ -299,6 +305,12 @@
     --color-surface-variant-3: var(--color-black-300);
     --color-outline: var(--color-gray-800);
     --color-outline-variant: var(--color-gray-900);
+
+    --background-image-diamond-surface: radial-gradient(
+      circle at 70% 0%,
+      var(--color-gray-50),
+      var(--color-gray-200)
+    );
   }
 }
 

@@ -20,7 +20,7 @@
             </div>
         </div>
         <div class="shrink-0 w-11 h-11 relative flex items-center justify-center cursor-pointer transition-colors duration-200"
-            :class="[status === 'downloaded' ? ' bg-gradient-black dark:bg-gradient-gray rounded-xl' : 'rounded-full group']"
+            :class="[status === 'downloaded' ? ' bg-diamond-surface rounded-xl' : 'rounded-full group']"
             @click="handleAction">
             <svg v-if="status !== 'downloaded'" class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
                 viewBox="0 0 44 44">
@@ -34,7 +34,7 @@
             <BIcon v-else-if="status === 'downloading'" icon="PhX" class="w-5 h-5 fill-on-surface transition-colors " />
 
             <BIcon v-else-if="status === 'downloaded'" :icon="isPlaying ? 'PhPause' : 'PhPlay'" weight="light"
-                class="w-5 h-5 text-white transition-transform duration-300"
+                class="w-5 h-5  text-surface transition-transform duration-300"
                 :class="[isPlaying ? 'scale-90' : ' scale-100']" />
         </div>
 

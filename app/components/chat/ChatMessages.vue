@@ -1,7 +1,7 @@
 <template>
     <div class="relative w-full h-full overflow-hidden">
 
-        <div class="absolute top-4 left-0 right-0 z- flex justify-center pointer-events-none transition-opacity duration-200"
+        <div class="absolute top-4 left-0 right-0 z-20 flex justify-center pointer-events-none transition-opacity duration-200"
             :style="{ opacity: headerOpacity }">
             <div v-if="floatingHeader"
                 class="rounded-full bg-on-surface/10 flex items-center justify-center px-4 py-0.5">
@@ -9,7 +9,7 @@
             </div>
         </div>
         <div dir="rtl" id="list" ref="scrollContainer"
-            class="h-full w-full overflow-y-auto pb-4 hide-scrollbar flip-vertical px-5 bg-surface-variant/30"
+            class="h-full w-full overflow-y-auto pb-4 hide-scrollbar flip-vertical  bg-surface-variant/30"
             @scroll="handleScroll" @wheel.prevent="handleWheel">
 
             <div v-show="messages.length">
@@ -127,14 +127,14 @@ export default defineComponent({
 
         // 3. Spacing Logic
         const getSpacingClass = (index: number, item: ExtendedMessage) => {
-            if (item.isFirstInDate) return 'pt-10'; // Extra space for date separator
-            if (index === reversedMessages.value.length - 1) return 'pt-4';
+            if (item.isFirstInDate) return 'pt-0'; // Extra space for date separator
+            if (index === reversedMessages.value.length - 1) return 'pt-0';
 
             // Logic based on the visual message below (which is idx - 1 in reversed array)
             const msgBelow = reversedMessages.value[index - 1];
-            if (msgBelow && msgBelow.senderId === item.senderId) return 'pt-1';
+            if (msgBelow && msgBelow.senderId === item.senderId) return 'pt-0';
 
-            return 'pt-4';
+            return 'pt-0';
         };
 
         // 4. Mock Data Generation (dates now span multiple days)
