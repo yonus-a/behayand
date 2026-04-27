@@ -1,5 +1,5 @@
 <template>
-    <div class="w-55 flex items-center gap-x-2.5 select-none text-on-surface">
+    <div class="w-55 p-2 flex items-center gap-x-2.5 select-none text-on-surface">
 
 
         <div class="flex-1 h-7 relative flex items-center cursor-pointer overflow-hidden" @click="seekAudio">

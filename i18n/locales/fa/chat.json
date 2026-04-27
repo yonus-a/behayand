@@ -54,7 +54,11 @@
     "file": {
       "calculating": "در حال محاسبه",
       "attachMedia": "عکس یا ویدیو",
-      "attachFile": "فایل"
+      "attachFile": "فایل",
+      "sendImage": "ارسال تصویر",
+      "sendImages": "ارسال تصاویر",
+      "sendFile": "ارسال فایل",
+      "cancel": "انصراف"
     },
     "permissions": {
       "permissionTitle": "دسترسی دوربین و میکروفون",
@@ -81,6 +85,8 @@
     },
     "you": "شما",
     "copiedMessage": "پیام با موفقیت به کلیپ بورد الصاق شد.",
-    "unreadMessages": "خوانده نشده."
+    "unreadMessages": "خوانده نشده.",
+    "caption": "کپشن",
+    "send": "ارسال"
   }
 }
