@@ -20,7 +20,7 @@
 
             </div>
         </BMenu>
-        <BPopup @close="resetSelections" no-padding ref="popup">
+        <BPopup @closed="resetSelections" no-padding ref="popup">
             <div class=" md:max-w-114 w-dvw">
                 <div class=" border-b border-b-outline-variant w-full flex items-center gap-x-3 p-5">
                     <BIcon @click="closePopup" icon="PhX" class=" w-5 h-5 cursor-pointer fill-on-surface/50" />
