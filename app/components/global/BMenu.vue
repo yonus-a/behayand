@@ -10,7 +10,7 @@
         </div>
 
         <div ref="panelRef" @click="handleContentClick"
-            class="absolute z-100 rounded-2xl bg-surface border border-outline-variant transition-all duration-200 ease-in-out"
+            class="absolute z-120 rounded-2xl bg-surface border border-outline-variant transition-all duration-200 ease-in-out"
             :style="panelPositionStyles"
             :class="[isOpen ? 'shadow-[0px_8px_24px_rgba(149,157,165,0.2)]' : 'shadow-none']">
 

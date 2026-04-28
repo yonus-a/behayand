@@ -102,7 +102,7 @@ export default defineComponent({
         };
 
         const handleEditMessage = (payload: { id: number, text: string }) => {
-            chatMessagesRef.value?.editMessage(payload.id, payload.text);
+            //        chatMessagesRef.value?.editMessage(payload.id, payload.text);
         };
 
         return {

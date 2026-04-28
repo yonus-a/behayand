@@ -27,9 +27,8 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, nextTick, type PropType } from 'vue';
-import { useI18n, useAppToast } from '#imports';
+import { useI18n } from '#imports';
 import { useChatActionStore } from '~/stores/chatActionStore';
-import { useProfileStore, useDate } from '#imports';
 import type { Menu } from '~/types/components/menu';
 import type { ExtendedMessage } from '~/types/chat';
 export default defineComponent({
@@ -40,13 +39,9 @@ export default defineComponent({
             required: true,
         }
     },
-    emits: ['delete'],
-    setup(props, { expose, emit }) {
+    setup(props, { expose }) {
         const { t } = useI18n();
-        const { openToast } = useAppToast();
-        const { formatDateShort, formatTime } = useDate();
         const chatActionStore = useChatActionStore();
-        const profileStore = useProfileStore();
         const isOpen = ref(false);
 
         const menuRef = ref<Menu | null>(null);
@@ -79,13 +74,10 @@ export default defineComponent({
 
         expose({ openMenu, closeMenu });
 
-        const isTargetSelected = computed(() => chatActionStore.selectedMessages.has(props.message.id));
 
         const showAsDeselect = computed(() => {
             return chatActionStore.isSelectMode && chatActionStore.selectedMessages.has(props.message.id);
         });
-        //PhXCircle
-        //t('chat.messageOptions.deselect')
         const options = computed(() => {
             const allOptions = [
                 { icon: 'PhArrowBendUpLeft', key: 'reply', title: t('chat.messageOptions.reply'), canShow: props.message.isSent },
@@ -103,15 +95,12 @@ export default defineComponent({
         });
 
         const handleOption = (key: string) => {
-            const targets = chatActionStore.selectedArray;
             closeMenu();
-
             setTimeout(() => {
 
                 switch (key) {
                     case 'delete':
-                        emit('delete', targets.map(t => t.id));
-                        chatActionStore.clearActions();
+                        chatActionStore.triggerDelete()
                         break;
                     case 'select_toggle':
                         if (!chatActionStore.isSelectMode) {
@@ -128,26 +117,15 @@ export default defineComponent({
                         chatActionStore.replyingTo = props.message;
                         break;
                     case 'copy':
-                        copyMessageText(targets);
-                        chatActionStore.clearActions();
+                        copyMessageText();
                         break;
                 }
 
             }, 300)
         };
 
-        const copyMessageText = (messages: any[]) => {
-            const textToCopy = messages.map(msg => {
-                const isMine = msg.senderId === profileStore.userData.id;
-                const senderName = isMine ? t('chat.you') : msg.contact?.name || 'User';
-                const dateTime = `${formatDateShort(msg.date)}, ${formatTime(msg.date)}`;
-                const content = msg.text || (msg.imageUrl ? '[Image]' : msg.voiceUrl ? '[Voice]' : '[File]');
-                return `${senderName} [${dateTime}]:\n${content}`;
-            }).join('\n\n');
-
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                openToast(t('chat.copiedMessage'), 'success');
-            });
+        const copyMessageText = () => {
+            chatActionStore.copyMessageText()
         };
 
         return {

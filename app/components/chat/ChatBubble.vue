@@ -71,7 +71,7 @@
                                         :class="[message.isRead && message.isSent ? 'fill-primary' : 'fill-on-surface/50']" />
                                     <div class=" select-none  text-body-sm text-on-surface/50">{{
                                         formatTime(message.date)
-                                        }}
+                                    }}
                                     </div>
                                 </div>
                             </div>
@@ -86,7 +86,7 @@
                 <ImageGroupDisplay v-if="message.imageUrl && message.imageUrl.length > 0" ref="imageDisplayRef"
                     :images="message.imageUrl" />
 
-                <BubbleOptions @delete="$emit('delete', $event)" :message="message" ref="bubbleOptionsRef" />
+                <BubbleOptions :message="message" ref="bubbleOptionsRef" />
             </div>
         </div>
     </div>
@@ -134,8 +134,7 @@ export default defineComponent({
         ContactAvatar,
         BubbleOptions,
     },
-    emits: ['delete'],
-    setup(props, { emit }) {
+    setup(props) {
         const profileStore = useProfileStore()
         const chatActionStore = useChatActionStore()
         const { formatDateShort, formatTime } = useDate()

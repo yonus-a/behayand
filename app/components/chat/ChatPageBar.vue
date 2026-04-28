@@ -1,7 +1,8 @@
 <template>
     <div v-if="selectedChat"
         class="w-full h-16 md:h-20 gap-x-4 bg-surface border-b border-b-outline-variant flex items-center justify-between py-4 px-5">
-        <div class=" w-full md:flex-row flex-row-reverse items-center justify-end gap-x-4 md:justify-between flex">
+        <div
+            class=" w-full md:flex-row flex-row-reverse relative items-center justify-end gap-x-4 md:justify-between flex">
             <div @click="openProfile" class="cursor-pointer flex items-center gap-x-3">
                 <div class="w-10 h-10 relative shrink-0">
                     <ContactAvatar v-if="contact" :contact="contact" />
@@ -14,10 +15,10 @@
                 </div>
             </div>
 
-            <div class=" h-6">
-                <div class=" transition-all duration-200 ease-in-out"
+            <div class=" relative h-6">
+                <div class="relative transition-all duration-200 ease-in-out"
                     :class="[isSelectMode ? '-translate-y-6' : 'translate-y-0']">
-                    <div class="flex items-center gap-x-4 transition-all duration-200 ease-in-out"
+                    <div class="flex relative items-center gap-x-4 transition-all duration-200 ease-in-out"
                         :class="[isSelectMode ? ' pointer-events-none opacity-0' : ' opacity-100 pointer-events-auto']">
                         <div class="  hidden md:block">
                             <BIcon icon="PhPhone" v-if="selectedChat.serviceType !== 'chat'"
@@ -46,10 +47,11 @@
                             </div>
                         </BMenu>
                     </div>
-                    <div :class="[!isSelectMode ? ' pointer-events-none opacity-0' : ' opacity-100 pointer-events-auto']" class=" flex items-center gap-x-4 ">
-                        <BIcon icon="PhTrash" class=" w-6 h-6 "
+                    <div :class="[!isSelectMode ? ' pointer-events-none opacity-0' : ' opacity-100 pointer-events-auto']"
+                        class=" flex items-center gap-x-4 ">
+                        <BIcon @click="deleteMessages" icon="PhTrash" class=" w-6 h-6 "
                             :class="[canDelete ? 'fill-error cursor-pointer' : 'cursor-not-allowed fill-on-surface/50']" />
-                        <BIcon icon="PhCopy" class=" w-6 h-6 cursor-pointer fill-on-surface" />
+                        <BIcon @click="copy" icon="PhCopy" class=" w-6 h-6 cursor-pointer fill-on-surface" />
                     </div>
                 </div>
             </div>
@@ -65,6 +67,7 @@ import { useChatStore, useChatActionStore, useI18n, useDate } from '#imports';
 import type { Menu } from '~/types/components/menu';
 import type { Contact } from '~/types/chat';
 import ContactAvatar from './contact/ContactAvatar.vue';
+
 
 export default defineComponent({
     name: 'PageBar',
@@ -165,10 +168,23 @@ export default defineComponent({
             router.go(-1)
         }
 
+        const copy = () => {
+            chatActionStore.copyMessageText()
+        }
+
+        const deleteMessages = () => {
+            if (!canDelete.value) return
+            //const targets = chatActionStore.selectedArray;
+            //const targetIds = targets.map(t => t.id)
+            chatActionStore.triggerDelete();
+        }
+
         return {
             t,
+            copy,
             selectedChat,
             formatRelativeDate,
+            deleteMessages,
             actions,
             menuOptions,
             handleMenuAction,

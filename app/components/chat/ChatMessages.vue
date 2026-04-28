@@ -33,8 +33,7 @@
                                 : ''
                         ]">
 
-                            <ChatBubble @delete="handleDeleteMessages"
-                                :is-deleting="deletingIds.has(reversedMessages[virtualRow.index].id)"
+                            <ChatBubble :is-deleting="deletingIds.has(reversedMessages[virtualRow.index].id)"
                                 :is-first-unread="reversedMessages[virtualRow.index].id === firstUnreadId"
                                 :message="reversedMessages[virtualRow.index]"
                                 :is-self="reversedMessages[virtualRow.index].senderId === currentUserId"
@@ -73,7 +72,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onBeforeUnmount, watch, type PropType } from 'vue';
 import { useRoute } from 'vue-router';
-import { useI18n, useChatStore, useDate } from '#imports';
+import { useI18n, useChatActionStore, useChatStore, useDate } from '#imports';
 import { useVirtualizer } from '@tanstack/vue-virtual';
 import ChatBubble from './ChatBubble.vue';
 import type { Message, MessageType, Contact, ExtendedMessage } from '~/types/chat';
@@ -97,6 +96,8 @@ export default defineComponent({
         const route = useRoute();
         const chatStore = useChatStore();
         const { t } = useI18n();
+        const chatActionStore = useChatActionStore()
+
         const scrollContainer = ref<HTMLElement | null>(null);
         const loaderRef = ref<HTMLElement | null>(null);
         let observer: IntersectionObserver | null = null;
@@ -106,6 +107,11 @@ export default defineComponent({
         const currentPage = ref(1);
         const maxPages = 5;
         const currentUserId = 1;
+
+
+        chatActionStore.deleteBus.on((payload) => handleDeleteMessages(payload))
+        // chatActionStore.editBus.on((payload) => handleRemoteEdit(payload));
+        // chatActionStore.replyBus.on((payload) => handleRemoteReply(payload));
 
         // --- ENRICHMENT LOGIC ---
         // 1. Process messages to add prev/next/contact and date-separation info
@@ -386,9 +392,12 @@ export default defineComponent({
                 selectedToDelete.value.forEach(id => deletingIds.value.add(id));
                 setTimeout(() => {
                     messages.value = messages.value.filter(m => !selectedToDelete.value.includes(m.id));
+                    chatActionStore.clearActions()
                 }, 300)
             }, 300)
         }
+
+
 
         return {
             floatingHeader,

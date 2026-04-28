@@ -120,6 +120,7 @@ export default defineComponent({
                 emit('action')
             } else {
                 closeModal()
+                emit('cancel')
             }
         }
 
