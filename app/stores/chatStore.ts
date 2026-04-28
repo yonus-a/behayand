@@ -229,9 +229,9 @@ export const useChatStore = defineStore("chat", () => {
         (_, i) =>
           ({
             id: -i - 1,
-            name: "در حال", // "Loading"
-            lastName: "بارگذاری...", // "Loading..."
-            imageUrl: "https://i.pravatar.cc/150?u=loading", // Static placeholder image
+            name: "در حال",
+            lastName: "بارگذاری...",
+            imageUrl: "https://i.pravatar.cc/150?u=loading",
             isOnline: false,
             lastSeen: new Date(),
             isActive: true,
@@ -242,7 +242,7 @@ export const useChatStore = defineStore("chat", () => {
               conversationId: -i - 1,
               date: new Date(),
               type: "text",
-              text: "در حال بارگذاری پیام...", // "Loading message..."
+              text: "در حال بارگذاری پیام...",
               isEdited: false,
               senderId: -1,
               isSent: true,
@@ -251,7 +251,15 @@ export const useChatStore = defineStore("chat", () => {
           }) as Contact,
       );
     }
-    return state.data;
+
+    // --- SORTING LOGIC ---
+    // We create a copy of the array and sort by date descending (Newest first)
+    return [...state.data].sort((a, b) => {
+      const dateA = a.lastMessage ? new Date(a.lastMessage.date).getTime() : 0;
+      const dateB = b.lastMessage ? new Date(b.lastMessage.date).getTime() : 0;
+
+      return dateB - dateA; // Sort newest to oldest
+    });
   };
 
   const getContactById = (id: number): Contact | null => {
@@ -266,6 +274,52 @@ export const useChatStore = defineStore("chat", () => {
     return null;
   };
 
+  const markAsRead = (conversationId: number) => {
+    for (const key in conversationStates.value) {
+      const contact = conversationStates.value[key as FilterKeys].data.find(
+        (c) => c.id === conversationId,
+      );
+      if (contact) {
+        contact.unreadCount = 0;
+        if (contact.lastMessage) {
+          contact.lastMessage.isRead = true;
+        }
+      }
+    }
+  };
+
+  // 2. Overwrite the last message (used when sending a new message)
+  const updateLastMessage = (conversationId: number, message: Message) => {
+    for (const key in conversationStates.value) {
+      const state = conversationStates.value[key as FilterKeys];
+      const contact = state.data.find((c) => c.id === conversationId);
+      if (contact) {
+        // Reassigning the object ensures Vue's computed sorting picks up the new date
+        contact.lastMessage = { ...message };
+      }
+    }
+  };
+
+  // 3. Patch specific properties of the last message (used for edits, deletions, or ID swaps)
+  const patchLastMessage = (
+    conversationId: number,
+    messageId: number,
+    updates: Partial<Message>,
+  ) => {
+    for (const key in conversationStates.value) {
+      const contact = conversationStates.value[key as FilterKeys].data.find(
+        (c) => c.id === conversationId,
+      );
+      if (
+        contact &&
+        contact.lastMessage &&
+        contact.lastMessage.id === messageId
+      ) {
+        contact.lastMessage = { ...contact.lastMessage, ...updates };
+      }
+    }
+  };
+
   return {
     conversationStates,
     activeConversationId,
@@ -275,5 +329,8 @@ export const useChatStore = defineStore("chat", () => {
     chatsPerPage,
     getContactById,
     messagesMap,
+    markAsRead,
+    updateLastMessage,
+    patchLastMessage,
   };
 });

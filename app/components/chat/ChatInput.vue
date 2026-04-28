@@ -83,7 +83,7 @@
                     <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
                     <span v-else class="text-primary cursor-pointer px-4 py-2 z-20" @click="cancelRecording">{{
                         t('chat.cancel')
-                        }}</span>
+                    }}</span>
                 </div>
 
                 <div class="absolute left-6 flex items-center gap-x-2 shrink-0 z-10">
@@ -93,7 +93,7 @@
                     </div>
                     <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
                         formattedTime
-                        }}</span>
+                    }}</span>
                 </div>
             </div>
             <PermissionPopup ref="permissionPopup" @action="handlePopupAction" @cancel="handlePopupCancel" />
@@ -126,25 +126,39 @@ export default defineComponent({
         const editingMessageData = ref<ExtendedMessage | null>(null); // Replace 'any' with ExtendedMessage if imported
         const replyingToMessageData = ref<ExtendedMessage | null>(null);
 
-        // 2. REPLACE YOUR PREVIOUS WATCHERS WITH THESE
-        watch(() => chatActionStore.editingMessage, (msg) => {
-            if (msg) {
-                textMode.value = 'edit';
-                editingMessageData.value = msg;
-                messageText.value = msg.text || ''; // Inject text
+        chatActionStore.editBus.on((payload) => handleEditMessage(payload))
+        // const saveEdit = chatActionStore.saveEdit;
 
-                nextTick(() => {
-                    inputRef.value?.focus();
-                    adjustHeight();
-                });
-            } else if (textMode.value === 'edit') {
-                // Only reset if we were actually in edit mode
-                textMode.value = 'normal';
-                editingMessageData.value = null;
-                messageText.value = '';
-                nextTick(() => adjustHeight());
-            }
-        });
+
+        const handleEditMessage = (msg: ExtendedMessage) => {
+            textMode.value = 'edit';
+            editingMessageData.value = msg;
+            messageText.value = msg.text || '';
+            nextTick(() => {
+                inputRef.value?.focus();
+                adjustHeight();
+            });
+        }
+
+        // 2. REPLACE YOUR PREVIOUS WATCHERS WITH THESE
+        //     watch(() => chatActionStore.editingMessage, (msg) => {
+        //         if (msg) {
+        //             textMode.value = 'edit';
+        //             editingMessageData.value = msg;
+        //             messageText.value = msg.text || ''; // Inject text
+
+        //             nextTick(() => {
+        //                 inputRef.value?.focus();
+        //                 adjustHeight();
+        //             });
+        //         } else if (textMode.value === 'edit') {
+        //             // Only reset if we were actually in edit mode
+        //             textMode.value = 'normal';
+        //             editingMessageData.value = null;
+        //             messageText.value = '';
+        //             nextTick(() => adjustHeight());
+        //         }
+        //     });
 
         watch(() => chatActionStore.replyingTo, (msg) => {
             if (msg) {
@@ -189,25 +203,17 @@ export default defineComponent({
         const recording = useChatRecording(inputWidth, {
             onStart: () => console.log('Recording Started'),
             onCancel: () => console.log('Recording Canceled'),
-
-            // Bypass the signature error by casting the function, 
-            // but still receive the url argument at runtime
             onSend: ((mediaUrl?: string) => {
-                // Fallback in case your composable doesn't pass the URL yet
-                const finalUrl = mediaUrl || 'placeholder_url_until_composable_updated';
-
+                const finalUrl = mediaUrl || 'placeholder';
                 const msg = createBaseMessage();
-
-                // Bypass the overlap error with 'as any'
                 msg.type = secondaryMessageType.value as any;
-
                 if (msg.type === 'voice') msg.voiceUrl = finalUrl;
                 if (msg.type === 'video' as any) msg.videoUrl = finalUrl;
 
-                emit('send', [msg]);
+                // Call Store directly!
+                chatActionStore.sendMessage([msg]);
                 chatActionStore.clearActions();
             }) as () => void,
-
             requestPermission: async () => await ensurePermissions()
         });
 
@@ -303,18 +309,16 @@ export default defineComponent({
             const newMessages: Message[] = payloads.map(payload => {
                 const msg = createBaseMessage();
                 msg.type = payload.type;
-
                 if (payload.type === 'text') msg.text = payload.text;
                 if (payload.type === 'image') msg.imageUrl = payload.imageUrl;
                 if (payload.type === 'file') msg.fileUrl = payload.fileUrl;
                 if (payload.type === 'voice') msg.voiceUrl = payload.voiceUrl;
                 if (payload.type === 'video') msg.videoUrl = payload.videoUrl;
-
                 return msg;
             });
 
-            // Emit the mapped array
-            emit('send', newMessages);
+            // Call Store directly!
+            chatActionStore.sendMessage(newMessages);
 
             messageText.value = '';
             chatActionStore.clearActions();
@@ -324,24 +328,23 @@ export default defineComponent({
         const sendMessage = () => {
             if (messageText.value.trim().length === 0) return;
 
-            // --- ADDED EDIT INTERCEPTION ---
             if (textMode.value === 'edit' && editingMessageData.value) {
-                emit('edit', {
-                    id: editingMessageData.value.id,
-                    text: messageText.value
-                });
+                // Call Store directly!
+                chatActionStore.saveEditMessage(editingMessageData.value.id, messageText.value);
             } else {
-                // Normal send logic
                 const msg = createBaseMessage();
                 msg.type = 'text';
                 msg.text = messageText.value;
-                emit('send', [msg]);
+                // Call Store directly!
+                chatActionStore.sendMessage([msg]);
             }
 
             messageText.value = '';
+            textMode.value = 'normal'
             chatActionStore.clearActions();
             nextTick(() => adjustHeight());
         };
+
         const handleEmojiSelect = (emoji: string) => {
             if (!inputRef.value) return;
             const start = inputRef.value.selectionStart ?? messageText.value.length;

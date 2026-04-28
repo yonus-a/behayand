@@ -70,17 +70,17 @@
     <BModal ref="modal" @action="deleteMessages" />
 </template>
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, onBeforeUnmount, watch, type PropType } from 'vue';
+import { defineComponent, ref, computed, onMounted, onBeforeUnmount, watch, type PropType, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
-import { useI18n, useChatActionStore, useChatStore, useDate } from '#imports';
+import { useI18n, useChatActionStore, useChatStore, useDate, useProfileStore } from '#imports';
 import { useVirtualizer } from '@tanstack/vue-virtual';
 import ChatBubble from './ChatBubble.vue';
 import type { Message, MessageType, Contact, ExtendedMessage } from '~/types/chat';
-import loading from '@/assets/lottie/loading.json'
+import loading from '@/assets/lottie/loading.json';
 import NoDataDisplay from '../general/NoDataDisplay.vue';
-import NoMessages from '/images/chat/no-messages.webp'
-import { useProfileStore } from '#imports';
+import NoMessages from '/images/chat/no-messages.webp';
 import type { Modal } from '~/types/components/modal';
+
 export default defineComponent({
     name: 'ChatMessages',
     components: { ChatBubble, NoDataDisplay },
@@ -91,40 +91,80 @@ export default defineComponent({
         }
     },
     setup(props) {
-        const modal = ref<Modal | null>(null)
-        const profileStore = useProfileStore()
+        const modal = ref<Modal | null>(null);
+        const profileStore = useProfileStore();
         const route = useRoute();
         const chatStore = useChatStore();
         const { t } = useI18n();
-        const chatActionStore = useChatActionStore()
+        const chatActionStore = useChatActionStore();
+        const { formatDateShort } = useDate();
 
         const scrollContainer = ref<HTMLElement | null>(null);
         const loaderRef = ref<HTMLElement | null>(null);
         let observer: IntersectionObserver | null = null;
-        const { formatDateShort } = useDate();
+
         const messages = ref<Message[]>([]);
         const isLoading = ref(false);
         const currentPage = ref(1);
         const maxPages = 5;
-        const currentUserId = 1;
+        const currentUserId = profileStore.userData.id;
 
+        // --- BUS SUBSCRIPTIONS ---
+        let unsubSend: () => void;
+        let unsubDelete: () => void;
+        let unsubUpdate: () => void;
 
-        chatActionStore.deleteBus.on((payload) => handleDeleteMessages(payload))
-        // chatActionStore.editBus.on((payload) => handleRemoteEdit(payload));
-        // chatActionStore.replyBus.on((payload) => handleRemoteReply(payload));
+        onMounted(() => {
+            const chatId = Number(route.params.id);
+            if (chatId) chatStore.markAsRead(chatId);
+            fetchMessages(1);
+
+            // 1. Listen for new messages to send
+            unsubSend = chatActionStore.sendBus.on((newMsgs) => {
+                addMessages(newMsgs);
+            });
+
+            // 2. Listen for delete triggers to open the modal
+            unsubDelete = chatActionStore.deleteBus.on((ids) => {
+                handleDeleteMessages(ids);
+            });
+
+            // 3. Listen for targeted patches (e.g. swapping temp IDs, toggling isSent, handling edits)
+            unsubUpdate = chatActionStore.updateBus.on(({ id, updates }) => {
+                const index = messages.value.findIndex(m => m.id === id);
+                if (index !== -1) {
+                    messages.value[index] = { ...messages.value[index], ...updates };
+                }
+            });
+
+            // Intersection Observer setup
+            setTimeout(() => {
+                observer = new IntersectionObserver(([entry]) => {
+                    if (entry.isIntersecting && !isLoading.value && messages.value.length > 0) {
+                        fetchMessages(currentPage.value + 1);
+                    }
+                }, { root: scrollContainer.value, threshold: 0, rootMargin: '150px' });
+
+                if (loaderRef.value) observer.observe(loaderRef.value);
+            }, 500);
+        });
+
+        onBeforeUnmount(() => {
+            if (observer) observer.disconnect();
+            if (animationFrame) cancelAnimationFrame(animationFrame);
+            if (scrollTimer) clearTimeout(scrollTimer);
+            if (unsubSend) unsubSend();
+            if (unsubDelete) unsubDelete();
+            if (unsubUpdate) unsubUpdate();
+        });
 
         // --- ENRICHMENT LOGIC ---
-        // 1. Process messages to add prev/next/contact and date-separation info
         const reversedMessages = computed(() => {
             const raw = messages.value;
             const enriched: ExtendedMessage[] = raw.map((msg, idx) => {
                 const prev = raw[idx - 1];
                 const next = raw[idx + 1];
-
-                // Check if this is the first message of a new day
-                // (Comparing to the previous message in chronological order)
-                const isFirstInDate = !prev ||
-                    new Date(msg.date).toDateString() !== new Date(prev.date).toDateString();
+                const isFirstInDate = !prev || new Date(msg.date).toDateString() !== new Date(prev.date).toDateString();
 
                 return {
                     ...msg,
@@ -134,12 +174,10 @@ export default defineComponent({
                     contact: chatStore.getContactById(msg.senderId)
                 };
             });
-
-            // Return reversed for the flipped UI (Newest at index 0)
             return enriched.reverse();
         });
 
-        // 2. TanStack Setup
+        // --- TANSTACK VIRTUALIZER ---
         const virtualizer = useVirtualizer(computed(() => ({
             count: reversedMessages.value.length,
             getScrollElement: () => scrollContainer.value,
@@ -147,56 +185,47 @@ export default defineComponent({
             overscan: 15,
         })));
 
-        // 3. Spacing Logic
         const getSpacingClass = (index: number, item: ExtendedMessage) => {
-            if (item.isFirstInDate) return 'pt-0'; // Extra space for date separator
+            if (item.isFirstInDate) return 'pt-0';
             if (index === reversedMessages.value.length - 1) return 'pt-0';
-
-            // Logic based on the visual message below (which is idx - 1 in reversed array)
             const msgBelow = reversedMessages.value[index - 1];
             if (msgBelow && msgBelow.senderId === item.senderId) return 'pt-0';
-
             return 'pt-0';
         };
 
-        // 4. Mock Data Generation (dates now span multiple days)
         const firstUnreadId = computed(() => {
-            const unreadMsg = messages.value.find(m => !m.isRead && m.senderId !== profileStore.userData.id);
+            const unreadMsg = messages.value.find(m => !m.isRead && m.senderId !== currentUserId);
             return unreadMsg ? unreadMsg.id : null;
         });
 
-        // 2. REPLACE YOUR ENTIRE generateMockMessages FUNCTION WITH THIS:
+        // --- MOCK DATA GENERATION ---
         const generateMockMessages = (page: number): Message[] => {
             const scenarios = ["text", "voice", "text", "image", "file", "multiImage", "text", "video", "text", "voice"];
 
             return Array.from({ length: 20 }).map((_, i) => {
-                const globalIndex = (page - 1) * 20 + (19 - i); // 0 is absolute newest
+                const globalIndex = (page - 1) * 20 + (19 - i);
                 const id = 1000 - globalIndex;
                 const scenario = scenarios[id % scenarios.length];
 
-                // Conversational grouping: Swap sender every 2 messages so both users talk on the same day
                 const isMe = Math.floor(globalIndex / 2) % 2 === 0;
                 const senderId = isMe ? profileStore.userData.id : 2;
 
-                // Date Logic
                 const daysOffset = Math.floor(globalIndex / 5) * 1.5;
                 const minutesOffset = (globalIndex % 5) * 15;
                 const totalOffset = daysOffset * 24 * 60 * 60 * 1000 + minutesOffset * 60 * 1000 + 30 * 60 * 1000;
                 const messageDate = new Date(Date.now() - totalOffset);
 
-                // Make the 4 newest messages unread to test the divider
                 const isRead = globalIndex > 3;
 
-                // --- NEW: Generate a 'repliedTo' message for every 3rd message ---
                 let repliedTo: any = undefined;
                 if (id % 3 === 0) {
-                    const repliedId = id - 2; // Acts as if it's replying to an older message
+                    const repliedId = id - 2;
                     const repliedIsMe = Math.floor((globalIndex + 2) / 2) % 2 === 0;
 
                     repliedTo = {
                         id: repliedId,
                         conversationId: Number(route.params.id) || 101,
-                        date: new Date(messageDate.getTime() - 15 * 60 * 1000), // 15 mins older than current
+                        date: new Date(messageDate.getTime() - 15 * 60 * 1000),
                         type: 'text',
                         text: `This is the original message ${repliedId} that got replied to.`,
                         isEdited: false,
@@ -219,8 +248,8 @@ export default defineComponent({
                     isEdited: id % 8 === 0,
                     senderId: senderId,
                     isSent: true,
-                    isRead: isMe ? true : isRead, // My messages are always read by me
-                    repliedTo: repliedTo // --- ADDED HERE ---
+                    isRead: isMe ? true : isRead,
+                    repliedTo: repliedTo
                 } as Message;
             });
         };
@@ -235,23 +264,28 @@ export default defineComponent({
             isLoading.value = false;
         };
 
+        // --- SCROLL LOGIC ---
         const headerOpacity = ref(0);
         let scrollTimer: any = null;
         const scrollOffset = ref(0);
+        const topVisibleMessageIndex = ref(0);
+        const targetScroll = ref(0);
+        let animationFrame: number | null = null;
+
         const handleScroll = () => {
             const el = scrollContainer.value;
+            if (!el) return;
 
             scrollOffset.value = el.scrollTop;
-            headerOpacity.value = 1; // Show header when scrolling
+            headerOpacity.value = 1;
             if (scrollTimer) clearTimeout(scrollTimer);
 
-            scrollTimer = setTimeout(() => {
-                headerOpacity.value = 0; // Fade out after 3 seconds of inactivity
-            }, 3000);
+            scrollTimer = setTimeout(() => { headerOpacity.value = 0; }, 3000);
 
-            if (el && (el.scrollHeight - el.scrollTop - el.clientHeight < 100) && !isLoading.value && messages.value.length > 0) {
+            if ((el.scrollHeight - el.scrollTop - el.clientHeight < 100) && !isLoading.value && messages.value.length > 0) {
                 fetchMessages(currentPage.value + 1);
             }
+
             const items = virtualizer.value.getVirtualItems();
             if (items.length > 0) {
                 const visualTopPhysical = el.scrollTop + el.clientHeight;
@@ -269,23 +303,17 @@ export default defineComponent({
             }
         };
 
-        const canScroll = computed(() => {
-            return scrollOffset.value > 100;
-        });
+        const canScroll = computed(() => scrollOffset.value > 100);
 
-        // ... Smooth Wheel Logic remains the same ...
-        const targetScroll = ref(0);
-        let animationFrame: number | null = null;
         const handleWheel = (e: WheelEvent) => {
-            if (!scrollContainer.value) return;
-            if (messages.value.length > 0) {
-                if (targetScroll.value === 0) targetScroll.value = scrollContainer.value.scrollTop;
-                targetScroll.value -= e.deltaY;
-                const maxScroll = scrollContainer.value.scrollHeight - scrollContainer.value.clientHeight;
-                targetScroll.value = Math.max(0, Math.min(targetScroll.value, maxScroll));
-                if (!animationFrame) smoothScrollLoop();
-            }
+            if (!scrollContainer.value || messages.value.length === 0) return;
+            if (targetScroll.value === 0) targetScroll.value = scrollContainer.value.scrollTop;
+            targetScroll.value -= e.deltaY;
+            const maxScroll = scrollContainer.value.scrollHeight - scrollContainer.value.clientHeight;
+            targetScroll.value = Math.max(0, Math.min(targetScroll.value, maxScroll));
+            if (!animationFrame) smoothScrollLoop();
         };
+
         const smoothScrollLoop = () => {
             if (!scrollContainer.value) return;
             const current = scrollContainer.value.scrollTop;
@@ -300,8 +328,66 @@ export default defineComponent({
             }
         };
 
+        const resetScroll = () => {
+            if (scrollContainer.value) {
+                targetScroll.value = 0;
+                if (!animationFrame) smoothScrollLoop();
+            }
+        };
+
+        // --- ACTIONS & ANIMATIONS ---
+        const animatingIds = ref<Set<number>>(new Set());
+        const deletingIds = ref<Set<number>>(new Set());
+        let selectedToDelete = ref<number[]>([]);
+
+        const addMessages = (newMsgs: Message[]) => {
+            if (!newMsgs || newMsgs.length === 0) return;
+            const hasMyMessage = newMsgs.some(msg => msg.senderId === currentUserId);
+
+            newMsgs.forEach(msg => animatingIds.value.add(msg.id));
+            setTimeout(() => { newMsgs.forEach(msg => animatingIds.value.delete(msg.id)); }, 400);
+
+            messages.value.push(...newMsgs);
+
+            if (hasMyMessage) {
+                nextTick(() => resetScroll());
+            }
+        };
+
+        const handleDeleteMessages = (idsToDelete: number[]) => {
+            selectedToDelete.value = idsToDelete;
+            modal.value?.openModal(
+                t('chat.delete.title'),
+                idsToDelete.length === 1 ? t('chat.delete.singleMessage') : t('chat.delete.multipleMessages', { count: idsToDelete.length }),
+                'error', true, t('chat.delete.confirm')
+            );
+        };
+
+        const deleteMessages = () => {
+            modal.value?.closeModal();
+            setTimeout(() => {
+                // Trigger exit animation
+                selectedToDelete.value.forEach(id => deletingIds.value.add(id));
+                setTimeout(() => {
+                    // Remove from array after animation completes
+                    messages.value = messages.value.filter(m => !selectedToDelete.value.includes(m.id));
+                    chatActionStore.clearActions();
+                }, 300);
+            }, 300);
+        };
+
+        const floatingHeader = computed(() => {
+            const msg = reversedMessages.value[topVisibleMessageIndex.value];
+            if (!msg) return null;
+            if (msg.id === firstUnreadId.value) return t('chat.unreadMessages');
+            return formatDateShort(msg.date);
+        });
+
         watch(() => route.params.id, (newId) => {
             if (newId) {
+                const chatId = Number(newId);
+                chatStore.markAsRead(chatId);
+
                 messages.value = [];
                 currentPage.value = 1;
                 if (scrollContainer.value) scrollContainer.value.scrollTop = 0;
@@ -309,110 +395,16 @@ export default defineComponent({
             }
         });
 
-        onMounted(() => {
-            fetchMessages(1);
-            setTimeout(() => {
-                observer = new IntersectionObserver(([entry]) => {
-                    if (entry.isIntersecting && !isLoading.value && messages.value.length > 0) {
-                        fetchMessages(currentPage.value + 1);
-                    }
-                }, { root: scrollContainer.value, threshold: 0, rootMargin: '150px' });
-                if (loaderRef.value) observer.observe(loaderRef.value);
-            }, 500);
-        });
-
-        onBeforeUnmount(() => {
-            if (observer) observer.disconnect();
-            if (animationFrame) cancelAnimationFrame(animationFrame);
-            if (scrollTimer) clearTimeout(scrollTimer);
-        });
-
-        const topVisibleMessageIndex = ref(0);
-        const floatingHeader = computed(() => {
-            const msg = reversedMessages.value[topVisibleMessageIndex.value];
-            if (!msg) return null;
-            // Show "Unread Messages" if hovering exactly over the unread marker, otherwise show Date
-            if (msg.id === firstUnreadId.value) return t('chat.unreadMessages');
-            return formatDateShort(msg.date);
-        });
-
-        const animatingIds = ref<Set<number>>(new Set());
-
-        // 2. Update the addMessages function
-        const addMessages = (newMsgs: Message[]) => {
-            if (!newMsgs || newMsgs.length === 0) return;
-
-            // 1. Check if any of the incoming messages are from the current user
-            const hasMyMessage = newMsgs.some(msg => msg.senderId === profileStore.userData.id);
-
-            // Track the new IDs so the animation triggers
-            newMsgs.forEach(msg => animatingIds.value.add(msg.id));
-
-            // Remove the IDs after animation finishes
-            setTimeout(() => {
-                newMsgs.forEach(msg => animatingIds.value.delete(msg.id));
-            }, 400);
-
-            messages.value.push(...newMsgs);
-
-            // 2. Only snap scroll to bottom if I sent a message
-            if (hasMyMessage) {
-                nextTick(() => {
-                    resetScroll();
-                });
-            }
-        };
-
-        const resetScroll = () => {
-            virtualizer.value.scrollToOffset(0, { behavior: 'smooth' });
-        };
-
-        const editMessage = (id: number, newText: string) => {
-            const msg = messages.value.find(m => m.id === id);
-            if (msg) {
-                msg.text = newText;
-                msg.isSent = false;
-                msg.isEdited = true;
-            }
-        };
-
-        let selectedToDelete = ref<number[]>([])
-
-        const handleDeleteMessages = (idsToDelete: number[]) => {
-            selectedToDelete.value = idsToDelete
-            modal.value?.openModal(t('chat.delete.title'), idsToDelete.length === 1 ? t('chat.delete.singleMessage') : t('chat.delete.multipleMessages', { count: idsToDelete.length }), 'error', true, t('chat.delete.confirm'))
-        };
-
-
-        const deletingIds = ref<Set<number>>(new Set());
-
-        const deleteMessages = () => {
-            modal.value?.closeModal()
-            setTimeout(() => {
-                selectedToDelete.value.forEach(id => deletingIds.value.add(id));
-                setTimeout(() => {
-                    messages.value = messages.value.filter(m => !selectedToDelete.value.includes(m.id));
-                    chatActionStore.clearActions()
-                }, 300)
-            }, 300)
-        }
-
-
-
         return {
-            floatingHeader,
-            t, scrollContainer, loaderRef, virtualizer, reversedMessages,
-            messages, handleWheel, isLoading, currentUserId, loading,
-            NoMessages, getSpacingClass, handleScroll,
-            firstUnreadId, headerOpacity, addMessages,
-            animatingIds, handleDeleteMessages, editMessage,
-            modal, deleteMessages, deletingIds, canScroll,
-            resetScroll,
+            floatingHeader, t, scrollContainer, loaderRef, virtualizer, reversedMessages,
+            messages, handleWheel, isLoading, currentUserId, loading, NoMessages,
+            getSpacingClass, handleScroll, firstUnreadId, headerOpacity, addMessages,
+            animatingIds, handleDeleteMessages, modal, deleteMessages, deletingIds,
+            canScroll, resetScroll,
         };
     }
 });
 </script>
-
 <style scoped>
 /* Add this to your existing styles */
 .flip-vertical {

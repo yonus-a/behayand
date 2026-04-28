@@ -71,7 +71,7 @@
                                         :class="[message.isRead && message.isSent ? 'fill-primary' : 'fill-on-surface/50']" />
                                     <div class=" select-none  text-body-sm text-on-surface/50">{{
                                         formatTime(message.date)
-                                    }}
+                                        }}
                                     </div>
                                 </div>
                             </div>

@@ -8,10 +8,9 @@
                     <ChatPageBar @open-profile="openProfile" :contact="selectedChat" />
                 </div>
                 <div class="flex-1 w-full min-h-0 overflow-hidden">
-                    <ChatMessages ref="chatMessagesRef" v-show="selectedChat" :contact="selectedChat || null" />
+                    <ChatMessages v-if="selectedChat" :contact="selectedChat" />
                 </div>
-                <ChatInput @edit="handleEditMessage" @send="handleNewMessages" ref="chatInput"
-                    :is-active="selectedChat?.isActive" />
+                <ChatInput ref="chatInput" :is-active="selectedChat?.isActive" />
             </div>
             <div v-show="!chatId" class=" w-full h-full flex items-center justify-center">
             </div>

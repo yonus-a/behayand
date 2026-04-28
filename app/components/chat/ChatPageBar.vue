@@ -1,6 +1,6 @@
 <template>
     <div v-if="selectedChat"
-        class="w-full h-16 md:h-20 gap-x-4 bg-surface border-b border-b-outline-variant flex items-center justify-between py-4 px-5">
+        class="w-full h-16 md:h-20 gap-x-4 relative bg-surface border-b border-b-outline-variant flex items-center justify-between py-4 px-5">
         <div
             class=" w-full md:flex-row flex-row-reverse relative items-center justify-end gap-x-4 md:justify-between flex">
             <div @click="openProfile" class="cursor-pointer flex items-center gap-x-3">

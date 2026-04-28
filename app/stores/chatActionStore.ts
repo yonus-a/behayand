@@ -1,15 +1,17 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { useProfileStore } from "#imports";
-import type { ExtendedMessage } from "~/types/chat";
-import { useDate, useI18n, useAppToast } from "#imports";
+import { useProfileStore, useDate, useI18n, useAppToast } from "#imports";
+import type { ExtendedMessage, Message } from "~/types/chat";
 import { useEventBus } from "@vueuse/core";
+import { useChatStore } from "~/stores/chatStore";
 
 export const useChatActionStore = defineStore("chatAction", () => {
   const profileStore = useProfileStore();
   const { t } = useI18n();
   const { openToast } = useAppToast();
   const { formatDateShort, formatTime } = useDate();
+  const chatStore = useChatStore();
+
   // --- State ---
   const isSelectMode = ref(false);
   const selectedMessages = ref<Map<number, ExtendedMessage>>(new Map());
@@ -18,42 +20,31 @@ export const useChatActionStore = defineStore("chatAction", () => {
   const editingMessage = ref<ExtendedMessage | null>(null);
   const editWindowHours = ref(6);
 
+  // --- Event Buses ---
   const deleteBus = useEventBus<number[]>("chat-delete");
-  const editBus = useEventBus<{ id: number; text: string }>("chat-edit");
-  const replyBus = useEventBus<{ text: string; repliedTo: any }>("chat-reply");
+  const sendBus = useEventBus<Message[]>("chat-send");
+  const editBus = useEventBus<ExtendedMessage>("edit-message");
+  // NEW: A unified bus to patch existing messages (handling ID swaps, isSent toggles, etc.)
+  const updateBus = useEventBus<{ id: number; updates: Partial<Message> }>(
+    "chat-update",
+  );
 
-  const triggerDelete = () => {
-    const targets = selectedArray.value;
-    if (targets.length === 0) return;
-    deleteBus.emit(targets.map((target) => target.id));
-  };
-
-  // --- Getters (Computed) ---
+  // --- Getters ---
   const selectedArray = computed(() =>
     Array.from(selectedMessages.value.values()),
   );
-
   const canReply = computed(() => selectedMessages.value.size <= 1);
-
   const canEdit = computed(() => {
-    // 1. Must have exactly 1 message
     if (selectedMessages.value.size !== 1) return false;
-
-    // 2. Access the FIRST element of the array
     const msg = selectedArray.value[0];
     if (!msg) return false;
-
-    // 3. Perform the checks on the actual message object
     const isMine = msg.senderId === profileStore.userData.id;
     const hoursPassed =
       (Date.now() - new Date(msg.date).getTime()) / (1000 * 60 * 60);
-
     return isMine && hoursPassed < editWindowHours.value;
   });
-
   const canDelete = computed(() => {
     if (selectedMessages.value.size === 0) return false;
-
     return selectedArray.value.every((msg) => {
       const isMine = msg.senderId === profileStore.userData.id;
       const hoursPassed =
@@ -62,7 +53,88 @@ export const useChatActionStore = defineStore("chatAction", () => {
     });
   });
 
-  // --- Actions ---
+  // --- Actions (Optimistic UI + Mock APIs) ---
+
+  const triggerDelete = async (specificIds?: number[]) => {
+    const targets = specificIds?.length
+      ? specificIds
+      : selectedArray.value.map((m) => m.id);
+    if (targets.length === 0) return;
+
+    // 1. Instantly trigger the delete animation in the UI
+    deleteBus.emit(targets);
+    clearActions();
+
+    // 2. Background API Call (Mocked)
+    // Even if it takes 2 seconds, the UI is already clean.
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log("API: Messages deleted successfully on server.");
+  };
+
+  const sendMessage = async (messages: Message[]) => {
+    // 1. Assign temporary IDs and set isSent to false for the optimistic render
+    const tempMessages = messages.map((m) => ({
+      ...m,
+      id: Math.floor(Math.random() * -1000000),
+      isSent: false,
+    }));
+
+    // 2. Instantly push to the UI
+    sendBus.emit(tempMessages);
+
+    // 3. Instantly update the sidebar's last message so it bumps to the top
+    if (tempMessages.length > 0) {
+      const latest = tempMessages[tempMessages.length - 1];
+      chatStore.updateLastMessage(latest.conversationId, latest);
+    }
+
+    // Mock API Call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // 4. Update the UI and Sidebar with the real data from the server
+    tempMessages.forEach((tempMsg) => {
+      const realId = Math.floor(Math.random() * 100000) + 1000;
+
+      // Update the active chat window
+      updateBus.emit({
+        id: tempMsg.id,
+        updates: { id: realId, isSent: true },
+      });
+
+      // Update the sidebar last message status
+      chatStore.patchLastMessage(tempMsg.conversationId, tempMsg.id, {
+        id: realId,
+        isSent: true,
+      });
+    });
+  };
+
+  const saveEditMessage = async (id: number, text: string) => {
+    const conversationId = editingMessage.value?.conversationId;
+
+    // 1. Optimistic update
+    updateBus.emit({ id, updates: { text, isSent: false } });
+    if (conversationId)
+      chatStore.patchLastMessage(conversationId, id, { text, isSent: false });
+
+    clearActions();
+
+    // 2. Mock API Call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // 3. Confirm edit
+    updateBus.emit({ id, updates: { isSent: true, isEdited: true } });
+    if (conversationId)
+      chatStore.patchLastMessage(conversationId, id, {
+        isSent: true,
+        isEdited: true,
+      });
+  };
+  const triggerEdit = (message: ExtendedMessage) => {
+    editingMessage.value = message;
+    editBus.emit(editingMessage.value);
+  };
+
   const toggleSelection = (message: ExtendedMessage) => {
     const newMap = new Map(selectedMessages.value);
     if (newMap.has(message.id)) {
@@ -83,14 +155,13 @@ export const useChatActionStore = defineStore("chatAction", () => {
 
   const clearActions = () => {
     isSelectMode.value = false;
-    selectedMessages.value = new Map();
+    selectedMessages.value.clear();
     replyingTo.value = null;
     editingMessage.value = null;
   };
 
   const copyMessageText = () => {
-    const targets = selectedArray.value;
-    const textToCopy = targets
+    const textToCopy = selectedArray.value
       .map((msg) => {
         const isMine = msg.senderId === profileStore.userData.id;
         const senderName = isMine ? t("chat.you") : msg.contact?.name || "User";
@@ -119,11 +190,17 @@ export const useChatActionStore = defineStore("chatAction", () => {
     canReply,
     canEdit,
     canDelete,
-    toggleSelection,
+    deleteBus,
+    sendBus,
+    updateBus, // Exposed buses
     triggerDelete,
-    copyMessageText,
+    sendMessage,
+    saveEditMessage,
+    triggerEdit, // API wrappers
+    toggleSelection,
     startSelectMode,
     clearActions,
-    deleteBus,
+    copyMessageText,
+    editBus,
   };
 });

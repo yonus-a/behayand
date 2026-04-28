@@ -95,12 +95,18 @@ export default defineComponent({
         });
 
         const handleOption = (key: string) => {
-            closeMenu();
-            setTimeout(() => {
 
+            const targetIds = chatActionStore.isSelectMode && chatActionStore.selectedMessages.has(props.message.id)
+                ? chatActionStore.selectedArray.map(m => m.id)
+                : [props.message.id];
+
+
+            closeMenu();
+
+            setTimeout(() => {
                 switch (key) {
                     case 'delete':
-                        chatActionStore.triggerDelete()
+                        chatActionStore.triggerDelete(targetIds);
                         break;
                     case 'select_toggle':
                         if (!chatActionStore.isSelectMode) {
@@ -110,18 +116,18 @@ export default defineComponent({
                         }
                         break;
                     case 'edit':
-                        chatActionStore.editingMessage = props.message;
+                        console.log('message passed', props.message)
+                        chatActionStore.triggerEdit(props.message);
                         break;
                     case 'reply':
-                        if (!props.message.isSent) return
+                        if (!props.message.isSent) return;
                         chatActionStore.replyingTo = props.message;
                         break;
                     case 'copy':
-                        copyMessageText();
+                        chatActionStore.copyMessageText();
                         break;
                 }
-
-            }, 300)
+            }, 300);
         };
 
         const copyMessageText = () => {
