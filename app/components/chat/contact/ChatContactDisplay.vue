@@ -79,7 +79,7 @@ export default defineComponent({
             router.push(localePath(`/dashboard/chat/${props.contact.id}`));
         }
 
-        const isFromMe = computed(() => props.contact.lastMessage?.senderId === myId);
+        const isFromMe = computed(() => props.contact.lastMessage?.senderId === profileStore.userData.id);
 
         const lastMessageIcon = computed(() => {
             const msg = props.contact.lastMessage;
