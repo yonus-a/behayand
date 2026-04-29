@@ -3,7 +3,6 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-
     <BToast ref="toastComponent" />
   </div>
 </template>

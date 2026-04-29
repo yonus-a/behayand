@@ -40,7 +40,7 @@ const imagePickerDirective: ObjectDirective = {
           config.onSelect(processed);
         } else {
           // ONLY return (path, file) for legacy/single mode
-          config.onSelect(processed.path, processed.file);
+          config.onSelect(processed[0].path, processed[0].file);
         }
       }
       inputElement.value = "";

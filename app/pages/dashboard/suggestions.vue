@@ -9,23 +9,29 @@
                 <BInput textarea :title="t('suggestions.description')" :placeholder="t('suggestions.placeholder')"
                     v-model="description.value" :color="description.color" :message="description.message" />
                 <div class=" relative w-full">
-                    <BInput icon="PhPaperclip" v-image-picker="onImagePick" class=" cursor-pointer" readonly
-                        v-model="attachement.value" :color="attachement.color" :message="attachement.message"
-                        :title="t('suggestions.attachement')" :placeholder="t('suggestions.selectFile')" />
+                    <div v-file-pick="{ onSelect: onImagePick, accept: '.pdf,.doc,.docx,image/*' }">
+                        <BInput icon="PhPaperclip" class=" cursor-pointer" readonly v-model="attachement.value"
+                            :color="attachement.color" :message="attachement.message"
+                            :title="t('suggestions.attachement')" :placeholder="t('suggestions.selectFile')" />
+                    </div>
                     <div class="absolute top-10.5 ltr:right-3 rtl:left-3">
-                        <BMenu ref="menuRef">
+                        <BMenu ref="menuRef"
+                            :options="[{ key: 'delete', icon: 'PhTrash', color: 'error', label: t('suggestions.deleteAttachement') }]"
+                            @select="handleSelect">
                             <template #trigger>
                                 <BIcon icon="PhDotsThreeOutline" class="  w-5 h-5 cursor-pointer text-on-surface " />
                             </template>
+                            <!-- 
                             <div class=" flex flex-col gap-y-1 select-none w-60 p-1">
                                 <div @click="removeFile"
-                                    class="hover:bg-error/10 bg-error/0 cursor-pointer group  transition-all duration-200 ease-in-out rounded-lg w-full flex items-center px-2.5 py-3 gap-x-2">
-                                    <BIcon class=" transition-all fill-error duration-200 ease-in-out w-5 h-5"
-                                        weight="bold" icon="PhTrash" />
-                                    <div class=" text-label-sm transition-all duration-200 text-error ease-in-out">
-                                        {{ t('suggestions.deleteAttachement') }}</div>
+                                class="hover:bg-error/10 bg-error/0 cursor-pointer group  transition-all duration-200 ease-in-out rounded-lg w-full flex items-center px-2.5 py-3 gap-x-2">
+                                <BIcon class=" transition-all fill-error duration-200 ease-in-out w-5 h-5"
+                                weight="bold" icon="PhTrash" />
+                                <div class=" text-label-sm transition-all duration-200 text-error ease-in-out">
+                                    {{ t('suggestions.deleteAttachement') }}</div>
                                 </div>
                             </div>
+                            -->
                         </BMenu>
                     </div>
                 </div>
@@ -51,7 +57,7 @@ import { useI18n } from '#imports';
 import { useWindowSize } from '#imports';
 import type { Menu } from '~/types/components/menu';
 definePageMeta({
-    layout: 'mobile',
+    layout: 'responsive',
     headerTitle: 'suggestions.title',
     layoutTransition: false
 });
@@ -66,19 +72,19 @@ export default defineComponent({
         const attachement = ref({ value: '', color: '', message: '' })
         const menuRef = ref<Menu | null>(null)
         const { width } = useWindowSize()
-        const isMobile = computed(() => width.value < 768);
+        //  const isMobile = computed(() => width.value < 768);
 
-        onMounted(() => {
-            checkLayout()
-        })
+        //  onMounted(() => {
+        //      checkLayout()
+        //  })
 
         const checkLayout = () => {
-            setPageLayout(isMobile.value ? 'mobile' : 'dashboard');
+            //   setPageLayout(isMobile.value ? 'mobile' : 'dashboard');
         }
 
-        watch(() => isMobile.value, () => {
-            checkLayout()
-        }, { immediate: true });
+        //  watch(() => isMobile.value, () => {
+        //      checkLayout()
+        //  }, { immediate: true });
 
         const validateFields = () => {
             if (isSending.value || hasErrors.value) return
@@ -143,13 +149,21 @@ export default defineComponent({
             'image/webp'
         ];
 
-        const onImagePick = (path: string, file: File) => {
-            // 1. Reset state for new pick
+        // Update the function signature to destructure the incoming object
+        // Replace your onImagePick function with this
+        const onImagePick = (files: any[]) => {
+            console.log('kir')
+            // The file picker directive always returns an array
+            if (!files || files.length === 0) return;
+
+            const { file, path } = files[0];
+
+            // 1. Reset state
             attachement.value.message = '';
             attachement.value.color = 'primary';
             hasErrors.value = false;
 
-            // 2. Validate Format (Documents or Images excluding SVG)
+            // 2. Validate Format
             if (!ALLOWED_TYPES.includes(file.type)) {
                 attachement.value.color = 'error';
                 attachement.value.message = t('suggestions.invalidFormat');
@@ -167,10 +181,8 @@ export default defineComponent({
                 return;
             }
 
-            // 4. Success - Update the input value with the filename
+            // 4. Success
             attachement.value.value = file.name;
-            // You can store the raw file in a separate ref for the actual upload
-            // rawFile.value = file; 
         };
 
         const removeFile = () => {
@@ -184,6 +196,14 @@ export default defineComponent({
             ogTitle: () => `${t('seo.siteName')} - ${t('seo.dashboard.suggestions.title')}`,
         });
 
+        const handleSelect = (key: string) => {
+            switch (key) {
+                case 'delete':
+                    removeFile()
+                    break;
+            }
+        }
+
         return {
             validateFields,
             t,
@@ -194,6 +214,7 @@ export default defineComponent({
             menuRef,
             isSending,
             attachement,
+            handleSelect,
             hasErrors,
             onImagePick,
         }

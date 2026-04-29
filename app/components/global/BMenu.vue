@@ -10,20 +10,21 @@
         </div>
 
         <div ref="panelRef" @click="handleContentClick"
-            class="absolute z-120 rounded-2xl bg-surface border border-outline-variant transition-all duration-200 ease-in-out"
+            class="absolute z-120  p-2 bg-surface shadow-floating rounded-xl border border-outline-variant transition-all duration-200 ease-in-out"
             :style="panelPositionStyles"
-            :class="[isOpen ? 'shadow-[0px_8px_24px_rgba(149,157,165,0.2)]' : 'shadow-none']">
+            :class="[isOpen ? 'shadow-[0px_8px_24px_rgba(149,157,165,0.2)]' : 'shadow-none', options.length === 0 ? '' : 'w-50']">
 
-            <div v-if="options.length > 0" class="flex flex-col">
+            <div v-if="options.length > 0" class="flex flex-col gap-y-1 ">
                 <template v-for="(opt, idx) in options" :key="opt.key">
-                    <div @click="handleSelect(opt.key)"
-                        class="flex items-center gap-x-2 p-2.5 hover:bg-surface-container transition-colors cursor-pointer group">
-                        <BIcon v-if="opt.icon" :icon="opt.icon" :class="[getColorClass(opt.color), 'w-5 h-5']" />
-                        <div v-if="opt.imageUrl" class="w-5 h-5 rounded-full overflow-hidden">
-                            <BImage :src="opt.imageUrl" class="w-full h-full object-cover" />
+                    <div class=" pointer-events-auto">
+                        <div @click="handleSelect(opt.key)"
+                            class="bg-surface-variant-2/0 hover:bg-surface-variant-2 transition-all duration-200 ease-in-out h-11 flex items-center cursor-pointer rounded-lg px-2 gap-x-2 w-full">
+                            <BIcon :icon="opt.icon" class="w-5 h-5"
+                                :class="[opt.color ? `fill-${opt.color}` : 'fill-on-surface/50']" />
+                            <div class="select-none text-label-sm"
+                                :class="[opt.color ? `text-${opt.color}` : 'text-on-surface/50']">
+                                {{ opt.label }}</div>
                         </div>
-                        <span :class="[getColorClass(opt.color), 'text-xs font-medium select-none']">{{ opt.title
-                            }}</span>
                     </div>
                     <div v-if="idx < options.length - 1" class="px-2">
                         <div class="h-px w-full bg-outline-container" />
@@ -41,11 +42,17 @@ import { defineComponent, ref, computed, nextTick, watch, type PropType } from '
 import { useClickOutside } from '#imports';
 
 const globalActiveMenuId = ref<string | null>(null);
+export interface Option {
+    key: string;
+    label: string;
+    icon: string;
+    color?: string;
+}
 
 export default defineComponent({
     name: 'BMenu',
     props: {
-        options: { type: Array as PropType<any[]>, default: () => [] },
+        options: { type: Array as PropType<Option[]>, default: () => [] },
         overlay: { type: Boolean, default: false },
         autoClose: {
             type: Boolean, default: false,

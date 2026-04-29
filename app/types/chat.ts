@@ -1,4 +1,8 @@
+import type { Service } from "./service";
+
 export type MessageType = "text" | "image" | "file" | "voice" | "video";
+export type status = "pending" | "approved" | "rejected" | "expired";
+
 export interface Message {
   id: number;
   conversationId: number;
@@ -14,6 +18,7 @@ export interface Message {
   isSent: boolean;
   isRead: boolean;
   repliedTo: Message;
+  request?: Request;
 }
 
 export interface Contact {
@@ -44,4 +49,16 @@ export interface ExtendedMessage extends Message {
   nextMessage?: Message;
   isFirstInDate: boolean;
   contact?: Contact;
+}
+
+export interface Request {
+  id: number;
+  type: "personal-info" | "add-person";
+  request: AccessRequest | Service;
+}
+
+export interface AccessRequest {
+  id: number;
+  date: Date;
+  status: status;
 }

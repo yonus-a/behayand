@@ -26,12 +26,13 @@
                         </div>
 
 
-                        <BMenu ref="menuRef">
+                        <BMenu ref="menuRef" :options="options">
                             <template #trigger>
                                 <BIcon icon="PhDotsThreeVertical" class="w-6 h-6 fill-on-surface/50 cursor-pointer"
                                     aria-haspopup="true" aria-controls="overlay_menu" />
                             </template>
-                            <div class=" flex flex-col gap-y-1 select-none w-60 p-3">
+                            <!-- 
+                             <div v-if="menuMode === 'options'" class=" flex flex-col gap-y-1 select-none w-60 p-3">
                                 <div @click="handleMenuAction(option.key)" v-for="option in options" :key="option.key"
                                     :class="[option.color && option.color === 'error' ? ' hover:bg-error/10 bg-error/0' : 'hover:bg-surface-variant-2 bg-surface-variant-2/0']"
                                     class=" cursor-pointer group  transition-all duration-200 ease-in-out rounded-xl w-full flex items-center px-2.5 py-3 gap-x-2">
@@ -44,6 +45,7 @@
                                         {{ option.label }}</div>
                                 </div>
                             </div>
+                            -->
                         </BMenu>
                     </div>
                     <div :class="[!isSelectMode ? ' pointer-events-none opacity-0' : ' opacity-100 pointer-events-auto']"
@@ -67,6 +69,7 @@ import type { Menu } from '~/types/components/menu';
 import type { Contact } from '~/types/chat';
 import ContactAvatar from './contact/ContactAvatar.vue';
 import type { MenuOption } from '~/types/components/menu-options';
+import MedicSelector from './medic-features/MedicSelector.vue';
 
 export default defineComponent({
     name: 'PageBar',
@@ -83,6 +86,7 @@ export default defineComponent({
     },
     components: {
         ContactAvatar,
+        MedicSelector,
     },
     emits: ['call', 'open-profile'],
     setup(props, { emit }) {
@@ -94,6 +98,7 @@ export default defineComponent({
         const { t } = useI18n();
         const menuRef = ref<Menu | null>(null)
         const selectedChat = computed(() => props.contact)
+        const menuMode = ref<'medic' | 'options'>('options')
 
         const isSelectMode = computed(() => chatActionStore.isSelectMode)
         const canDelete = computed(() => chatActionStore.canDelete)
@@ -121,7 +126,10 @@ export default defineComponent({
         const handleMenuAction = (key: string) => {
             switch (key) {
                 case 'add-user':
-
+                    menuRef.value?.close()
+                    setTimeout(() => {
+                        menuRef.value?.open()
+                    }, 200)
                     break;
                 case 'delete-all':
 
@@ -134,6 +142,10 @@ export default defineComponent({
                     break;
             }
             menuRef.value?.close()
+        }
+
+        const handleMenuOpenning = () => {
+
         }
 
         const openProfile = () => {
@@ -169,6 +181,7 @@ export default defineComponent({
             goBack,
             canDelete,
             openProfile,
+            menuMode,
         };
     }
 })
