@@ -10,20 +10,25 @@
         </div>
 
         <div ref="panelRef" @click="handleContentClick"
-            class="absolute z-120  p-2 bg-surface shadow-floating rounded-xl border border-outline-variant transition-all duration-200 ease-in-out"
+            class="absolute z-120 p-2 bg-surface shadow-floating rounded-xl border border-outline-variant transition-all duration-200 ease-in-out"
             :style="panelPositionStyles"
-            :class="[isOpen ? 'shadow-[0px_8px_24px_rgba(149,157,165,0.2)]' : 'shadow-none', options.length === 0 ? '' : 'w-50']">
+            :class="[isOpen ? 'shadow-[0px_8px_24px_rgba(149,157,165,0.2)]' : 'shadow-none', !hasCustomContent && options && options.length > 0 ? 'w-50' : '']">
 
-            <div v-if="options.length > 0" class="flex flex-col gap-y-1 ">
+            <div v-if="hasCustomContent" key="menu-custom">
+                <slot :close="closeMenu" />
+            </div>
+
+            <div v-else-if="options && options.length > 0" key="menu-list" class="flex flex-col gap-y-1">
                 <template v-for="(opt, idx) in options" :key="opt.key">
-                    <div class=" pointer-events-auto">
+                    <div class="pointer-events-auto">
                         <div @click="handleSelect(opt.key)"
                             class="bg-surface-variant-2/0 hover:bg-surface-variant-2 transition-all duration-200 ease-in-out h-11 flex items-center cursor-pointer rounded-lg px-2 gap-x-2 w-full">
                             <BIcon :icon="opt.icon" class="w-5 h-5"
                                 :class="[opt.color ? `fill-${opt.color}` : 'fill-on-surface/50']" />
                             <div class="select-none text-label-sm"
                                 :class="[opt.color ? `text-${opt.color}` : 'text-on-surface/50']">
-                                {{ opt.label }}</div>
+                                {{ opt.label }}
+                            </div>
                         </div>
                     </div>
                     <div v-if="idx < options.length - 1" class="px-2">
@@ -31,14 +36,12 @@
                     </div>
                 </template>
             </div>
-
-            <slot v-else :close="closeMenu" />
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, nextTick, watch, type PropType } from 'vue';
+import { defineComponent, ref, computed, nextTick, watch, type PropType, useSlots, Comment, Fragment, Text } from 'vue';
 import { useClickOutside } from '#imports';
 
 const globalActiveMenuId = ref<string | null>(null);
@@ -63,6 +66,23 @@ export default defineComponent({
         const isOpen = ref(false);
         const menuWrapper = ref<HTMLElement | null>(null);
         const panelRef = ref<HTMLElement | null>(null);
+
+        const slots = useSlots(); // Add this
+
+        const hasCustomContent = computed(() => {
+            if (!slots.default) return false;
+
+            const checkNodes = (nodes: any[]): boolean => {
+                return nodes.some(node => {
+                    if (node.type === Comment) return false;
+                    if (node.type === Fragment && Array.isArray(node.children)) return checkNodes(node.children);
+                    if (node.type === Text && typeof node.children === 'string' && !node.children.trim()) return false;
+                    return true;
+                });
+            };
+
+            return checkNodes(slots.default({ close: closeMenu }));
+        });
 
 
 
@@ -167,7 +187,7 @@ export default defineComponent({
 
         expose({ open: () => { globalActiveMenuId.value = instanceId; isOpen.value = true; calculateAlignment(); }, close: closeMenu });
 
-        return { isOpen, handleContentClick, menuWrapper, panelRef, toggleMenu, closeMenu, handleSelect, getColorClass, panelPositionStyles };
+        return { isOpen, handleContentClick, menuWrapper, panelRef, toggleMenu, closeMenu, handleSelect, getColorClass, panelPositionStyles, hasCustomContent };
     }
 });
 </script>

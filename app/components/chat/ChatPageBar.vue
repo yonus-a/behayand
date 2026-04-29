@@ -26,26 +26,15 @@
                         </div>
 
 
-                        <BMenu ref="menuRef" :options="options">
+                        <BMenu ref="menuRef" @select="handleSelect" @close="resetMenuMode" :options="options">
                             <template #trigger>
-                                <BIcon icon="PhDotsThreeVertical" class="w-6 h-6 fill-on-surface/50 cursor-pointer"
-                                    aria-haspopup="true" aria-controls="overlay_menu" />
+                                <BIcon @click="menuMode" icon="PhDotsThreeVertical"
+                                    class="w-6 h-6 fill-on-surface/50 cursor-pointer" aria-haspopup="true"
+                                    aria-controls="overlay_menu" />
                             </template>
-                            <!-- 
-                             <div v-if="menuMode === 'options'" class=" flex flex-col gap-y-1 select-none w-60 p-3">
-                                <div @click="handleMenuAction(option.key)" v-for="option in options" :key="option.key"
-                                    :class="[option.color && option.color === 'error' ? ' hover:bg-error/10 bg-error/0' : 'hover:bg-surface-variant-2 bg-surface-variant-2/0']"
-                                    class=" cursor-pointer group  transition-all duration-200 ease-in-out rounded-xl w-full flex items-center px-2.5 py-3 gap-x-2">
-                                    <BIcon
-                                        :class="[option.color && option.color === 'error' ? 'fill-error' : 'fill-on-surface/50 group-hover:fill-on-surface']"
-                                        class=" transition-all duration-200 ease-in-out w-5 h-5" weight="bold"
-                                        :icon="option.icon" />
-                                    <div class=" text-label-sm transition-all duration-200 ease-in-out"
-                                        :class="[option.color && option.color === 'error' ? 'text-error' : 'text-on-surface/50 group-hover:text-on-surface']">
-                                        {{ option.label }}</div>
-                                </div>
+                            <div v-if="menuMode === 'medic'" class="p-1">
+                                <div>Hello</div>
                             </div>
-                            -->
                         </BMenu>
                     </div>
                     <div :class="[!isSelectMode ? ' pointer-events-none opacity-0' : ' opacity-100 pointer-events-auto']"
@@ -103,6 +92,7 @@ export default defineComponent({
         const isSelectMode = computed(() => chatActionStore.isSelectMode)
         const canDelete = computed(() => chatActionStore.canDelete)
         // Template Ref for the Menu
+
 
 
 
@@ -167,10 +157,37 @@ export default defineComponent({
             chatActionStore.triggerDelete();
         }
 
+        const isTransitioning = ref(false)
+
+        const handleSelect = (key: string) => {
+            console.log(key, 'fuck')
+            if (key === 'add-user') {
+                isTransitioning.value = true;
+                menuRef.value?.close();
+                setTimeout(() => {
+                    menuMode.value = 'medic';
+                    setTimeout(() => {
+                        menuRef.value?.open();
+                        isTransitioning.value = false;
+                    }, 200);
+                }, 200)
+            } else {
+                menuRef.value?.close();
+            }
+        };
+
+        const resetMenuMode = () => {
+            if (isTransitioning.value) return
+            setTimeout(() => {
+                menuMode.value = 'options'
+            }, 300);
+        };
+
         return {
             t,
             copy,
             selectedChat,
+            resetMenuMode,
             formatRelativeDate,
             deleteMessages,
             actions,
@@ -181,6 +198,7 @@ export default defineComponent({
             goBack,
             canDelete,
             openProfile,
+            handleSelect,
             menuMode,
         };
     }
