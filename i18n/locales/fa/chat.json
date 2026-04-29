@@ -95,6 +95,9 @@
       "singleMessage": "آیا از حذف پیام اطمینان دارید ؟",
       "multipleMessages": "آیا از حذف {count} پیام اطمینان دارید؟",
       "confirm": "حذف"
+    },
+    "medicOptions": {
+      
     }
   }
 }

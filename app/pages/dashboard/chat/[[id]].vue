@@ -5,10 +5,10 @@
             <div v-if="canShowMessagingSection" class=" flex flex-1 flex-col justify-between items-center h-full"
                 v-show="chatId">
                 <div class=" w-full bg-surface h-16 md:h-20">
-                    <ChatPageBar @open-profile="openProfile" :contact="selectedChat" />
+                    <ChatPageBar :options="medicOptions" @open-profile="openProfile" :contact="selectedChat" />
                 </div>
                 <div class="flex-1 w-full min-h-0 overflow-hidden">
-                    <ChatMessages v-if="selectedChat" :contact="selectedChat" />
+                    <ChatMessages :options="medicOptions" v-if="selectedChat" :contact="selectedChat" />
                 </div>
                 <ChatInput ref="chatInput" :is-active="selectedChat?.isActive" />
             </div>
@@ -29,6 +29,7 @@ import ChatProfileOverview from '~/components/chat/ChatProfileOverview.vue';
 import ChatMessages from '~/components/chat/ChatMessages.vue';
 import { useWindowSize } from '#imports';
 import ChatList from '~/components/chat/contact/ChatList.vue';
+import { type MenuOption } from '~/types/components/menu-options';
 
 definePageMeta({
     layout: 'dashboard',
@@ -104,7 +105,38 @@ export default defineComponent({
             //        chatMessagesRef.value?.editMessage(payload.id, payload.text);
         };
 
+        const medicOptions = computed<MenuOption[]>(() => [
+            {
+                label: t('chat.barOptions.prescribeMedications'),
+                icon: 'PhPencilSimpleLine',
+                key: 'prescribe-meds',
+            },
+            {
+                label: t('chat.barOptions.addPerson'),
+                icon: 'PhUserPlus',
+                key: 'add-user',
+            },
+            {
+                label: t('chat.barOptions.refer'),
+                icon: 'PhTreeStructure',
+                key: 'refer',
+            },
+            {
+                label: t('chat.barOptions.endChat'),
+                icon: 'PhXSquare',
+                key: 'end-chat',
+            },
+            {
+                label: t('chat.barOptions.deleteMessages'),
+                icon: 'PhTrash',
+                key: 'delete-all',
+                color: 'error'
+            },
+        ])
+
+
         return {
+            medicOptions,
             t,
             chatId,
             chatInput,

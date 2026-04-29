@@ -1,6 +1,6 @@
 <template>
     <div v-if="selectedChat"
-        class="w-full h-16 md:h-20 gap-x-4 relative bg-surface border-b border-b-outline-variant flex items-center justify-between py-4 px-5">
+        class="w-full h-16 z-50 md:h-20 gap-x-4 relative bg-surface border-b border-b-outline-variant flex items-center justify-between py-4 px-5">
         <div
             class=" w-full md:flex-row flex-row-reverse relative items-center justify-end gap-x-4 md:justify-between flex">
             <div @click="openProfile" class="cursor-pointer flex items-center gap-x-3">
@@ -32,8 +32,7 @@
                                     aria-haspopup="true" aria-controls="overlay_menu" />
                             </template>
                             <div class=" flex flex-col gap-y-1 select-none w-60 p-3">
-                                <div @click="handleMenuAction(option.key)" v-for="option in menuOptions"
-                                    :key="option.key"
+                                <div @click="handleMenuAction(option.key)" v-for="option in options" :key="option.key"
                                     :class="[option.color && option.color === 'error' ? ' hover:bg-error/10 bg-error/0' : 'hover:bg-surface-variant-2 bg-surface-variant-2/0']"
                                     class=" cursor-pointer group  transition-all duration-200 ease-in-out rounded-xl w-full flex items-center px-2.5 py-3 gap-x-2">
                                     <BIcon
@@ -67,13 +66,18 @@ import { useChatStore, useChatActionStore, useI18n, useDate } from '#imports';
 import type { Menu } from '~/types/components/menu';
 import type { Contact } from '~/types/chat';
 import ContactAvatar from './contact/ContactAvatar.vue';
-
+import type { MenuOption } from '~/types/components/menu-options';
 
 export default defineComponent({
     name: 'PageBar',
     props: {
         contact: {
             type: Object as PropType<Contact | null>,
+            required: true,
+        },
+        options: {
+            type: Array as PropType<MenuOption[]>,
+            default: () => [],
             required: true,
         }
     },
@@ -97,34 +101,6 @@ export default defineComponent({
 
 
 
-        const menuOptions = computed(() => [
-            {
-                label: t('chat.barOptions.prescribeMedications'),
-                icon: 'PhPencilSimpleLine',
-                key: 'prescribe-meds',
-            },
-            {
-                label: t('chat.barOptions.addPerson'),
-                icon: 'PhUserPlus',
-                key: 'add-user',
-            },
-            {
-                label: t('chat.barOptions.refer'),
-                icon: 'PhTreeStructure',
-                key: 'refer',
-            },
-            {
-                label: t('chat.barOptions.endChat'),
-                icon: 'PhXSquare',
-                key: 'end-chat',
-            },
-            {
-                label: t('chat.barOptions.deleteMessages'),
-                icon: 'PhTrash',
-                key: 'delete-all',
-                color: 'error'
-            },
-        ])
 
         const actions = ref([
             { icon: 'PhPhone', key: 'call' },
@@ -142,7 +118,7 @@ export default defineComponent({
             }
         };
 
-        const handleMenuAction = (key: 'delete-all' | 'end-chat' | 'refer' | 'add-user') => {
+        const handleMenuAction = (key: string) => {
             switch (key) {
                 case 'add-user':
 
@@ -186,7 +162,6 @@ export default defineComponent({
             formatRelativeDate,
             deleteMessages,
             actions,
-            menuOptions,
             handleMenuAction,
             handleAction,
             menuRef,

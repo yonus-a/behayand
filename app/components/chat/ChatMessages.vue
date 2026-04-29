@@ -10,7 +10,7 @@
         </div>
         <div dir="rtl" id="list" ref="scrollContainer"
             class="h-full w-full overflow-y-auto pb-4 hide-scrollbar flip-vertical  bg-surface-variant/30"
-            @scroll="handleScroll" @wheel.prevent="handleWheel">
+            :class="[showOptionsBar ? 'pb-16' : 'pb-4']" @scroll="handleScroll" @wheel.prevent="handleWheel">
 
             <div v-show="messages.length">
                 <div :style="{ height: virtualizer.getTotalSize() + 'px', width: '100%', position: 'relative' }">
@@ -60,11 +60,32 @@
                 class=" w-full flex h-full flip-vertical items-center justify-center">
                 <LottieAnimation :animation-data="loading" :height="52" :width="52" :loop="true" :auto-play="true" />
             </div>
+            <div class=" transition-all duration-200 ease-in-out pointer-events-none"
+                :class="[canScroll ? 'h-16' : 'h-0']"></div>
         </div>
-        <div @click="resetScroll"
-            :class="[canScroll ? ' scale-100 pointer-events-auto opacity-100' : ' opacity-0 pointer-events-none scale-0']"
-            class=" w-11 absolute origin-bottom transition-all duration-200 ease-in-out bottom-3 right-3 h-11 rounded-full overflow-hidden bg-surface shadow-floating flex items-center justify-center cursor-pointer">
-            <BIcon icon="PhArrowDown" class=" fill-on-surface w-6 h-6" />
+        <div class="absolute bottom-0 right-0 w-full transition-all duration-300 ease-in-out" @click.self.stop>
+
+            <div class="flex flex-col" @click.self.stop>
+                <div class="pr-3 pb-1">
+                    <div @click="resetScroll"
+                        :class="[canScroll ? ' scale-100 pointer-events-auto opacity-100' : ' opacity-0 pointer-events-none scale-0']"
+                        class="w-11 origin-bottom transition-all duration-200 ease-in-out h-11 rounded-full overflow-hidden bg-surface shadow-floating flex items-center justify-center cursor-pointer">
+                        <BIcon icon="PhArrowDown" class="fill-on-surface w-6 h-6" />
+                    </div>
+                </div>
+
+                <div class=" transition-all duration-200 whitespace-nowrap text-wrap overflow-hidden ease-in-out"
+                    :class="[!showOptionsBar ? ' h-auto' : 'h-0']">
+                    <div :class="[!showOptionsBar ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-12 opacity-0 pointer-events-none']"
+                        class="w-full p-2 flex items-center gap-x-3 overflow-x-auto hide-scrollbar whitespace-nowrap">
+                        <div v-for="option in options" :key="option.key"
+                            class="px-2.5 flex items-center gap-x-2 cursor-pointer bg-surface-variant-3 rounded-lg h-9 shrink-0">
+                            <BIcon :icon="option.icon" class="w-5 h-5 fill-on-surface/50" />
+                            <div class="text-body-sm select-none text-on-surface/70">{{ option.label }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <BModal ref="modal" @action="deleteMessages" />
@@ -80,6 +101,7 @@ import loading from '@/assets/lottie/loading.json';
 import NoDataDisplay from '../general/NoDataDisplay.vue';
 import NoMessages from '/images/chat/no-messages.webp';
 import type { Modal } from '~/types/components/modal';
+import type { MenuOption } from '~/types/components/menu-options';
 
 export default defineComponent({
     name: 'ChatMessages',
@@ -87,6 +109,11 @@ export default defineComponent({
     props: {
         contact: {
             type: Object as PropType<Contact | null>,
+            required: true,
+        },
+        options: {
+            type: Array as PropType<MenuOption[]>,
+            default: () => [],
             required: true,
         }
     },
@@ -271,12 +298,15 @@ export default defineComponent({
         const topVisibleMessageIndex = ref(0);
         const targetScroll = ref(0);
         let animationFrame: number | null = null;
+        const showOptionsBar = ref(false);
+        let lastScrollTop = 0;
 
         const handleScroll = () => {
             const el = scrollContainer.value;
             if (!el) return;
 
             scrollOffset.value = el.scrollTop;
+            const currentScroll = el.scrollTop;
             headerOpacity.value = 1;
             if (scrollTimer) clearTimeout(scrollTimer);
 
@@ -285,6 +315,13 @@ export default defineComponent({
             if ((el.scrollHeight - el.scrollTop - el.clientHeight < 100) && !isLoading.value && messages.value.length > 0) {
                 fetchMessages(currentPage.value + 1);
             }
+
+            if (currentScroll < lastScrollTop) {
+                showOptionsBar.value = false;
+            } else {
+                showOptionsBar.value = true;
+            }
+            lastScrollTop = currentScroll;
 
             const items = virtualizer.value.getVirtualItems();
             if (items.length > 0) {
@@ -400,7 +437,7 @@ export default defineComponent({
             messages, handleWheel, isLoading, currentUserId, loading, NoMessages,
             getSpacingClass, handleScroll, firstUnreadId, headerOpacity, addMessages,
             animatingIds, handleDeleteMessages, modal, deleteMessages, deletingIds,
-            canScroll, resetScroll,
+            canScroll, resetScroll, showOptionsBar,
         };
     }
 });
@@ -456,5 +493,9 @@ export default defineComponent({
 .animate-slide-left {
     animation: slide-in-left 300ms ease-out forwards;
     will-change: transform, opacity;
+}
+
+#list {
+    will-change: padding-bottom;
 }
 </style>
