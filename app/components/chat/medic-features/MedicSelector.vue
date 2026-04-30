@@ -24,7 +24,7 @@
                             :hasNextPage="serviceStore.hasProviderNextPage" :loading="isLoading">
                             <template #item="{ item: medic }">
                                 <div class=" w-full pb-2">
-                                    <MedicDisplay @click="toggleSelect(medic.id)" :isSelected="isSelected(medic.id)"
+                                    <MedicDisplay @click="toggleSelect(medic)" :isSelected="isSelected(medic.id)"
                                         :medic="medic" :loading="isLoading && serviceStore.currentResultPage === 1" />
                                 </div>
                             </template>
@@ -145,24 +145,25 @@ export default defineComponent({
                 : { color: 'neutral', icon: '' };
         };
 
-        const selectedMedics = ref<number[]>([]);
+        const selectedMedics = ref<Provider[]>([]);
 
-        const toggleSelect = (id: number) => {
-            if (isLoading.value) return
-            if (!isSelected(id) && selectedMedics.value.length >= 5) {
-                openToast(t('chat.addMedic.error.maxMedics'), 'error')
-                return
-            }
-            const index = selectedMedics.value.indexOf(id);
+        const toggleSelect = (medic: Provider) => {
+            if (isLoading.value || medic.id === -1) return;
+
+            const index = selectedMedics.value.findIndex(p => p.id === medic.id);
+
             if (index > -1) {
                 selectedMedics.value.splice(index, 1);
             } else {
-                selectedMedics.value.push(id);
+                if (selectedMedics.value.length >= 5) {
+                    openToast(t('chat.addMedic.error.maxMedics'), 'error');
+                    return;
+                }
+                selectedMedics.value.push(medic);
             }
         };
 
-
-        const isSelected = (id: number) => selectedMedics.value.includes(id);
+        const isSelected = (id: number) => selectedMedics.value.some(p => p.id === id);
 
         const buttonProps = computed(() => {
             let buttonText = t('chat.addMedic.buttonText.single')
@@ -197,13 +198,8 @@ export default defineComponent({
             if (field.value === -1) return;
             if (!autoSelect.value && selectedMedics.value.length === 0) return;
 
-            let providersToSend: Provider[] = [];
-
-            if (!autoSelect.value) {
-                providersToSend = serviceStore.providers.filter(p =>
-                    selectedMedics.value.includes(p.id)
-                );
-            }
+            // Directly use the stored objects
+            const providersToSend = autoSelect.value ? [] : [...selectedMedics.value];
 
             chatActionStore.sendServiceRequest(
                 currentConversationId.value,
@@ -211,10 +207,11 @@ export default defineComponent({
                 selectedExpertiseLabel.value,
                 providersToSend
             );
+
             emit('close');
             setTimeout(() => {
-                resetComponent()
-            }, 300)
+                resetComponent();
+            }, 300);
         };
 
 
