@@ -22,7 +22,7 @@
                 :class="[isCanceled ? 'text-error' : 'text-primary']">{{ cardSubText }}
             </div>
             <div class=" w-full flex items-center gap-x-3">
-                <BButton class=" shrink-0 flex-1 " v-for="button in requestButtonProps" :key="button.key"
+                <BButton class=" shrink-0 flex-1 " v-for="button in requestButtonProps" :key="button.key" :disabled="button.disabled"
                     :color="button.color" :type="button.type" :text="button.text" @click="handleAction(button.key)" />
             </div>
         </div>
@@ -122,8 +122,9 @@ export default defineComponent({
 
             const status = request.value.request.status;
             const isSelf = isMedic.value;
+            const providersList = providers.value || [];
 
-            // 1. Handle Failed/Ended states (Retry is shown for both roles)
+            // 1. Handle Failed/Ended states
             if (['expired', 'rejected'].includes(status)) {
                 return [{ type: 'fill', color: 'secondary', text: t('chat.requestCard.addMedic.retry'), key: 'resend-request' }];
             }
@@ -140,12 +141,20 @@ export default defineComponent({
 
             // 3. Handle Payment state (Only shown to the patient)
             if (status === 'payment' && !isSelf) {
-                return [{ type: 'fill', color: 'primary', text: t('chat.requestCard.addMedic.pay'), key: 'pay-request' }];
+                // Condition: Disabled if NO provider has reached the 'payment' status
+                const hasPaymentProvider = providersList.some(p => p.status === 'payment');
+
+                return [{
+                    type: 'fill',
+                    color: 'primary',
+                    text: t('chat.requestCard.addMedic.pay'),
+                    key: 'pay-request',
+                    disabled: !hasPaymentProvider
+                }];
             }
 
             return null;
         });
-
         const handleAction = (key: string) => {
             switch (key) {
 
