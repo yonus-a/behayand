@@ -9,16 +9,18 @@
         </div>
         <div class=" w-full px-5 pt-2 transition-all duration-200 flex items-center ease-in-out"
             :class="[isSelectMode && isSelected ? ' bg-on-surface/5 gap-x-3' : ' bg-on-surface/0 gap-x-0', isSelectMode ? 'cursor-pointer select-none' : '']">
-            <div class=" shrink-0 transition-all duration-200 overflow-hidden ease-in-out whitespace-nowrap"
+            <div v-if="!message.request"
+                class=" shrink-0 transition-all duration-200 overflow-hidden ease-in-out whitespace-nowrap"
                 :class="[isSelectMode && isSelected ? 'w-auto' : ' w-0']">
                 <div :class="[isSelectMode && isSelected ? ' opacity-100 scale-100' : ' opacity-0 scale-0']"
                     class=" transition-all duration-200 ease-in-out w-5 h-5 rounded-full bg-gradient-primary-secondary flex items-center justify-center">
                     <div class="w-2.5 h-2.5 rounded-full bg-surface"></div>
                 </div>
             </div>
-            <div :class="[isMine ? ' justify-start' : 'justify-end']" class=" flex items-center flex-1 relative"
-                @contextmenu.prevent="handleRightClick" @click="handleLeftClick" @pointerdown="onPointerDown"
-                @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerUp">
+            <div v-if="!message.request" :class="[isMine ? ' justify-start' : 'justify-end']"
+                class=" flex items-center flex-1 relative" @contextmenu.prevent="handleRightClick"
+                @click="handleLeftClick" @pointerdown="onPointerDown" @pointermove="onPointerMove"
+                @pointerup="onPointerUp" @pointercancel="onPointerUp">
                 <div class=" select-none md:select-auto w-full">
                     <div class=" w-full flex items-center" :class="[isMine ? 'justify-start' : 'justify-end']">
                         <div class=" flex max-w-4/5 items-end gap-x-3">
@@ -103,7 +105,7 @@
                                         :class="[message.isRead && message.isSent ? 'fill-primary' : 'fill-on-surface/50']" />
                                     <div class=" select-none  text-body-sm text-on-surface/50">{{
                                         formatTime(message.date)
-                                    }}
+                                        }}
                                     </div>
                                 </div>
                             </div>
@@ -120,6 +122,9 @@
 
                 <BubbleOptions :message="message" ref="bubbleOptionsRef" />
             </div>
+            <div v-if="message.request" class=" py-3 w-full flex justify-center">
+                <RequestCard :request="message.request" :contact="contact" />
+            </div>
         </div>
     </div>
 </template>
@@ -135,6 +140,7 @@ import VoiceDisplay from './chat-bubbles/VoiceDisplay.vue';
 import ContactAvatar from './contact/ContactAvatar.vue';
 import ImageGroupDisplay from './chat-bubbles/ImageGroupDisplay.vue';
 import BubbleOptions from './chat-bubbles/BubbleOptions.vue';
+import RequestCard from './chat-bubbles/RequestCard.vue';
 
 type ImageDisplayInstance = InstanceType<typeof ImageGroupDisplay>
 
@@ -165,6 +171,7 @@ export default defineComponent({
         VoiceDisplay,
         ContactAvatar,
         BubbleOptions,
+        RequestCard,
     },
     setup(props) {
         const profileStore = useProfileStore()
@@ -387,11 +394,34 @@ export default defineComponent({
 .animate-delete-right {
     animation: slide-out-right 300ms ease-in forwards;
     white-space: nowrap;
-    /* Prevents text re-flow during collapse */
 }
 
 .animate-delete-left {
     animation: slide-out-left 300ms ease-in forwards;
     white-space: nowrap;
+}
+
+.msg-slide-enter-active {
+    transition: all 0.3s ease-out;
+}
+
+.msg-slide-enter-from {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+.msg-grow-enter-active {
+    transition: grid-template-rows 0.4s ease, opacity 0.4s ease;
+    display: grid;
+    grid-template-rows: 1fr;
+}
+
+.msg-grow-enter-from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+}
+
+.msg-grow-enter-active>div {
+    overflow: hidden;
 }
 </style>

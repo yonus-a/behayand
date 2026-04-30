@@ -4,6 +4,8 @@ import { useProfileStore, useDate, useI18n, useAppToast } from "#imports";
 import type { ExtendedMessage, Message } from "~/types/chat";
 import { useEventBus } from "@vueuse/core";
 import { useChatStore } from "~/stores/chatStore";
+import type { Service } from "~/types/service";
+import type { Contact } from "~/types/chat";
 
 export const useChatActionStore = defineStore("chatAction", () => {
   const profileStore = useProfileStore();
@@ -233,6 +235,43 @@ export const useChatActionStore = defineStore("chatAction", () => {
     clearActions();
   };
 
+  const sendServiceRequest = (
+    conversationId: number,
+    serviceId: number,
+    serviceLabel: string,
+    selectedProviders: Contact[], // Will be empty for autoSelect, or contain 1+ providers
+  ) => {
+    // Determine if we attach a specific provider (Only if EXACTLY ONE is selected)
+    const attachedProvider =
+      selectedProviders.length === 1 ? selectedProviders : undefined;
+
+    // Construct the Request Object based on your exact rules
+    const newRequestMessage: Message = {
+      id: Math.floor(Math.random() * -1000000), // Temp ID
+      conversationId: conversationId,
+      date: new Date(),
+      type: "text", // Using 'text' as the base type, but the UI will render it as a Request bubble because `request` exists
+      senderId: profileStore.userData.id,
+      isSent: false,
+      isRead: false,
+      isEdited: false,
+      repliedTo: null as any, // Standard null initialization
+      request: {
+        id: Math.floor(Math.random() * 10000), // Mock request ID
+        type: "add-person",
+        request: {
+          id: serviceId,
+          label: serviceLabel,
+          status: "pending",
+          ...(attachedProvider && { provider: attachedProvider }), // Only attach if 1 provider exists
+        } as Service,
+      },
+    };
+
+    // Push it through the standard send pipeline so it gets temp IDs, event bus emissions, etc.
+    sendMessage([newRequestMessage]);
+  };
+
   return {
     isSelectMode,
     selectedMessages,
@@ -257,5 +296,6 @@ export const useChatActionStore = defineStore("chatAction", () => {
     copyMessageText,
     editBus,
     uploadProgress,
+    sendServiceRequest,
   };
 });

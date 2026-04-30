@@ -19,7 +19,7 @@
                         :icon="filterProps(filter.key).icon" :key="filter.key" @click="setFilter(filter.key)" />
                 </div>
                 <div class=" w-full h-90.5 mt-4 relative">
-                    <div class="w-full h-full">
+                    <div v-if="!isLoading && providers.length > 0" class="w-full h-full">
                         <BVirtualVerticalList :items="providers" @load-more="serviceStore.fetchProviders(true)"
                             :hasNextPage="serviceStore.hasProviderNextPage" :loading="isLoading">
                             <template #item="{ item: medic }">
@@ -31,32 +31,45 @@
                             </template>
                         </BVirtualVerticalList>
                     </div>
+                    <div v-else-if="!isLoading && providers.length === 0"
+                        class=" w-full h-full flex items-center justify-center">
+                        <NoDataDisplay :image-path="NoProviderImage" :title="t('chat.noProviders')" />
+                    </div>
                     <div
                         class="pt-6 bg-linear-to-b from-surface/0 via-surface to-surface absolute bottom-0 left-0 z-20 w-full">
-                        <BButton :disabled="buttonProps.disabled" class=" min-w-full" :text="buttonProps.text"
-                            @click="selectMedic" />
+
                     </div>
                 </div>
             </div>
+            <BButton :disabled="buttonProps.disabled" class=" transition-all duration-200 ease-in-out min-w-full"
+                :class="[!autoSelect ? ' mt-0' : 'mt-4']" :text="buttonProps.text" @click="selectMedic" />
         </div>
     </div>
 </template>
 <script lang="ts">
 import { defineComponent, onMounted, watch } from 'vue';
-import { useServiceStore, useI18n } from '#imports';
+import { useServiceStore, useI18n, useChatActionStore } from '#imports';
 import MedicDisplay from './MedicDisplay.vue';
+import { useRoute } from 'vue-router';
+import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
+import NoProviderImage from '/images/chat/no-provider-found.webp'
 
 export default defineComponent({
     name: 'MedicSelector',
     emits: ['close'],
     components: {
         MedicDisplay,
+        NoDataDisplay,
     },
     setup(_, { emit }) {
         const { t } = useI18n()
+        const route = useRoute()
         const serviceStore = useServiceStore()
+        const chatActionStore = useChatActionStore()
         const activeFilter = ref('')
         const autoSelect = ref(true)
+
+        const currentConversationId = computed(() => Number(route.params.id) || 0);
 
         const field = computed({
             get: () => serviceStore.selectedServiceId,
@@ -148,7 +161,7 @@ export default defineComponent({
 
         const buttonProps = computed(() => {
             let buttonText = t('chat.addMedic.buttonText.single')
-            let disabled = selectedMedics.value.length === 0;
+            let disabled = !autoSelect.value && selectedMedics.value.length === 0;
             if (selectedMedics.value.length > 1) {
                 buttonText = t('chat.addMedic.buttonText.multiple', { count: selectedMedics.value.length })
             }
@@ -171,9 +184,23 @@ export default defineComponent({
 
 
         const selectMedic = () => {
-            if (selectedMedics.value.length === 0) return
-            emit('close')
-        }
+            if (field.value === -1) return;
+            if (!autoSelect.value && selectedMedics.value.length === 0) return;
+
+            let providersToSend: any[] = [];
+            if (!autoSelect.value) {
+                providersToSend = serviceStore.providers.filter(p => selectedMedics.value.includes(p.id));
+            }
+
+            chatActionStore.sendServiceRequest(
+                currentConversationId.value,
+                field.value,
+                selectedExpertiseLabel.value,
+                providersToSend
+            );
+
+            emit('close');
+        };
 
 
         return {
@@ -194,6 +221,7 @@ export default defineComponent({
             serviceOptions,
             autoSelect,
             field,
+            NoProviderImage,
             isSelected,
         }
     }

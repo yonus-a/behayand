@@ -27,9 +27,10 @@
                         <div class="flip-vertical" :class="[
                             getSpacingClass(virtualRow.index, reversedMessages[virtualRow.index]),
                             virtualRow.index === 0 ? 'pb-2' : '',
-                            // Logic: If message is in animatingIds, check if it's mine or theirs
                             animatingIds.has(reversedMessages[virtualRow.index].id)
-                                ? (reversedMessages[virtualRow.index].senderId === currentUserId ? 'animate-slide-right' : 'animate-slide-left')
+                                ? (reversedMessages[virtualRow.index]?.request
+                                    ? 'animate-request-in'
+                                    : (reversedMessages[virtualRow.index].senderId === currentUserId ? 'animate-slide-right' : 'animate-slide-left'))
                                 : ''
                         ]">
 
@@ -74,15 +75,27 @@
                     </div>
                 </div>
 
-                <div class=" transition-all duration-200 whitespace-nowrap text-wrap overflow-hidden ease-in-out"
+                <div class=" transition-all duration-200 whitespace-nowrap text-wrap  ease-in-out"
                     :class="[!showOptionsBar ? ' h-auto' : 'h-0']">
                     <div :class="[!showOptionsBar ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-12 opacity-0 pointer-events-none']"
-                        class="w-full p-2 flex items-center gap-x-3 overflow-x-auto hide-scrollbar whitespace-nowrap">
-                        <div v-for="option in options" :key="option.key"
+                        class="w-full p-2 flex items-center gap-x-3 overflow-x-auto md:overflow-visible hide-scrollbar whitespace-nowrap">
+                        <div v-for="option in mappedOptions" :key="option.key"
                             class="px-2.5 flex items-center gap-x-2 cursor-pointer bg-surface-variant-3 rounded-lg h-9 shrink-0">
                             <BIcon :icon="option.icon" class="w-5 h-5 fill-on-surface/50" />
                             <div class="text-body-sm select-none text-on-surface/70">{{ option.label }}</div>
                         </div>
+                        <BMenu ref="menuRef">
+                            <template #trigger>
+                                <div
+                                    class="px-2.5 flex items-center gap-x-2 cursor-pointer bg-surface-variant-3 rounded-lg h-9 shrink-0">
+                                    <BIcon icon="PhUserPlus" class="w-5 h-5 fill-on-surface/50" />
+                                    <div class="text-body-sm select-none text-on-surface/70">{{
+                                        t('chat.barOptions.addPerson')
+                                    }}</div>
+                                </div>
+                            </template>
+                            <MedicSelector @close="closeMenu('add-user')" />
+                        </BMenu>
                     </div>
                 </div>
             </div>
@@ -102,10 +115,12 @@ import NoDataDisplay from '../general/NoDataDisplay.vue';
 import NoMessages from '/images/chat/no-messages.webp';
 import type { Modal } from '~/types/components/modal';
 import type { MenuOption } from '~/types/components/menu-options';
+import MedicSelector from './medic-features/MedicSelector.vue';
+import type { Menu } from '~/types/components/menu';
 
 export default defineComponent({
     name: 'ChatMessages',
-    components: { ChatBubble, NoDataDisplay },
+    components: { ChatBubble, NoDataDisplay, MedicSelector },
     props: {
         contact: {
             type: Object as PropType<Contact | null>,
@@ -118,6 +133,7 @@ export default defineComponent({
         }
     },
     setup(props) {
+        const menuRef = ref<Menu | null>(null)
         const modal = ref<Modal | null>(null);
         const profileStore = useProfileStore();
         const route = useRoute();
@@ -125,6 +141,8 @@ export default defineComponent({
         const { t } = useI18n();
         const chatActionStore = useChatActionStore();
         const { formatDateShort } = useDate();
+
+
 
         const scrollContainer = ref<HTMLElement | null>(null);
         const loaderRef = ref<HTMLElement | null>(null);
@@ -135,6 +153,12 @@ export default defineComponent({
         const currentPage = ref(1);
         const maxPages = 5;
         const currentUserId = profileStore.userData.id;
+
+        const MENU_KEYS = ['add-user'];
+
+        const mappedOptions = computed(() => {
+            return props.options.filter(option => !MENU_KEYS.includes(option.key));
+        });
 
         // --- BUS SUBSCRIPTIONS ---
         let unsubSend: () => void;
@@ -432,12 +456,21 @@ export default defineComponent({
             }
         });
 
+        const closeMenu = (key: string) => {
+            switch (key) {
+                case 'add-user':
+                    menuRef.value?.close()
+                    break;
+            }
+        }
+
         return {
             floatingHeader, t, scrollContainer, loaderRef, virtualizer, reversedMessages,
             messages, handleWheel, isLoading, currentUserId, loading, NoMessages,
             getSpacingClass, handleScroll, firstUnreadId, headerOpacity, addMessages,
             animatingIds, handleDeleteMessages, modal, deleteMessages, deletingIds,
-            canScroll, resetScroll, showOptionsBar,
+            canScroll, resetScroll, showOptionsBar, mappedOptions, closeMenu,
+            menuRef,
         };
     }
 });
@@ -497,5 +530,24 @@ export default defineComponent({
 
 #list {
     will-change: padding-top;
+}
+
+.animate-request-in {
+    animation: request-in 0.4s ease-out forwards;
+    overflow: hidden;
+}
+
+@keyframes request-in {
+    0% {
+        opacity: 0;
+        max-height: 0;
+        transform: translateY(10px);
+    }
+
+    100% {
+        opacity: 1;
+        max-height: 1000px;
+        transform: translateY(0);
+    }
 }
 </style>
