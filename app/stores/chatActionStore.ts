@@ -239,39 +239,36 @@ export const useChatActionStore = defineStore("chatAction", () => {
     conversationId: number,
     serviceId: number,
     serviceLabel: string,
-    selectedProviders: Contact[], // Will be empty for autoSelect, or contain 1+ providers
+    selectedProviders: Contact[],
   ) => {
-    // Determine if we attach a specific provider (Only if EXACTLY ONE is selected)
-    const attachedProvider =
-      selectedProviders.length === 1 ? selectedProviders : undefined;
+    // Logic: 1 provider = 'pending', otherwise (0 or >1) = 'searching'
+    const requestStatus =
+      selectedProviders.length === 1 ? "pending" : "searching";
 
-    // Construct the Request Object based on your exact rules
     const newRequestMessage: Message = {
-      id: Math.floor(Math.random() * -1000000), // Temp ID
+      id: Math.floor(Math.random() * -1000000),
       conversationId: conversationId,
       date: new Date(),
-      type: "text", // Using 'text' as the base type, but the UI will render it as a Request bubble because `request` exists
+      type: "text",
       senderId: profileStore.userData.id,
       isSent: false,
       isRead: false,
       isEdited: false,
-      repliedTo: null as any, // Standard null initialization
+      repliedTo: null as any,
       request: {
-        id: Math.floor(Math.random() * 10000), // Mock request ID
+        id: Math.floor(Math.random() * 10000),
         type: "add-person",
         request: {
           id: serviceId,
           label: serviceLabel,
-          status: "pending",
-          ...(attachedProvider && { provider: attachedProvider }), // Only attach if 1 provider exists
+          status: requestStatus,
+          ...(selectedProviders.length > 0 && { provider: selectedProviders }),
         } as Service,
       },
     };
 
-    // Push it through the standard send pipeline so it gets temp IDs, event bus emissions, etc.
     sendMessage([newRequestMessage]);
   };
-
   return {
     isSelectMode,
     selectedMessages,

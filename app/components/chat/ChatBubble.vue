@@ -123,7 +123,7 @@
                 <BubbleOptions :message="message" ref="bubbleOptionsRef" />
             </div>
             <div v-if="message.request" class=" py-3 w-full flex justify-center">
-                <RequestCard :request="message.request" :contact="contact" />
+                <RequestCard :message="message" :contact="contact" />
             </div>
         </div>
     </div>

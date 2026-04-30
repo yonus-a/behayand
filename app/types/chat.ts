@@ -1,4 +1,6 @@
 import type { Service } from "./service";
+import type { Provider } from "./service";
+import type { Invoice } from "./invoice";
 
 export type MessageType = "text" | "image" | "file" | "voice" | "video";
 export type status = "pending" | "approved" | "rejected" | "expired";
@@ -54,11 +56,23 @@ export interface ExtendedMessage extends Message {
 export interface Request {
   id: number;
   type: "personal-info" | "add-person";
-  request: AccessRequest | Service;
+  request: AccessRequest | ServiceRequest;
 }
 
 export interface AccessRequest {
   id: number;
   date: Date;
   status: status;
+}
+
+export interface ServiceRequest extends Service {
+  status?:
+    | "searching"
+    | "pending"
+    | "approved"
+    | "payment"
+    | "rejected"
+    | "expired";
+  provider?: Provider[];
+  invoice?: Invoice;
 }

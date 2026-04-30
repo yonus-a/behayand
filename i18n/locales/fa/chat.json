@@ -107,9 +107,20 @@
       "add": "افزودن",
       "buttonText": {
         "single": "افزودن پزشک",
-        "multiple": "افزودن {count} پزشک"
+        "multiple": "افزودن ({count}) پزشک"
       }
     },
-    "noProviders":"ارایه دهنده ای یافت نشد."
+    "noProviders": "ارایه دهنده ای یافت نشد.",
+    "requestCard": {
+      "addMedic": {
+        "title": "افزودن پزشک :",
+        "awaitingApproval": "در انتظار تایید بیمار...",
+        "awaitingPayment": "در انتظار پرداخت...",
+        "awaitingMedicApproval": "در انتظار تایید پزشک...",
+        "searching": "در حال پیدا کردن پزشک برای شما...",
+        "rejected": "درخواست شما مورد پذیرش قرار نگرفت.",
+        "expired":"درخواست منقضی شده است."
+      }
+    }
   }
 }

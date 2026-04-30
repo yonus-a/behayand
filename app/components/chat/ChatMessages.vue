@@ -64,10 +64,11 @@
             <div class=" transition-all duration-200 ease-in-out pointer-events-none"
                 :class="[canScroll ? 'h-16' : 'h-0']"></div>
         </div>
-        <div class="absolute bottom-0 right-0 w-full transition-all duration-300 ease-in-out" @click.self.stop>
+        <div class="absolute pointer-events-none bottom-0 right-0 w-full transition-all duration-300 ease-in-out"
+            @click.self.stop>
 
-            <div class="flex flex-col" @click.self.stop>
-                <div class="pr-3 pb-1">
+            <div class="flex flex-col pointer-events-none" @click.self.stop>
+                <div class="pr-3 pb-1 w-11">
                     <div @click="resetScroll"
                         :class="[canScroll ? ' scale-100 pointer-events-auto opacity-100' : ' opacity-0 pointer-events-none scale-0']"
                         class="w-11 origin-bottom transition-all duration-200 ease-in-out h-11 rounded-full overflow-hidden bg-surface shadow-floating flex items-center justify-center cursor-pointer">
@@ -75,27 +76,35 @@
                     </div>
                 </div>
 
-                <div class=" transition-all duration-200 whitespace-nowrap text-wrap  ease-in-out"
-                    :class="[!showOptionsBar ? ' h-auto' : 'h-0']">
-                    <div :class="[!showOptionsBar ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-12 opacity-0 pointer-events-none']"
-                        class="w-full p-2 flex items-center gap-x-3 overflow-x-auto md:overflow-visible hide-scrollbar whitespace-nowrap">
-                        <div v-for="option in mappedOptions" :key="option.key"
-                            class="px-2.5 flex items-center gap-x-2 cursor-pointer bg-surface-variant-3 rounded-lg h-9 shrink-0">
-                            <BIcon :icon="option.icon" class="w-5 h-5 fill-on-surface/50" />
-                            <div class="text-body-sm select-none text-on-surface/70">{{ option.label }}</div>
+                <div class="grid transition-all pointer-events-none duration-200 ease-in-out"
+                    :class="[!showOptionsBar ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0']">
+
+                    <!-- 2. This wrapper with 'min-h-0' is required for the grid trick to work -->
+                    <div class="min-h-0">
+                        <!-- 3. Your original content wrapper -->
+                        <div :class="[!showOptionsBar ? 'translate-y-0 opacity-100 pointer-events-none' : '-translate-y-2 opacity-0 pointer-events-none']"
+                            class="transition-all duration-200 w-full p-2 flex items-center gap-x-3 overflow-x-auto md:overflow-visible hide-scrollbar whitespace-nowrap">
+
+                            <div v-for="option in mappedOptions" :key="option.key"
+                                class="px-2.5 pointer-events-auto flex items-center gap-x-2 cursor-pointer bg-surface-variant-3 rounded-lg h-9 shrink-0">
+                                <BIcon :icon="option.icon" class="w-5 h-5 fill-on-surface/50" />
+                                <div class="text-body-sm select-none text-on-surface/70">{{ option.label }}</div>
+                            </div>
+                            <div class=" pointer-events-auto">
+                                <BMenu ref="menuRef">
+                                    <template #trigger>
+                                        <div
+                                            class="px-2.5 flex items-center gap-x-2 cursor-pointer bg-surface-variant-3 rounded-lg h-9 shrink-0">
+                                            <BIcon icon="PhUserPlus" class="w-5 h-5 fill-on-surface/50" />
+                                            <div class="text-body-sm select-none text-on-surface/70">
+                                                {{ t('chat.barOptions.addPerson') }}
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <MedicSelector @close="closeMenu('add-user')" />
+                                </BMenu>
+                            </div>
                         </div>
-                        <BMenu ref="menuRef">
-                            <template #trigger>
-                                <div
-                                    class="px-2.5 flex items-center gap-x-2 cursor-pointer bg-surface-variant-3 rounded-lg h-9 shrink-0">
-                                    <BIcon icon="PhUserPlus" class="w-5 h-5 fill-on-surface/50" />
-                                    <div class="text-body-sm select-none text-on-surface/70">{{
-                                        t('chat.barOptions.addPerson')
-                                    }}</div>
-                                </div>
-                            </template>
-                            <MedicSelector @close="closeMenu('add-user')" />
-                        </BMenu>
                     </div>
                 </div>
             </div>
@@ -535,19 +544,23 @@ export default defineComponent({
 .animate-request-in {
     animation: request-in 0.4s ease-out forwards;
     overflow: hidden;
+    /* Ensure the base state is also flipped to avoid flickering at the end */
+    transform: scaleY(-1);
 }
 
 @keyframes request-in {
     0% {
         opacity: 0;
         max-height: 0;
-        transform: translateY(10px);
+        /* Include scaleY(-1) here to maintain the flip */
+        transform: scaleY(-1) translateY(10px);
     }
 
     100% {
         opacity: 1;
         max-height: 1000px;
-        transform: translateY(0);
+        /* Keep scaleY(-1) here as well */
+        transform: scaleY(-1) translateY(0);
     }
 }
 </style>
