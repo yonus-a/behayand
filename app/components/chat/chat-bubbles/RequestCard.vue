@@ -1,30 +1,29 @@
 <template>
-    <div class=" p-3 w-80 min-h-51 bg-surface rounded-2xl shadow-floating">
+    <div class=" p-3 w-80  bg-surface rounded-2xl shadow-floating">
         <div class=" w-full flex flex-col gap-y-3 h-full" v-if="isServiceRequest">
             <div class=" transition-all duration-200 ease-in-out select-none text-label-sm"
                 :class="[isPending ? 'text-on-surface/50' : 'text-on-surface']">{{ t('chat.addMedic.title') }}</div>
-            <div class=" w-full flex items-center gap-x-2">
-                <div class=" w-10 h-10 shrink-0">
-                    <ContactAvatar v-if="attachedProvider !== null" :contact="contact" />
-                    <div v-else class=" w-full h-full rounded-full flex items-center justify-center bg-surface-variant">
-                        <BIcon icon="PhIdentificationCard" class=" fill-primary w-6 h-6" />
+            <div v-if="providers.length > 0" class=" w-full flex flex-col gap-y-3">
+                <ProviderDisplay v-for="provider in providers" :key="provider.id" :provider="provider" />
+            </div>
+            <div v-else class=" h-14 w-full rounded-full flex items-center justify-center gap-x-2">
+                <div class=" shrink-0 w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center">
+                    <BIcon icon="PhIdentificationCard" class=" fill-primary w-6 h-6" />
+                </div>
+                <div class="flex-1 flex-col h-full flex select-none text-on-surface justify-center">
+                    <div class=" text-label-md" v-loading="isPending">
+                        <div class=" h-7 w-30"></div>
                     </div>
+                    <div class=" text-body-sm opacity-50">{{ request?.request.service.label }}</div>
                 </div>
-                <div class=" flex-1 text-on-surface">
-                    <div class="text-label-md"
-                        :class="[message.request?.request.status === 'searching' ? ' max-w-30' : '']"
-                        v-loading="message.request?.request.status === 'searching'">{{
-                            attachedProvider !== null ? `${attachedProvider?.name}
-                        ${attachedProvider?.lastName}` : t('chat.requestCard.addMedic.title') }}</div>
-                    <div class="text-body-sm opacity-50">{{ request?.request?.label }}
-                    </div>
-                </div>
-                <div class=" shrink-0 select-none text-on-surface text-label-md flex items-center gap-x-2">
-                    <!-- 
-                        <div v-if="invoiceDetails">{{ invoiceDetails.amount }}</div>
-                        -->
-                    <div v-loading="message.request?.request.status === 'searching'">{{ t('general.currency') }}</div>
-                </div>
+                <div class=" h-7 w-20 " v-loading="isPending"></div>
+            </div>
+            <div class=" w-full text-center select-none text-label-sm"
+                :class="[isCanceled ? 'text-error' : 'text-primary']">{{ cardSubText }}
+            </div>
+            <div class=" w-full flex items-center gap-x-3">
+                <BButton class=" shrink-0 flex-1 " v-for="button in requestButtonProps" :key="button.key"
+                    :color="button.color" :type="button.type" :text="button.text" @click="handleAction(button.key)" />
             </div>
         </div>
     </div>
@@ -34,6 +33,7 @@ import { defineComponent, type PropType, computed } from 'vue';
 import type { Message, Contact } from '~/types/chat';
 import { useI18n, useProfileStore } from '#imports';
 import ContactAvatar from '../contact/ContactAvatar.vue';
+import ProviderDisplay from './request-card/ProviderDisplay.vue';
 export default defineComponent({
     name: 'RequestCard',
     props: {
@@ -48,24 +48,20 @@ export default defineComponent({
     },
     components: {
         ContactAvatar,
+        ProviderDisplay,
     },
     setup(props) {
         const { t } = useI18n()
         const profileStore = useProfileStore()
+        const role = computed(() => profileStore.chosenRole)
         const request = computed(() => props.message.request)
         const isServiceRequest = computed(() => request.value?.type === 'add-person');
+        const providers = computed(() => {
+            if (request.value?.type !== 'add-person') return null
+            return request.value.request.provider
+        })
 
-        const attachedProvider = computed(() => {
-            if (request.value?.type !== 'add-person') return null;
-            const req = request.value.request;
-            if ('provider' in req && req.provider) {
-                const providers = req.provider;
-                if (providers.length === 1) {
-                    return providers[0];
-                }
-            }
-            return null;
-        });
+
 
         const isPending = computed(() => {
             if (request.value?.type === 'add-person') {
@@ -82,27 +78,36 @@ export default defineComponent({
             console.log(props.message.request)
         })
 
+        const isMedic = computed(() => profileStore.userData.id == props.message.senderId)
+
         const cardSubText = computed(() => {
             let text = ''
+            console.log(t('chat.requestCard.addMedic.rejected'))
+            let status = request.value.request.status
             if (request.value?.type === 'add-person') {
-                let isMedic = profileStore.userData.id === props.message.senderId
-                switch (request.value.request.status) {
+                switch (status) {
                     case 'payment':
-                        text = isMedic ? t('chat.requestCard.addMedic.awaitingPayment') : t('chat.requestCard.addMedic.awaitingApproval')
+                        text = isMedic.value ? t('chat.requestCard.addMedic.awaitingPayment') : t('chat.requestCard.addMedic.awaitingPatientPayment')
                         break;
                     case 'searching':
                         text = t('chat.requestCard.addMedic.searching')
                         break;
                     case 'pending':
-                        text = isMedic ? t('chat.requestCard.addMedic.awaitingApproval') : t('chat.requestCard.addMedic.awaitingMedicApproval')
+                        text = !isMedic.value ? t('chat.requestCard.addMedic.awaitingApproval') : t('chat.requestCard.addMedic.awaitingMedicApproval')
                         break;
                     case 'rejected':
                         text = t('chat.requestCard.addMedic.rejected')
+                        break;
                     case 'expired':
                         text = t('chat.requestCard.addMedic.expired')
                 }
             }
             return text
+        })
+
+        const isCanceled = computed(() => {
+            if (request.value?.type === 'personal-info') return false
+            return request.value?.request.status === 'expired' || request.value?.request.status === 'rejected'
         })
 
 
@@ -112,19 +117,53 @@ export default defineComponent({
             })
         })
 
-        //   const invoiceDetails = computed(() => {
-        //       if (request.value?.type !== 'add-person') return null
-        //       if (!request.value.request.invoice) return null
-        //       return request.value.request.invoice
-        //   })
+        const requestButtonProps = computed(() => {
+            if (request.value?.type !== 'add-person') return null;
+
+            const status = request.value.request.status;
+            const isSelf = isMedic.value;
+
+            // 1. Handle Failed/Ended states (Retry is shown for both roles)
+            if (['expired', 'rejected'].includes(status)) {
+                return [{ type: 'fill', color: 'secondary', text: t('chat.requestCard.addMedic.retry'), key: 'resend-request' }];
+            }
+
+            // 2. Handle Active/Searching states
+            if (['pending', 'searching'].includes(status)) {
+                return isSelf
+                    ? [{ type: 'outline', color: 'error', text: t('chat.requestCard.addMedic.cancel'), key: 'cancel-request' }]
+                    : [
+                        { type: 'fill', color: 'primary', text: t('chat.requestCard.addMedic.confirmRequest'), key: 'approve-request-user' },
+                        { type: 'fill', color: 'secondary', text: t('chat.requestCard.addMedic.reject'), key: 'reject-medic-request' }
+                    ];
+            }
+
+            // 3. Handle Payment state (Only shown to the patient)
+            if (status === 'payment' && !isSelf) {
+                return [{ type: 'fill', color: 'primary', text: t('chat.requestCard.addMedic.pay'), key: 'pay-request' }];
+            }
+
+            return null;
+        });
+
+        const handleAction = (key: string) => {
+            switch (key) {
+
+            }
+        }
+
 
         return {
+            handleAction,
             t,
             isPending,
+            role,
             isServiceRequest,
-            attachedProvider,
             request,
-            //  invoiceDetails,
+            cardSubText,
+            providers,
+            requestButtonProps,
+            isCanceled,
         }
     }
 })
