@@ -29,7 +29,8 @@
       "image": "عکس",
       "file": "فایل",
       "voice": "پیام صوتی",
-      "video": "ویدیو"
+      "video": "ویدیو",
+      "request":"درخواست"
     },
     "messageOptions": {
       "edit": "ویرایش پیام",
@@ -94,7 +95,9 @@
       "title": "حذف پیام",
       "singleMessage": "آیا از حذف پیام اطمینان دارید ؟",
       "multipleMessages": "آیا از حذف {count} پیام اطمینان دارید؟",
-      "confirm": "حذف"
+      "confirm": "حذف",
+      "requestTitle":"لغو درخواست",
+      "request": "آیا از لغو درخواست خود اطمینان دارید ؟"
     },
     "addMedic": {
       "title": "افزودن ارایه دهنده",
@@ -121,12 +124,12 @@
         "rejected": "درخواست شما مورد پذیرش قرار نگرفت.",
         "expired": "درخواست منقضی شده است.",
         "pending": "در انتظار تایید...",
-        "awaitingPatientPayment":"در انتظار نوبت گیری و پرداخت بیمار...",
+        "awaitingPatientPayment": "در انتظار نوبت گیری و پرداخت بیمار...",
         "cancel": "لغو",
-        "confirmRequest":"تایید و نوبت گیری",
-        "reject":"رد",
-        "pay":"پرداخت",
-        "retry":"درخواست مجدد",
+        "confirmRequest": "تایید و نوبت گیری",
+        "reject": "رد",
+        "pay": "پرداخت",
+        "retry": "درخواست مجدد",
         "error": {
           "maxMedics": "حداکثر میتوانید {count} فرد را اضافه کنید."
         }

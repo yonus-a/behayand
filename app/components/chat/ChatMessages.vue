@@ -426,22 +426,57 @@ export default defineComponent({
 
         const handleDeleteMessages = (idsToDelete: number[]) => {
             selectedToDelete.value = idsToDelete;
+
+            const isRequestDeletion = idsToDelete.length === 1 &&
+                messages.value.find(m => m.id === idsToDelete[0])?.request;
+
+            const modalTitle = isRequestDeletion
+                ? t('chat.delete.requestTitle')
+                : t('chat.delete.title');
+
+            const modalDescription = isRequestDeletion ? t('chat.delete.request') : (idsToDelete.length === 1
+                ? t('chat.delete.singleMessage')
+                : t('chat.delete.multipleMessages', { count: idsToDelete.length }))
+
+            // 2. Open the modal with the dynamic title
             modal.value?.openModal(
-                t('chat.delete.title'),
-                idsToDelete.length === 1 ? t('chat.delete.singleMessage') : t('chat.delete.multipleMessages', { count: idsToDelete.length }),
-                'error', true, t('chat.delete.confirm')
+                modalTitle,
+                modalDescription,
+                'error',
+                true,
+                t('chat.delete.confirm')
             );
         };
 
         const deleteMessages = () => {
             modal.value?.closeModal();
+            const chatId = Number(route.params.id); // Get current chat ID
+
             setTimeout(() => {
                 // Trigger exit animation
                 selectedToDelete.value.forEach(id => deletingIds.value.add(id));
+
                 setTimeout(() => {
-                    // Remove from array after animation completes
-                    messages.value = messages.value.filter(m => !selectedToDelete.value.includes(m.id));
+                    // 1. Filter out the deleted messages locally
+                    const remainingMessages = messages.value.filter(m => !selectedToDelete.value.includes(m.id));
+                    messages.value = remainingMessages;
+
+                    // 2. Update the sidebar Contact List in the store
+                    if (chatId) {
+                        // messages.value is chronological, so index [length-1] is the newest message
+                        const newLastMessage = remainingMessages.length > 0
+                            ? remainingMessages[remainingMessages.length - 1]
+                            : null;
+
+                        if (newLastMessage) {
+                            chatStore.updateLastMessage(chatId, newLastMessage);
+                        } else {
+                            chatStore.patchLastMessage(chatId, -1, { text: '', date: new Date() } as any);
+                        }
+                    }
+
                     chatActionStore.clearActions();
+                    selectedToDelete.value = []; // Reset the selection
                 }, 300);
             }, 300);
         };

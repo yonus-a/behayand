@@ -91,15 +91,23 @@ export default defineComponent({
         });
 
         const attachmentIcon = computed(() => {
-            const type = props.contact.lastMessage?.type;
-            if (!type || type === 'text') return null;
+            const msg = props.contact.lastMessage;
+            if (!msg) return null;
 
-            const icons = {
+            if (msg.request) return 'PhSubtitles';
+
+            const icons: Record<string, string> = {
                 image: 'PhImage',
                 file: 'PhFile',
-                voice: 'PhMicrophone'
+                voice: 'PhMicrophone',
+                video: 'PhVideo'
             };
-            return icons[type as keyof typeof icons] || null;
+
+            if (msg.type !== 'text') {
+                return icons[msg.type] || null;
+            }
+
+            return null;
         });
 
         // 3. Logic for name prefix and attachment translation
@@ -109,6 +117,9 @@ export default defineComponent({
 
             // Handle content (Text or Attachment Title)
             let content = msg.text;
+            if (!content && msg.request) {
+                content = t('chat.attachementTypes.request')
+            }
             if (!content && msg.type !== 'text') {
                 content = t(`chat.attachementTypes.${msg.type}`);
             }
@@ -127,7 +138,7 @@ export default defineComponent({
             if (!msg) return 'text-on-surface/50';
 
             // If it's a pure attachment without text caption
-            if (!msg.text && msg.type !== 'text') return 'text-primary font-medium';
+            if (!msg.text && msg.type !== 'text' || msg.request) return 'text-primary font-medium';
 
             // If there are unread messages
             if (props.contact.unreadCount > 0) return 'text-on-surface font-medium';

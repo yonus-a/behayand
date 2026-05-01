@@ -68,10 +68,12 @@ export const useChatActionStore = defineStore("chatAction", () => {
 
     // 1. Instantly trigger the delete animation in the UI
     deleteBus.emit(targets);
+
+    // REMOVED the non-existent chatStore.handleDeletedMessages call here
+
     clearActions();
 
     // 2. Background API Call (Mocked)
-    // Even if it takes 2 seconds, the UI is already clean.
     await new Promise((resolve) => setTimeout(resolve, 1000));
     console.log("API: Messages deleted successfully on server.");
   };

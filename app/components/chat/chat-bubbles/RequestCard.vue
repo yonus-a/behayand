@@ -22,8 +22,9 @@
                 :class="[isCanceled ? 'text-error' : 'text-primary']">{{ cardSubText }}
             </div>
             <div class=" w-full flex items-center gap-x-3">
-                <BButton class=" shrink-0 flex-1 " v-for="button in requestButtonProps" :key="button.key" :disabled="button.disabled"
-                    :color="button.color" :type="button.type" :text="button.text" @click="handleAction(button.key)" />
+                <BButton class=" shrink-0 flex-1 " v-for="button in requestButtonProps" :key="button.key"
+                    :disabled="button.disabled" :color="button.color" :type="button.type" :text="button.text"
+                    @click="handleAction(button.key)" />
             </div>
         </div>
     </div>
@@ -31,7 +32,7 @@
 <script lang="ts">
 import { defineComponent, type PropType, computed } from 'vue';
 import type { Message, Contact } from '~/types/chat';
-import { useI18n, useProfileStore } from '#imports';
+import { useI18n, useProfileStore, useChatActionStore } from '#imports';
 import ContactAvatar from '../contact/ContactAvatar.vue';
 import ProviderDisplay from './request-card/ProviderDisplay.vue';
 export default defineComponent({
@@ -52,6 +53,7 @@ export default defineComponent({
     },
     setup(props) {
         const { t } = useI18n()
+        const chatActionStore = useChatActionStore()
         const profileStore = useProfileStore()
         const role = computed(() => profileStore.chosenRole)
         const request = computed(() => props.message.request)
@@ -155,11 +157,31 @@ export default defineComponent({
 
             return null;
         });
+
         const handleAction = (key: string) => {
             switch (key) {
+                case 'cancel-request':
+                    // Pass the current message ID in an array to trigger the delete flow
+                    chatActionStore.triggerDelete([props.message.id]);
+                    break;
 
+                case 'approve-request-user':
+                    // Handle approval logic
+                    break;
+
+                case 'reject-medic-request':
+                    // Handle rejection logic
+                    break;
+
+                case 'pay-request':
+                    // Handle payment logic
+                    break;
+
+                case 'resend-request':
+                    // Handle retry/resend logic
+                    break;
             }
-        }
+        };
 
 
         return {
