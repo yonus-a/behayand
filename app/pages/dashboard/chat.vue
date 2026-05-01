@@ -14,8 +14,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { useI18n, useSeoMeta } from '#imports';
+import { defineComponent, onMounted } from 'vue';
+import { useI18n, useSeoMeta, useChatStore } from '#imports';
 import { useRoute } from 'vue-router';
 import { useWindowSize } from '#imports';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
@@ -36,6 +36,11 @@ export default defineComponent({
         const { width } = useWindowSize()
         const { t } = useI18n()
         const route = useRoute()
+        const chatStore = useChatStore()
+
+        onMounted(() => {
+            chatStore.fetchConversations('', 1);
+        });
 
         const isMobile = computed(() => width.value < 768)
         const isInChat = computed(() => {

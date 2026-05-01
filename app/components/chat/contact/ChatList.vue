@@ -78,9 +78,7 @@ export default defineComponent({
             }
         });
 
-        onMounted(() => {
-            chatStore.fetchConversations('', 1);
-        });
+
 
         const filterProps = (type: FilterKeys) => {
             return activeFilter.value === type
