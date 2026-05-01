@@ -68,6 +68,10 @@ export default defineComponent({
         const chatActionStore = useChatActionStore()
         const activeFilter = ref('')
         const autoSelect = ref(true)
+
+        watch(() => autoSelect.value, () => {
+            console.log(autoSelect.value)
+        })
         const { openToast } = useAppToast()
 
         const currentConversationId = computed(() => Number(route.params.id) || 0);
@@ -179,9 +183,6 @@ export default defineComponent({
 
 
 
-        watch(() => autoSelect.value, () => {
-            resetComponent()
-        })
 
         const resetComponent = () => {
             if (!autoSelect.value) {
@@ -210,6 +211,7 @@ export default defineComponent({
 
             emit('close');
             setTimeout(() => {
+                autoSelect.value = true;
                 resetComponent();
             }, 300);
         };

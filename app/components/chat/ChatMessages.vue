@@ -9,10 +9,10 @@
             </div>
         </div>
         <div dir="rtl" id="list" ref="scrollContainer"
-            class="h-full w-full overflow-y-auto pb-4 hide-scrollbar flip-vertical  bg-surface-variant/30"
+            class="h-full w-full max-w-dvw overflow-x-hidden overflow-y-auto pb-4 hide-scrollbar flip-vertical  bg-surface-variant/30"
             :class="[!showOptionsBar ? 'pt-16' : 'pt-4']" @scroll="handleScroll" @wheel.prevent="handleWheel">
 
-            <div v-show="messages.length">
+            <div class=" w-full max-w-dvw overflow-x-hidden" v-show="messages.length">
                 <div :style="{ height: virtualizer.getTotalSize() + 'px', width: '100%', position: 'relative' }">
                     <div v-for="virtualRow in virtualizer.getVirtualItems()"
                         :key="reversedMessages[virtualRow.index].id" :data-index="virtualRow.index"
@@ -90,7 +90,7 @@
                                 <div class="text-body-sm select-none text-on-surface/70">{{ option.label }}</div>
                             </div>
                             <div class="pointer-events-auto">
-                                <MedicSelector>
+                                <MedicSelector mode="medic">
                                     <template #trigger>
                                         <div
                                             class="px-2.5 flex items-center gap-x-2 cursor-pointer bg-surface-variant-3 rounded-lg h-9 shrink-0">

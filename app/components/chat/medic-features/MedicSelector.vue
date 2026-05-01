@@ -1,23 +1,24 @@
 <template>
-    <!-- MOBILE (< 1024px): Trigger + Popup -->
-    <!--
-    -->
-
-    <BPopup ref="popupRef">
-        <MedicSelectorContent @close="closeAll" />
-    </BPopup>
-    <!-- DESKTOP (>= 1024px): Trigger + Menu -->
-    <BMenu ref="menuRef" :options="options" @select="handleSelect" @close="resetMenuMode">
+    <!-- MOBILE FLOW -->
+    <div v-if="isMobile && options.length === 0" class="contents" @click="handleMobileClick">
+        <!-- Change to named slot -->
+        <slot name="trigger" />
+    </div>
+    <!-- DESKTOP FLOW -->
+    <BMenu v-else ref="menuRef" :options="displayOptions" @select="handleSelect" @close="resetMenuMode">
         <template #trigger>
+            <!-- Change to named slot -->
             <slot name="trigger" />
         </template>
+
+        <!-- Only render custom content if in medic mode -->
         <div class="p-1" v-if="internalMenuMode === 'medic'">
-            <!-- If we have options, only show content after 'add-user' is clicked -->
-            <div v-if="internalMenuMode === 'medic' || !options.length">
-                <MedicSelectorContent @close="closeAll" />
-            </div>
+            <MedicSelectorContent @close="closeAll" />
         </div>
     </BMenu>
+    <BPopup ref="popupRef" >
+        <MedicSelectorContent @close="closeAll" />
+    </BPopup>
 </template>
 
 <script lang="ts">
@@ -33,38 +34,25 @@ export default defineComponent({
     props: {
         mode: {
             type: String as PropType<'medic' | 'options'>,
-            default: 'medic'
+            default: 'options' // Default to options to allow for transition
         },
-        // If provided, the desktop menu shows these first
         options: { type: Array as PropType<MenuOption[]>, default: () => [] }
     },
     components: { MedicSelectorContent },
-    emits: ['select'], // Notify parent if a standard menu option is clicked
+    emits: ['select'],
     setup(props, { emit }) {
         const { t } = useI18n();
         const popupRef = ref<Popup | null>(null);
         const menuRef = ref<Menu | null>(null);
         const { width } = useWindowSize();
-        const isTransitioning = ref(false)
+        const isTransitioning = ref(false);
 
-        const internalMenuMode = ref<'options' | 'medic'>('options');
-        const isMobile = computed(() => width.value < 1024);
+        // FIX: Initialize based on props/options as you requested
+        const internalMenuMode = ref<'options' | 'medic'>(
+            (props.mode === 'medic' || props.options.length === 0) ? 'medic' : 'options'
+        );
 
-        const openPopup = () => {
-            if (props.mode === 'medic') {
-                popupRef.value?.open()
-            }
-        };
-
-        //const handleSelect = (key: string) => {
-        //    if (key === 'add-user') {
-        //        internalMenuMode.value = 'medic';
-        //    } else {
-        //        emit('select', key);
-        //        closeAll();
-        //    }
-        //};
-
+        const isMobile = computed(() => width.value < 768);
 
         const handleSelect = (key: string) => {
             if (key === 'add-user') {
@@ -77,9 +65,10 @@ export default defineComponent({
                             menuRef.value?.open();
                             isTransitioning.value = false;
                         }, 200);
-                    }, 200)
+                    }, 200);
                 } else {
-                    popupRef.value?.open()
+                    console.log('fuck')
+                    handleMobileClick()
                 }
             } else {
                 emit('select', key);
@@ -88,9 +77,10 @@ export default defineComponent({
         };
 
         const resetMenuMode = () => {
-            if (isTransitioning.value) return
+            if (isTransitioning.value) return;
             setTimeout(() => {
-                internalMenuMode.value = 'options'
+                // Reset to initial mode
+                internalMenuMode.value = (props.mode === 'medic' || props.options.length === 0) ? 'medic' : 'options';
             }, 300);
         };
 
@@ -99,7 +89,18 @@ export default defineComponent({
             menuRef.value?.close();
         };
 
-        return { isMobile, popupRef, menuRef, openPopup, closeAll, t, internalMenuMode, handleSelect, resetMenuMode };
+        const displayOptions = computed(() => {
+            return internalMenuMode.value === 'medic' ? [] : props.options;
+        });
+
+        const handleMobileClick = () => {
+            popupRef.value?.open();
+        };
+
+        return {
+            isMobile, handleMobileClick, displayOptions, popupRef, menuRef,
+            closeAll, t, internalMenuMode, handleSelect, resetMenuMode
+        };
     }
 });
 </script>
