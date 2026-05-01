@@ -29,6 +29,12 @@ export const useChatActionStore = defineStore("chatAction", () => {
   const deleteBus = useEventBus<number[]>("chat-delete");
   const sendBus = useEventBus<Message[]>("chat-send");
   const editBus = useEventBus<ExtendedMessage>("edit-message");
+  const personalInfoBus = useEventBus<number>("personal-info-request");
+
+  // 2. Trigger Action (Emits to ChatMessages.vue to open the modal)
+  const triggerPersonalInfoRequest = (conversationId: number) => {
+    personalInfoBus.emit(conversationId);
+  };
   // NEW: A unified bus to patch existing messages (handling ID swaps, isSent toggles, etc.)
   const updateBus = useEventBus<{ id: number; updates: Partial<Message> }>(
     "chat-update",
@@ -289,6 +295,32 @@ export const useChatActionStore = defineStore("chatAction", () => {
 
     sendMessage([newRequestMessage]);
   };
+
+  const sendPersonalInfoRequest = (conversationId: number) => {
+    const newRequestMessage: Message = {
+      id: Math.floor(Math.random() * -1000000),
+      conversationId: conversationId,
+      date: new Date(),
+      type: "text",
+      senderId: profileStore.userData.id,
+      isSent: false,
+      isRead: false,
+      isEdited: false,
+      repliedTo: null as any,
+      request: {
+        id: Math.floor(Math.random() * 10000),
+        type: "personal-info",
+        request: {
+          id: Math.floor(Math.random() * 10000),
+          date: new Date(),
+          status: "pending",
+        } as AccessRequest,
+      },
+    };
+
+    sendMessage([newRequestMessage]);
+  };
+
   return {
     isSelectMode,
     selectedMessages,
@@ -313,6 +345,9 @@ export const useChatActionStore = defineStore("chatAction", () => {
     copyMessageText,
     editBus,
     uploadProgress,
+    triggerPersonalInfoRequest,
     sendServiceRequest,
+    sendPersonalInfoRequest,
+    personalInfoBus,
   };
 });

@@ -85,7 +85,7 @@
                         <div :class="[!showOptionsBar ? 'translate-y-0 opacity-100 pointer-events-none' : '-translate-y-2 opacity-0 pointer-events-none']"
                             class="transition-all duration-200 w-full p-2 flex items-center gap-x-3 overflow-x-auto md:overflow-visible hide-scrollbar whitespace-nowrap">
 
-                            <div v-for="option in mappedOptions" :key="option.key"
+                            <div v-for="option in mappedOptions" :key="option.key" @click="handleOption(option.key)"
                                 class="px-2.5 pointer-events-auto flex items-center gap-x-2 cursor-pointer bg-surface-variant-3 rounded-lg h-9 shrink-0">
                                 <BIcon :icon="option.icon" class="w-5 h-5 fill-on-surface/50" />
                                 <div class="text-body-sm select-none text-on-surface/70">{{ option.label }}</div>
@@ -110,7 +110,7 @@
             </div>
         </div>
     </div>
-    <BModal ref="modal" @action="deleteMessages" />
+    <BModal ref="modal" @action="handleModalConfirm" />
 </template>
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onBeforeUnmount, watch, type PropType, nextTick } from 'vue';
@@ -150,6 +150,7 @@ export default defineComponent({
         const { t } = useI18n();
         const chatActionStore = useChatActionStore();
         const { formatDateShort } = useDate();
+        const chatId = computed(() => parseInt(route.params.id as string))
 
 
 
@@ -174,14 +175,28 @@ export default defineComponent({
         let unsubDelete: () => void;
         let unsubUpdate: () => void;
 
+        const pendingRequestConversationId = ref<number | null>(null);
+        let unsubPersonalInfo: () => void;
+
         onMounted(() => {
-            const chatId = Number(route.params.id);
-            if (chatId) chatStore.markAsRead(chatId);
+
+            if (chatId.value) chatStore.markAsRead(chatId.value);
             fetchMessages(1);
 
             // 1. Listen for new messages to send
             unsubSend = chatActionStore.sendBus.on((newMsgs) => {
                 addMessages(newMsgs);
+            });
+
+            unsubPersonalInfo = chatActionStore.personalInfoBus.on((conversationId) => {
+                pendingRequestConversationId.value = conversationId;
+                modal.value?.openModal(
+                    t('chat.personalInfo.title'),
+                    t('chat.personalInfo.description'),
+                    'success',
+                    true,
+                    t('chat.personalInfo.confirm')
+                );
             });
 
             // 2. Listen for delete triggers to open the modal
@@ -216,6 +231,7 @@ export default defineComponent({
             if (unsubSend) unsubSend();
             if (unsubDelete) unsubDelete();
             if (unsubUpdate) unsubUpdate();
+            if (unsubPersonalInfo) unsubPersonalInfo();
         });
 
         // --- ENRICHMENT LOGIC ---
@@ -448,9 +464,25 @@ export default defineComponent({
             );
         };
 
+        const confirmPersonalInfoRequest = () => {
+            if (pendingRequestConversationId.value) {
+                chatActionStore.sendPersonalInfoRequest(pendingRequestConversationId.value);
+                pendingRequestConversationId.value = null;
+                modal.value?.closeModal();
+            }
+        };
+
+        const handleModalConfirm = () => {
+            // Determine if we are deleting or sending a request based on which ref is populated
+            if (selectedToDelete.value.length > 0) {
+                deleteMessages();
+            } else if (pendingRequestConversationId.value) {
+                confirmPersonalInfoRequest();
+            }
+        };
+
         const deleteMessages = () => {
             modal.value?.closeModal();
-            const chatId = Number(route.params.id); // Get current chat ID
 
             setTimeout(() => {
                 // Trigger exit animation
@@ -462,16 +494,16 @@ export default defineComponent({
                     messages.value = remainingMessages;
 
                     // 2. Update the sidebar Contact List in the store
-                    if (chatId) {
+                    if (chatId.value) {
                         // messages.value is chronological, so index [length-1] is the newest message
                         const newLastMessage = remainingMessages.length > 0
                             ? remainingMessages[remainingMessages.length - 1]
                             : null;
 
                         if (newLastMessage) {
-                            chatStore.updateLastMessage(chatId, newLastMessage);
+                            chatStore.updateLastMessage(chatId.value, newLastMessage);
                         } else {
-                            chatStore.patchLastMessage(chatId, -1, { text: '', date: new Date() } as any);
+                            chatStore.patchLastMessage(chatId.value, -1, { text: '', date: new Date() } as any);
                         }
                     }
 
@@ -490,8 +522,8 @@ export default defineComponent({
 
         watch(() => route.params.id, (newId) => {
             if (newId) {
-                const chatId = Number(newId);
-                chatStore.markAsRead(chatId);
+
+                chatStore.markAsRead(chatId.value);
 
                 messages.value = [];
                 currentPage.value = 1;
@@ -508,13 +540,21 @@ export default defineComponent({
             }
         }
 
+        const handleOption = (key: string) => {
+            switch (key) {
+                case 'prescribe-meds':
+                    chatActionStore.triggerPersonalInfoRequest(chatId.value);
+                    break;
+            }
+        }
+
         return {
             floatingHeader, t, scrollContainer, loaderRef, virtualizer, reversedMessages,
             messages, handleWheel, isLoading, currentUserId, loading, NoMessages,
             getSpacingClass, handleScroll, firstUnreadId, headerOpacity, addMessages,
             animatingIds, handleDeleteMessages, modal, deleteMessages, deletingIds,
             canScroll, resetScroll, showOptionsBar, mappedOptions, closeMenu,
-            menuRef,
+            menuRef, handleModalConfirm, handleOption,
         };
     }
 });

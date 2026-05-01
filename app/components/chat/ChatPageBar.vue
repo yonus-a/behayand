@@ -83,6 +83,7 @@ export default defineComponent({
         const { formatRelativeDate } = useDate();
         const chatStore = useChatStore();
         const route = useRoute();
+        const currentConversationId = computed(() => parseInt(route.params.id as string))
         const router = useRouter()
         const { t } = useI18n();
         const menuRef = ref<Menu | null>(null)
@@ -130,6 +131,12 @@ export default defineComponent({
                 case 'refer':
 
                     break;
+                case 'prescribe-meds':
+                    if (currentConversationId.value) {
+                        console.log('fuck')
+                        chatActionStore.triggerPersonalInfoRequest(currentConversationId.value);
+                    }
+                    break;
             }
             menuRef.value?.close()
         }
@@ -155,7 +162,6 @@ export default defineComponent({
         const isTransitioning = ref(false)
 
         const handleSelect = (key: string) => {
-            console.log(key, 'fuck')
             if (key === 'add-user') {
                 isTransitioning.value = true;
                 menuRef.value?.close();
@@ -167,6 +173,11 @@ export default defineComponent({
                     }, 200);
                 }, 200)
             } else {
+                switch (key) {
+                    case 'prescribe-meds':
+                        chatActionStore.triggerPersonalInfoRequest(currentConversationId.value);
+                        break;
+                }
                 menuRef.value?.close();
             }
         };

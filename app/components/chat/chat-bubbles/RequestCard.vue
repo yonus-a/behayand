@@ -27,6 +27,7 @@
                     @click="handleAction(button.key)" />
             </div>
         </div>
+        <div v-else class=" w-full"></div>
     </div>
 </template>
 <script lang="ts">

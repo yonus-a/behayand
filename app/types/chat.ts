@@ -31,7 +31,7 @@ export interface Contact {
   lastSeen: Date;
   imageUrl: string;
   nationalCode?: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   isActive: boolean;
   birthDate: Date;
   lastMessage?: Message;
