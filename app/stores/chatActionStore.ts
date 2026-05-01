@@ -4,7 +4,11 @@ import { useProfileStore, useDate, useI18n, useAppToast } from "#imports";
 import type { ExtendedMessage, Message } from "~/types/chat";
 import { useEventBus } from "@vueuse/core";
 import { useChatStore } from "~/stores/chatStore";
-import type { RequestProvider, ServiceRequest } from "~/types/chat";
+import type {
+  RequestProvider,
+  ServiceRequest,
+  AccessRequest,
+} from "~/types/chat";
 import type { Provider } from "~/types/service";
 
 export const useChatActionStore = defineStore("chatAction", () => {
@@ -16,6 +20,13 @@ export const useChatActionStore = defineStore("chatAction", () => {
   const uploadProgress = ref<
     Map<number, { progress: number; uploaded: number; total: number }>
   >(new Map());
+
+  const processingActions = ref(new Map<number, string>());
+
+  // --- Helper Getter ---
+  const isActionBusy = (messageId: number, actionKey: string) => {
+    return processingActions.value.get(messageId) === actionKey;
+  };
 
   // --- State ---
   const isSelectMode = ref(false);
@@ -72,16 +83,31 @@ export const useChatActionStore = defineStore("chatAction", () => {
       : selectedArray.value.map((m) => m.id);
     if (targets.length === 0) return;
 
-    // 1. Instantly trigger the delete animation in the UI
+    // Set processing state for each target
+    targets.forEach((id) => processingActions.value.set(id, "cancel-request"));
+
     deleteBus.emit(targets);
-
-    // REMOVED the non-existent chatStore.handleDeletedMessages call here
-
     clearActions();
 
-    // 2. Background API Call (Mocked)
+    // Mock API Call
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log("API: Messages deleted successfully on server.");
+
+    // Clear processing state
+    targets.forEach((id) => processingActions.value.delete(id));
+  };
+
+  // Update other actions (approve, reject, pay) similarly:
+  const handleRemoteAction = async (
+    messageId: number,
+    actionKey: string,
+    apiCall: () => Promise<void>,
+  ) => {
+    processingActions.value.set(messageId, actionKey);
+    try {
+      await apiCall();
+    } finally {
+      processingActions.value.delete(messageId);
+    }
   };
 
   const sendMessage = async (messages: Message[]) => {
@@ -321,6 +347,50 @@ export const useChatActionStore = defineStore("chatAction", () => {
     sendMessage([newRequestMessage]);
   };
 
+  // Inside ChatActionStore.ts
+
+  const handleAccessResponse = async (
+    messageId: number,
+    conversationId: number,
+    key: "confirm-access" | "reject-access",
+    currentRequest: any, // Pass the request object directly
+  ) => {
+    // 1. Set specific key as busy
+    processingActions.value.set(messageId, key);
+
+    try {
+      // 2. Map keys to internal status
+      const targetStatus = key === "confirm-access" ? "approved" : "rejected";
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // 3. Construct the updated request structure locally (Optimistic)
+      const updatedRequest = {
+        ...currentRequest,
+        request: {
+          ...currentRequest.request,
+          status: targetStatus,
+        },
+      };
+
+      // 4. Update the UI via Event Bus (Handled in ChatMessages.vue)
+      updateBus.emit({ id: messageId, updates: { request: updatedRequest } });
+
+      // 5. Update Sidebar Last Message
+
+      // 6. Mock API Call
+
+      chatStore.patchLastMessage(conversationId, messageId, {
+        request: updatedRequest,
+      });
+      console.log(`Mock API Success: ${key}`);
+    } catch (error) {
+      console.error("Action failed", error);
+    } finally {
+      // 7. ALWAYS clear the loading state, even if logic fails
+      processingActions.value.delete(messageId);
+    }
+  };
+
   return {
     isSelectMode,
     selectedMessages,
@@ -349,5 +419,9 @@ export const useChatActionStore = defineStore("chatAction", () => {
     sendServiceRequest,
     sendPersonalInfoRequest,
     personalInfoBus,
+    processingActions,
+    isActionBusy,
+    handleRemoteAction,
+    handleAccessResponse,
   };
 });

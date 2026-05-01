@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full transition-all duration-300 ease-in-out"
+    <div @contextmenu.prevent="handleRightClick" class="w-full transition-all duration-300 ease-in-out"
         :class="[isDeleting ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-250 opacity-100']">
         <div v-if="message.isFirstInDate || isFirstUnread" class=" py-5 w-full flex items-center justify-center">
             <div class=" rounded-full bg-on-surface/10 flex items-center justify-center px-4 py-0.5">
@@ -18,7 +18,7 @@
                 </div>
             </div>
             <div v-if="!message.request" :class="[isMine ? ' justify-start' : 'justify-end']"
-                class=" flex items-center flex-1 relative" @contextmenu.prevent="handleRightClick"
+                class=" flex items-center flex-1 relative" 
                 @click="handleLeftClick" @pointerdown="onPointerDown" @pointermove="onPointerMove"
                 @pointerup="onPointerUp" @pointercancel="onPointerUp">
                 <div class=" select-none md:select-auto w-full">
@@ -105,7 +105,7 @@
                                         :class="[message.isRead && message.isSent ? 'fill-primary' : 'fill-on-surface/50']" />
                                     <div class=" select-none  text-body-sm text-on-surface/50">{{
                                         formatTime(message.date)
-                                        }}
+                                    }}
                                     </div>
                                 </div>
                             </div>
@@ -248,6 +248,8 @@ export default defineComponent({
 
         // --- Context Menu & Select Logic ---
         const handleRightClick = (event: MouseEvent) => {
+            if(props.message.request) return
+            if (!props.message.isSent) return
             if (!chatActionStore.isSelectMode) {
                 chatActionStore.selectedMessages.clear();
                 chatActionStore.toggleSelection(props.message);

@@ -42,8 +42,9 @@
             </div>
         </div>
         <div class=" w-full flex items-center gap-x-3">
-            <BButton class=" shrink-0 flex-1 " v-for="button in requestButtonProps" :key="button.key"
-                :disabled="button.disabled" :color="button.color" :type="button.type" :text="button.text"
+            <BButton v-loading="isSending" class=" shrink-0 flex-1 " v-for="button in requestButtonProps"
+                :key="button.key" :disabled="button.disabled || !!chatActionStore.processingActions.get(message.id)"
+                :loading="button.loading" :color="button.color" :type="button.type" :text="button.text"
                 @click="handleAction(button.key)" />
         </div>
     </div>
@@ -72,6 +73,7 @@ export default defineComponent({
     },
     setup(props) {
         const { t } = useI18n()
+        const isSending = computed(() => !props.message.isSent)
         const chatActionStore = useChatActionStore()
         const profileStore = useProfileStore()
         const role = computed(() => profileStore.chosenRole)
@@ -139,11 +141,15 @@ export default defineComponent({
         })
 
         const requestButtonProps = computed(() => {
+            const msgId = props.message.id;
+            const isBusy = (key: string) => chatActionStore.isActionBusy(msgId, key);
             if (request.value?.type === 'add-person') {
 
 
+
+
                 const status = request.value.request.status;
-                const isSelf = isMedic.value;
+                const isSelf = !isMedic.value;
                 const providersList = providers.value || [];
 
                 // 1. Handle Failed/Ended states
@@ -154,7 +160,10 @@ export default defineComponent({
                 // 2. Handle Active/Searching states
                 if (['pending', 'searching'].includes(status)) {
                     return isSelf
-                        ? [{ type: 'outline', color: 'error', text: t('chat.requestCard.addMedic.cancel'), key: 'cancel-request' }]
+                        ? [{
+                            type: 'outline', color: 'error', text: t('chat.requestCard.addMedic.cancel'), key: 'cancel-request',
+                            loading: isBusy('cancel-request')
+                        }]
                         : [
                             { type: 'fill', color: 'primary', text: t('chat.requestCard.addMedic.confirmRequest'), key: 'approve-request-user' },
                             { type: 'fill', color: 'secondary', text: t('chat.requestCard.addMedic.reject'), key: 'reject-medic-request' }
@@ -184,7 +193,8 @@ export default defineComponent({
                         type: 'fill',
                         color: 'secondary',
                         text: t('chat.requestCard.infoAccess.cancelRequest'),
-                        key: 'cancel-request'
+                        key: 'cancel-request',
+                        loading: isBusy('cancel-request')
                     }];
                 } else {
                     return [
@@ -192,13 +202,15 @@ export default defineComponent({
                             type: 'fill',
                             color: 'primary',
                             text: t('chat.requestCard.infoAccess.confirmAndShare'),
-                            key: 'confirm-access'
+                            key: 'confirm-access',
+                            loading: isBusy('confirm-access'),
                         },
                         {
                             type: 'fill',
                             color: 'secondary',
                             text: t('chat.requestCard.infoAccess.cancel'),
-                            key: 'reject-access'
+                            key: 'reject-access',
+                            loading: isBusy('reject-access'),
                         }
                     ];
                 }
@@ -208,12 +220,25 @@ export default defineComponent({
         });
 
         const handleAction = (key: string) => {
+            if (isSending.value) return
+            if (chatActionStore.processingActions.has(props.message.id)) return;
+
+            const msgId = props.message.id;
+            const convId = props.message.conversationId;
             switch (key) {
                 case 'cancel-request':
                     // Pass the current message ID in an array to trigger the delete flow
                     chatActionStore.triggerDelete([props.message.id]);
                     break;
-
+                case 'confirm-access':
+                case 'reject-access':
+                    chatActionStore.handleAccessResponse(
+                        msgId,
+                        convId,
+                        key as 'confirm-access' | 'reject-access',
+                        request.value
+                    );
+                    break;
                 case 'approve-request-user':
                     // Handle approval logic
                     break;
@@ -254,7 +279,7 @@ export default defineComponent({
                 let text = '';
 
                 if (status === 'approved') {
-                    color = 'secondary'; 
+                    color = 'secondary';
                     icon = 'PhCheckSquare';
                 }
 
@@ -286,6 +311,8 @@ export default defineComponent({
             request,
             cardSubText,
             providers,
+            isSending,
+            chatActionStore,
             requestButtonProps,
             isCanceled,
             infoAccessContent,
