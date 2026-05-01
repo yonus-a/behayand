@@ -25,7 +25,7 @@
 
                     <div v-loading="isLoading" v-if="contact.lastMessage"
                         :class="['max-w-full truncate text-body-sm transition-colors', lastMessageColor]">
-                        {{ lastMessageText }}
+                        <SafeEmojiText truncate :text="lastMessageText" />
                     </div>
                 </div>
 
@@ -48,6 +48,7 @@ import type { Contact } from '~/types/chat';
 import { useRoute, useRouter } from 'vue-router';
 import { useLocalePath, useI18n, useDate, useProfileStore } from '#imports';
 import ContactAvatar from './ContactAvatar.vue';
+import SafeEmojiText from '~/components/general/SafeEmojiText.vue';
 
 export default defineComponent({
     name: "ContactDisplay",
@@ -62,6 +63,7 @@ export default defineComponent({
         }
     },
     components: {
+        SafeEmojiText,
         ContactAvatar,
     },
     setup(props) {

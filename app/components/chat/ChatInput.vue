@@ -9,8 +9,9 @@
                     <div v-if="textMode === 'reply'" class=" shrink-0 text-on-surface/50 ">{{
                         displayActionName }} :</div>
                     <div class=" flex-1">
-                        <div class=" text-on-surface w-full overflow-hidden text-ellipsis line-clamp-1">{{
-                            displayedActionText }}</div>
+                        <div class=" text-on-surface w-full overflow-hidden text-ellipsis line-clamp-1">
+                            <SafeEmojiText :text="displayedActionText" />
+                        </div>
                     </div>
                 </div>
                 <BIcon icon="PhX" class=" cursor-pointer w-5 shrink-0 h-5 fill-on-surface/50" @click="cancelAction" />
@@ -58,12 +59,12 @@
 
             <div v-show="!isRecording" class="flex-1 flex items-end gap-x-5">
                 <div class=" min-h-11 flex items-center w-full">
-                    <textarea @keydown.esc.exact.prevent="cancelAction" @keydown.enter.exact.prevent="sendMessage"
-                        @input="adjustHeight" ref="inputRef" v-model="messageText" :disabled="inputDisabled" rows="1"
-                        @focus="onInputFocus" @blur="saveCursorPosition" @keyup="saveCursorPosition"
-                        @mouseup="saveCursorPosition" :placeholder="inputPlaceholder"
-                        class="text-body-md text-on-surface outline-none flex-1 bg-transparent z-10 resize-none  max-h-[144px] overflow-y-auto hide-scrollbar leading-6 py-1"></textarea>
-
+                    <div ref="inputRef" contenteditable="true" @keydown.esc.exact.prevent="cancelAction"
+                        @keydown.enter.exact.prevent="handleEnterKey" @input="handleContentInput" @focus="onInputFocus"
+                        @blur="saveCursorPosition" @keyup="saveCursorPosition" @mouseup="saveCursorPosition"
+                        :data-placeholder="inputPlaceholder"
+                        class="text-body-md text-on-surface outline-none flex-1 bg-transparent z-10 max-h-[144px] overflow-y-auto hide-scrollbar leading-6 py-1 cursor-text whitespace-pre-wrap break-words empty:before:content-[attr(data-placeholder)] empty:before:text-on-surface/50 pointer-events-auto">
+                    </div>
                 </div>
                 <div class="shrink-0 flex items-center gap-x-8 z-10  h-11" :class="[iconClass]">
                     <div class="hidden md:block">
@@ -91,7 +92,7 @@
                     <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
                     <span v-else class="text-primary cursor-pointer px-4 py-2 z-20" @click="cancelRecording">{{
                         t('chat.cancel')
-                    }}</span>
+                        }}</span>
                 </div>
 
                 <div class="absolute left-6 flex items-center gap-x-2 shrink-0 z-10">
@@ -101,7 +102,7 @@
                     </div>
                     <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
                         formattedTime
-                    }}</span>
+                        }}</span>
                 </div>
             </div>
             <PermissionPopup ref="permissionPopup" @action="handlePopupAction" @cancel="handlePopupCancel" />
@@ -123,9 +124,11 @@ import { useAppPermissions } from '~/composables/useAppPermissions';
 import { useChatRecording } from '~/composables/chat/useChatRecording';
 import { useRoute } from 'vue-router';
 import type { ExtendedMessage, Message } from '~/types/chat';
+import SafeEmojiText from '../general/SafeEmojiText.vue';
+import { parseEmojiArray } from '~/utils/emojiParser';
 export default defineComponent({
     name: 'ChatInput',
-    components: { InputAttachement, PermissionPopup },
+    components: { InputAttachement, PermissionPopup, SafeEmojiText },
     props: { isActive: { type: Boolean, default: false } },
     emits: ['send', 'edit'],
     setup(props, { expose, emit }) {
@@ -133,6 +136,7 @@ export default defineComponent({
         const chatActionStore = useChatActionStore();
         const profileStore = useProfileStore()
         const route = useRoute()
+        const savedRange = ref<Range | null>(null);
 
         const textMode = ref<'normal' | 'edit' | 'reply'>('normal');
         const editingMessageData = ref<ExtendedMessage | null>(null); // Replace 'any' with ExtendedMessage if imported
@@ -140,6 +144,8 @@ export default defineComponent({
 
         chatActionStore.editBus.on((payload) => handleEditMessage(payload))
         // const saveEdit = chatActionStore.saveEdit;
+
+
 
 
         const handleEditMessage = (msg: ExtendedMessage) => {
@@ -197,7 +203,7 @@ export default defineComponent({
 
         // Refs
         const rootElements = ref<HTMLElement | null>(null);
-        const inputRef = ref<HTMLTextAreaElement | null>(null);
+        const inputRef = ref<HTMLElement | null>(null);
         const menuRef = ref<Menu | null>(null);
         const permissionPopup = ref<InstanceType<typeof PermissionPopup> | null>(null);
 
@@ -341,22 +347,20 @@ export default defineComponent({
             if (messageText.value.trim().length === 0) return;
 
             if (textMode.value === 'edit' && editingMessageData.value) {
-                // Call Store directly!
                 chatActionStore.saveEditMessage(editingMessageData.value.id, messageText.value);
             } else {
                 const msg = createBaseMessage();
                 msg.type = 'text';
                 msg.text = messageText.value;
-                // Call Store directly!
                 chatActionStore.sendMessage([msg]);
             }
 
             messageText.value = '';
+            if (inputRef.value) inputRef.value.innerHTML = ''; // MUST CLEAR DIV HTML
             textMode.value = 'normal'
             chatActionStore.clearActions();
             nextTick(() => adjustHeight());
         };
-
 
 
         const handlePointerDown = (event: PointerEvent) => {
@@ -416,11 +420,12 @@ export default defineComponent({
 
         // --- Add these new methods ---
         const saveCursorPosition = () => {
-            if (inputRef.value) {
-                lastCursorPos.value = {
-                    start: inputRef.value.selectionStart || 0,
-                    end: inputRef.value.selectionEnd || 0
-                };
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0 && inputRef.value) {
+                // Ensure we are only saving the cursor if it's currently inside our input div
+                if (inputRef.value.contains(selection.anchorNode)) {
+                    savedRange.value = selection.getRangeAt(0).cloneRange();
+                }
             }
         };
 
@@ -437,33 +442,102 @@ export default defineComponent({
             }
         };
 
-        // --- REPLACE your existing handleEmojiSelect with this one ---
         const handleEmojiSelect = (emoji: string) => {
             if (!inputRef.value) return;
 
-            // If typing on desktop, ensure we have the absolute latest position before inserting
-            if (document.activeElement === inputRef.value) saveCursorPosition();
+            // Force focus on the div
+            inputRef.value.focus();
 
-            const start = lastCursorPos.value.start;
-            const end = lastCursorPos.value.end;
+            const selection = window.getSelection();
+            let range;
 
-            // Insert emoji at the tracked cursor position
-            messageText.value = messageText.value.substring(0, start) + emoji + messageText.value.substring(end);
+            // Restore the exact cursor position
+            if (savedRange.value) {
+                range = savedRange.value;
+                selection?.removeAllRanges();
+                selection?.addRange(range);
+            } else {
+                // Fallback: If no cursor is saved, put the cursor at the very end
+                range = document.createRange();
+                range.selectNodeContents(inputRef.value);
+                range.collapse(false);
+                selection?.removeAllRanges();
+                selection?.addRange(range);
+            }
 
-            const newPos = start + emoji.length;
+            // Delete any text the user currently has highlighted
+            range.deleteContents();
 
-            // Update tracked position so the next emoji goes after this one
-            lastCursorPos.value = { start: newPos, end: newPos };
+            // Parse the incoming emoji to get the Hex code
+            const parsed = parseEmojiArray(emoji);
+            if (parsed.length > 0 && parsed[0].type === 'emoji') {
+                const chunk = parsed[0];
+
+                // Create the physical image element
+                const img = document.createElement('img');
+                img.src = `/emojis/apple/webp/${chunk.hex}.webp`;
+                img.alt = chunk.content;
+                img.className = "inline-block w-5 h-5 mx-0.5 align-middle select-text pointer-events-none";
+
+                // Drop it at the cursor
+                range.insertNode(img);
+
+                // Move the blinking cursor to the right side of the newly inserted image
+                range.setStartAfter(img);
+                range.collapse(true);
+                selection?.removeAllRanges();
+                selection?.addRange(range);
+
+                // Save this new position so the next emoji doesn't reset
+                savedRange.value = range.cloneRange();
+            }
+
+            // Immediately trigger your existing text extractor so messageText state updates
+            handleContentInput();
 
             nextTick(() => {
-                // Telegram UX: Only refocus the input if we are NOT using the mobile picker.
-                // If we focus on mobile, the software keyboard will aggressively pop back up and cover the picker.
-                if (!showMobileEmojiPicker.value) {
-                    inputRef.value?.setSelectionRange(newPos, newPos);
-                    inputRef.value?.focus();
+                // Only keep focus if we aren't using the mobile pop-up picker
+                if (showMobileEmojiPicker.value) {
+                    inputRef.value?.blur();
                 }
                 adjustHeight();
             });
+        };
+
+        const handleEnterKey = (e: KeyboardEvent) => {
+            if (e.shiftKey) return; // Allow Shift+Enter for new lines
+            e.preventDefault();
+            sendMessage();
+        };
+
+        const handleContentInput = () => {
+            if (!inputRef.value) return;
+            let rawText = '';
+
+            // Loop through DOM nodes to grab text and emoji alt tags
+            inputRef.value.childNodes.forEach((node: any) => {
+                if (node.nodeType === 3) {
+                    rawText += node.textContent; // Standard text
+                } else if (node.nodeName === 'IMG') {
+                    rawText += node.alt; // Native emoji from the image alt tag
+                } else if (node.nodeName === 'DIV' || node.nodeName === 'BR') {
+                    rawText += '\n'; // Handle line breaks
+                }
+            });
+            messageText.value = rawText;
+            adjustHeight();
+        };
+
+        const placeCaretAtEnd = (el: HTMLElement) => {
+            el.focus();
+            if (typeof window.getSelection !== "undefined" && typeof document.createRange !== "undefined") {
+                const range = document.createRange();
+                range.selectNodeContents(el);
+                range.collapse(false);
+                const sel = window.getSelection();
+                sel?.removeAllRanges();
+                sel?.addRange(range);
+            }
         };
 
 
@@ -478,6 +552,7 @@ export default defineComponent({
             sendRecording: () => recording.stopRecording(true),
             cancelRecording: () => recording.stopRecording(false),
             toggleSecondaryMessageType,
+            handleEnterKey,
             cancelAction,
             textMode,
             editingMessageData,
@@ -487,6 +562,7 @@ export default defineComponent({
             handleAttachments,
             showMobileEmojiPicker,
             onInputFocus,
+            handleContentInput,
             saveCursorPosition,
             toggleMobileEmoji,
 

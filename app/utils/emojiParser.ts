@@ -1,27 +1,61 @@
-// utils/emojiParser.ts
+import emojiData from '@emoji-mart/data';
+
+// 1. Build a highly optimized lookup table ONCE
+// Maps Native ('😀') -> Emoji-Mart Hex ('1f600')
+const nativeToHex = new Map();
+
+if (emojiData && emojiData.emojis) {
+    for (const key in emojiData.emojis) {
+        const skins = (emojiData.emojis as any)[key].skins;
+        if (skins) {
+            skins.forEach((skin: any) => {
+                if (skin.native && skin.unified) {
+                    nativeToHex.set(skin.native, skin.unified);
+                }
+            });
+        }
+    }
+}
 
 export function parseEmojiArray(text: string | undefined) {
   if (!text) return [];
 
-  // Note the parentheses ( ) around the regex. 
-  // In JS, splitting by a regex WITH a capturing group includes the matches in the resulting array!
-  const emojiRegex = /([\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}\u{200D}\u{FE0F}]+)/gu;
-  
-  // Example: "Hi 😀" becomes ["Hi ", "😀", ""]
-  const chunks = text.split(emojiRegex);
+  // Safely split text by visual characters
+  const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+  const graphemes = Array.from(segmenter.segment(text)).map(s => s.segment);
 
-  return chunks.map((chunk, index) => {
-    // Because of how split works with capturing groups, 
-    // emojis will ALWAYS be at odd indices (1, 3, 5...). Text is at even indices.
-    if (index % 2 !== 0) {
-      const hexFilename = Array.from(chunk)
-        .map(char => char.codePointAt(0)?.toString(16))
-        .filter(hex => hex !== 'fe0f')
-        .join('-');
+  const emojiRegex = /\p{Extended_Pictographic}/u;
+  const result = [];
+  let currentText = '';
 
-      return { type: 'emoji', content: chunk, hex: hexFilename };
+  for (const grapheme of graphemes) {
+    if (emojiRegex.test(grapheme)) {
+      if (currentText) {
+        result.push({ type: 'text', content: currentText });
+        currentText = '';
+      }
+      
+      // 2. CHECK THE EMOJI-MART DICTIONARY FIRST
+      // This guarantees the filename matches the picker exactly
+      let hexFilename = nativeToHex.get(grapheme);
+      
+      // 3. Fallback just in case an OS sends a weird variant
+      if (!hexFilename) {
+        hexFilename = Array.from(grapheme)
+          .map(char => char.codePointAt(0)?.toString(16))
+          .filter(hex => hex !== 'fe0f')
+          .join('-');
+      }
+        
+      result.push({ type: 'emoji', content: grapheme, hex: hexFilename });
+    } else {
+      currentText += grapheme;
     }
-    
-    return { type: 'text', content: chunk };
-  }).filter(chunk => chunk.content !== ''); // Strip out empty strings for cleaner DOM
+  }
+  
+  if (currentText) {
+    result.push({ type: 'text', content: currentText });
+  }
+
+  return result;
 }

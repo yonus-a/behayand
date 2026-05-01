@@ -18,9 +18,8 @@
                 </div>
             </div>
             <div v-if="!message.request" :class="[isMine ? ' justify-start' : 'justify-end']"
-                class=" flex items-center flex-1 relative" 
-                @click="handleLeftClick" @pointerdown="onPointerDown" @pointermove="onPointerMove"
-                @pointerup="onPointerUp" @pointercancel="onPointerUp">
+                class=" flex items-center flex-1 relative" @click="handleLeftClick" @pointerdown="onPointerDown"
+                @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerUp">
                 <div class=" select-none md:select-auto w-full">
                     <div class=" w-full flex items-center" :class="[isMine ? 'justify-start' : 'justify-end']">
                         <div class=" flex max-w-4/5 items-end gap-x-3">
@@ -39,7 +38,9 @@
                                         <BIcon icon="PhArrowUUpLeft" class=" w-5 h-5 fill-on-surface/20"
                                             weight="fill" />
                                     </div>
-                                    <p v-if="messageType === 'text'" class=" p-3 max-w-full">{{ message.text }}</p>
+                                    <p v-if="messageType === 'text'" class=" p-3 max-w-full">
+                                        <SafeEmojiText :text="message.text" />
+                                    </p>
                                     <FileDisplay :is-mine="isMine" v-else-if="message.fileUrl && messageType === 'file'"
                                         :url="message.fileUrl" :message-id="message.id" :is-sent="message.isSent" />
 
@@ -105,7 +106,7 @@
                                         :class="[message.isRead && message.isSent ? 'fill-primary' : 'fill-on-surface/50']" />
                                     <div class=" select-none  text-body-sm text-on-surface/50">{{
                                         formatTime(message.date)
-                                    }}
+                                        }}
                                     </div>
                                 </div>
                             </div>
@@ -141,6 +142,7 @@ import ContactAvatar from './contact/ContactAvatar.vue';
 import ImageGroupDisplay from './chat-bubbles/ImageGroupDisplay.vue';
 import BubbleOptions from './chat-bubbles/BubbleOptions.vue';
 import RequestCard from './chat-bubbles/RequestCard.vue';
+import SafeEmojiText from '../general/SafeEmojiText.vue';
 
 type ImageDisplayInstance = InstanceType<typeof ImageGroupDisplay>
 
@@ -168,6 +170,7 @@ export default defineComponent({
         ImageGroupDisplay,
         BubbleVideo,
         FileDisplay,
+        SafeEmojiText,
         VoiceDisplay,
         ContactAvatar,
         BubbleOptions,
@@ -248,7 +251,7 @@ export default defineComponent({
 
         // --- Context Menu & Select Logic ---
         const handleRightClick = (event: MouseEvent) => {
-            if(props.message.request) return
+            if (props.message.request) return
             if (!props.message.isSent) return
             if (!chatActionStore.isSelectMode) {
                 chatActionStore.selectedMessages.clear();
