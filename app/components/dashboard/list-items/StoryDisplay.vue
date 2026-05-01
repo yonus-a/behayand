@@ -1,27 +1,23 @@
 <template>
-    <div 
-        class="story-wrapper flex items-center justify-center rounded-full transition-all duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]"
+    <div class="flex items-center justify-center rounded-full shrink-0 select-none cursor-pointer transition-transform duration-150 ease-out"
         :class="[
-            story.isRead ? 'border-outline' : 'border-primary',
-            { 'is-pressed': isPressed }
-        ]"
-        @mousedown="handlePressStart"
-        @mouseup="handlePressEnd"
-        @mouseleave="handlePressEnd"
-        @touchstart="handlePressStart"
-        @touchend="handlePressEnd"
-    >
-        <div class="inner-circle overflow-hidden w-12 h-12 rounded-full border-2 border-surface">
-            <BImage 
-                :src="story.thumbnail" 
-                class="min-w-full min-h-full max-w-full max-h-full h-full w-full object-cover" 
-            />
+            story.isRead ? 'border-outline/40' : 'border-primary story-pulse',
+            sizeClasses.wrapper,
+            isPressed ? 'scale-90' : 'scale-100'
+        ]" @mousedown="isPressed = true" @mouseup="isPressed = false" @mouseleave="isPressed = false"
+        @touchstart="isPressed = true" @touchend="isPressed = false">
+        <!-- The inner white/surface ring to separate the image from the colorful border -->
+        <div class="overflow-hidden rounded-full border-surface" :class="sizeClasses.inner">
+            <div class=" bg-diamond-surface rounded-full overflow-hidden w-full aspect-square">
+                <BImage :src="story.thumbnail"
+                    class="min-w-full min-h-full max-w-full max-h-full h-full w-full object-cover" />
+            </div>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType, ref } from 'vue';
+import { defineComponent, type PropType, ref, computed } from 'vue';
 import type { Story } from '~/types/story';
 
 export default defineComponent({
@@ -30,61 +26,51 @@ export default defineComponent({
         story: {
             type: Object as PropType<Story>,
             required: true,
+        },
+        size: {
+            type: String as PropType<'sm' | 'md' | 'lg'>,
+            default: 'md'
         }
     },
-    setup() {
+    setup(props) {
         const isPressed = ref(false);
 
-        const handlePressStart = () => {
-            isPressed.value = true;
-        };
-
-        const handlePressEnd = () => {
-            isPressed.value = false;
-        };
+        const sizeClasses = computed(() => {
+            if (props.size === 'sm') {
+                // Made slightly larger (24px) to accommodate the thicker 2px border
+                return { wrapper: 'w-6 h-6 border-2', inner: 'w-full h-full border-[1.5px]' };
+            } else if (props.size === 'lg') {
+                // Expanded mobile size with 3px thick border
+                return { wrapper: 'w-[60px] h-[60px] border-[2px]', inner: 'w-full h-full border-2' };
+            } else {
+                // Desktop size with 3px thick border
+                return { wrapper: 'w-[52px] h-[52px] border-[2px]', inner: 'w-full h-full border-2' };
+            }
+        });
 
         return {
             isPressed,
-            handlePressStart,
-            handlePressEnd
+            sizeClasses
         };
     }
 })
 </script>
 
 <style scoped>
-.story-wrapper {
-    width: 52px; /* 13 * 4px roughly */
-    height: 52px;
-    border-width: 2px;
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    /* This ensures the scaling happens from the center */
-    transform-origin: center;
-    will-change: transform;
-}
-
-/* The Instagram "Shrink" */
-.is-pressed {
-    transform: scale(0.92);
-    transition: transform 0.1s ease-out; /* Snap down quickly */
-}
-
-/* Border animation for Unread state */
-.border-primary {
-    /* Optional: add a subtle pulse if you want it to look "active" */
+/* Keeping only the color pulse in CSS, everything else is Tailwind */
+.story-pulse {
     animation: pulse-border 2s infinite;
 }
 
 @keyframes pulse-border {
-    0% { border-color: var(--color-primary-500); }
-    50% { border-color: var(--color-primary-300); }
-    100% { border-color: var(--color-primary-500); }
-}
 
-.inner-circle {
-    /* Instagram has a tiny white gap between the border and the photo */
-    box-shadow: 0 0 0 2px var(--bg-surface);
+    0%,
+    100% {
+        border-color: var(--color-primary-500);
+    }
+
+    50% {
+        border-color: var(--color-primary-300);
+    }
 }
 </style>

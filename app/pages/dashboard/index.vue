@@ -35,7 +35,8 @@ const hasData = computed(() => healthStore.hasData)
 const isLoadingHealthData = computed(() => healthStore.categories.all.loading)
 
 definePageMeta({
-    layout: 'dashboard'
+    layout: 'dashboard',
+    title: 'seo.dashboard.index.title'
 })
 
 useSeoMeta({

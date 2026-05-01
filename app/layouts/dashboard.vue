@@ -12,6 +12,7 @@
                     <NuxtPage />
                 </div>
             </div>
+            <div class=" h-16 w-full" v-if="shouldShowBottomNav"></div>
         </div>
         <MobileNavigation v-if="shouldShowBottomNav" />
     </div>
