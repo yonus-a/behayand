@@ -26,16 +26,12 @@
                         </div>
 
 
-                        <BMenu ref="menuRef" @select="handleSelect" @close="resetMenuMode" :options="options">
+                        <MedicSelector :options="options">
                             <template #trigger>
-                                <BIcon @click="menuMode" icon="PhDotsThreeVertical"
-                                    class="w-6 h-6 fill-on-surface/50 cursor-pointer" aria-haspopup="true"
-                                    aria-controls="overlay_menu" />
+                                <BIcon icon="PhDotsThreeVertical"
+                                    class="w-6 h-6 fill-on-surface/50 cursor-pointer" />
                             </template>
-                            <div v-if="menuMode === 'medic'" class="p-1">
-                                <MedicSelector @close="closeMenu" />
-                            </div>
-                        </BMenu>
+                        </MedicSelector>
                     </div>
                     <div :class="[!isSelectMode ? ' pointer-events-none opacity-0' : ' opacity-100 pointer-events-auto']"
                         class=" flex items-center gap-x-4 ">
@@ -182,12 +178,6 @@ export default defineComponent({
             }
         };
 
-        const resetMenuMode = () => {
-            if (isTransitioning.value) return
-            setTimeout(() => {
-                menuMode.value = 'options'
-            }, 300);
-        };
 
         const closeMenu = () => {
             menuRef.value?.close()
@@ -197,7 +187,6 @@ export default defineComponent({
             t,
             copy,
             selectedChat,
-            resetMenuMode,
             formatRelativeDate,
             deleteMessages,
             actions,

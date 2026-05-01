@@ -1,5 +1,5 @@
 <template>
-    <div class=" p-3 w-80 flex flex-col gap-y-3 bg-surface rounded-2xl shadow-floating">
+    <div class=" p-3 w-80 flex flex-col gap-y-3 select-none bg-surface rounded-2xl shadow-floating">
         <div class=" w-full flex flex-col gap-y-3 h-full" v-if="isServiceRequest">
             <div class=" transition-all duration-200 ease-in-out select-none text-label-sm"
                 :class="[isPending ? 'text-on-surface/50' : 'text-on-surface']">{{ t('chat.addMedic.title') }}</div>
@@ -47,6 +47,7 @@
                 :loading="button.loading" :color="button.color" :type="button.type" :text="button.text"
                 @click="handleAction(button.key)" />
         </div>
+        <BModal @action="handleModalAction" ref="modal" />
     </div>
 </template>
 <script lang="ts">
@@ -54,6 +55,8 @@ import { defineComponent, type PropType, computed } from 'vue';
 import type { Message, Contact } from '~/types/chat';
 import { useI18n, useProfileStore, useChatActionStore } from '#imports';
 import ContactAvatar from '../contact/ContactAvatar.vue';
+import type { Modal } from '~/types/components/modal';
+import { useRoute } from 'vue-router';
 import ProviderDisplay from './request-card/ProviderDisplay.vue';
 export default defineComponent({
     name: 'RequestCard',
@@ -72,7 +75,9 @@ export default defineComponent({
         ProviderDisplay,
     },
     setup(props) {
+        const route = useRoute()
         const { t } = useI18n()
+        const modal = ref<Modal | null>(null)
         const isSending = computed(() => !props.message.isSent)
         const chatActionStore = useChatActionStore()
         const profileStore = useProfileStore()
@@ -140,9 +145,12 @@ export default defineComponent({
             })
         })
 
+        const messageId = computed(() => props.message.id)
+        const chatId = computed(() => parseInt(route.params.id as string))
+
+
         const requestButtonProps = computed(() => {
-            const msgId = props.message.id;
-            const isBusy = (key: string) => chatActionStore.isActionBusy(msgId, key);
+            const isBusy = (key: string) => chatActionStore.isActionBusy(messageId.value, key);
             if (request.value?.type === 'add-person') {
 
 
@@ -222,22 +230,21 @@ export default defineComponent({
         const handleAction = (key: string) => {
             if (isSending.value) return
             if (chatActionStore.processingActions.has(props.message.id)) return;
-
-            const msgId = props.message.id;
-            const convId = props.message.conversationId;
             switch (key) {
                 case 'cancel-request':
                     // Pass the current message ID in an array to trigger the delete flow
                     chatActionStore.triggerDelete([props.message.id]);
                     break;
                 case 'confirm-access':
-                case 'reject-access':
                     chatActionStore.handleAccessResponse(
-                        msgId,
-                        convId,
-                        key as 'confirm-access' | 'reject-access',
+                        messageId.value,
+                        chatId.value,
+                        key as 'confirm-access',
                         request.value
                     );
+                    break;
+                case 'reject-access':
+                    modal.value?.openModal(t('chat.requestCard.infoAccess.rejectModal.title'), t('chat.requestCard.infoAccess.rejectModal.description'), 'error', true, t('chat.requestCard.infoAccess.rejectModal.reject'))
                     break;
                 case 'approve-request-user':
                     // Handle approval logic
@@ -301,6 +308,16 @@ export default defineComponent({
             }
         });
 
+        const handleModalAction = () => {
+            modal.value?.closeModal()
+            chatActionStore.handleAccessResponse(
+                messageId.value,
+                chatId.value,
+                'reject-access',
+                request.value
+            );
+        }
+
 
         return {
             handleAction,
@@ -314,7 +331,9 @@ export default defineComponent({
             isSending,
             chatActionStore,
             requestButtonProps,
+            modal,
             isCanceled,
+            handleModalAction,
             infoAccessContent,
         }
     }

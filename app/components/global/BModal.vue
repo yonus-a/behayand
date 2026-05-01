@@ -91,9 +91,10 @@ export default defineComponent({
         })
 
         const modalColorings = computed(() => {
+            let finalColor = modalState.value === 'success' ? 'secondary' : modalState.value
             return {
-                bgColor: `bg-${modalState.value}/10`,
-                iconColor: `fill-${modalState.value}`
+                bgColor: `bg-${finalColor}/10`,
+                iconColor: `fill-${finalColor}`
             }
         })
 

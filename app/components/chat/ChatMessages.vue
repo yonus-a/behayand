@@ -75,7 +75,6 @@
                         <BIcon icon="PhArrowDown" class="fill-on-surface w-6 h-6" />
                     </div>
                 </div>
-
                 <div class="grid transition-all pointer-events-none duration-200 ease-in-out"
                     :class="[!showOptionsBar ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0']">
 
@@ -83,15 +82,15 @@
                     <div class="min-h-0">
                         <!-- 3. Your original content wrapper -->
                         <div :class="[!showOptionsBar ? 'translate-y-0 opacity-100 pointer-events-none' : '-translate-y-2 opacity-0 pointer-events-none']"
-                            class="transition-all duration-200 w-full p-2 flex items-center gap-x-3 overflow-x-auto md:overflow-visible hide-scrollbar whitespace-nowrap">
+                            class="transition-all duration-200 w-full lg:max-w-full max-w-dvw p-2 flex items-center gap-x-3 overflow-x-auto lg:overflow-visible hide-scrollbar whitespace-nowrap">
 
                             <div v-for="option in mappedOptions" :key="option.key" @click="handleOption(option.key)"
                                 class="px-2.5 pointer-events-auto flex items-center gap-x-2 cursor-pointer bg-surface-variant-3 rounded-lg h-9 shrink-0">
                                 <BIcon :icon="option.icon" class="w-5 h-5 fill-on-surface/50" />
                                 <div class="text-body-sm select-none text-on-surface/70">{{ option.label }}</div>
                             </div>
-                            <div class=" pointer-events-auto">
-                                <BMenu ref="menuRef">
+                            <div class="pointer-events-auto">
+                                <MedicSelector>
                                     <template #trigger>
                                         <div
                                             class="px-2.5 flex items-center gap-x-2 cursor-pointer bg-surface-variant-3 rounded-lg h-9 shrink-0">
@@ -101,8 +100,7 @@
                                             </div>
                                         </div>
                                     </template>
-                                    <MedicSelector @close="closeMenu('add-user')" />
-                                </BMenu>
+                                </MedicSelector>
                             </div>
                         </div>
                     </div>
@@ -191,11 +189,11 @@ export default defineComponent({
             unsubPersonalInfo = chatActionStore.personalInfoBus.on((conversationId) => {
                 pendingRequestConversationId.value = conversationId;
                 modal.value?.openModal(
-                    t('chat.personalInfo.title'),
-                    t('chat.personalInfo.description'),
+                    t('chat.requestCard.infoAccess.requestModal.title'),
+                    t('chat.requestCard.infoAccess.requestModal.description'),
                     'success',
                     true,
-                    t('chat.personalInfo.confirm')
+                    t('chat.requestCard.infoAccess.requestModal.action')
                 );
             });
 
@@ -368,7 +366,7 @@ export default defineComponent({
             if (currentScroll < lastScrollTop) {
                 showOptionsBar.value = false;
             } else {
-                showOptionsBar.value = true;
+                showOptionsBar.value = profileStore.chosenRole !== 'user';
             }
             lastScrollTop = currentScroll;
 
