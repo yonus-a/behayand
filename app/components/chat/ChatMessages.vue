@@ -541,6 +541,7 @@ export default defineComponent({
         const handleOption = (key: string) => {
             switch (key) {
                 case 'prescribe-meds':
+                    if (props.contact?.nationalCode && props.contact.nationalCode.trim().length > 0) return
                     chatActionStore.triggerPersonalInfoRequest(chatId.value);
                     break;
             }
