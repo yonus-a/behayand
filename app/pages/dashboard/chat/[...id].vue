@@ -1,9 +1,8 @@
 <template>
     <div class="  w-full bg-surface-variant h-full">
-        <div class=" h-full w-full flex">
+        <div v-if="canShowMessagingSection" class=" h-full w-full flex">
             <ChatProfileOverview :profile="selectedChat" />
-            <div v-if="canShowMessagingSection" class=" flex flex-1 flex-col justify-between items-center h-full"
-                v-show="chatId">
+            <div class=" flex flex-1 flex-col justify-between items-center h-full" v-show="chatId">
                 <div class=" w-full bg-surface h-16 md:h-20">
                     <ChatPageBar :options="medicOptions" @open-profile="openProfile" :contact="selectedChat" />
                 </div>
@@ -15,6 +14,7 @@
             <div v-show="!chatId" class=" w-full h-full flex items-center justify-center">
             </div>
         </div>
+        <CallPageOverlay v-else-if="isCallMode" />
         <PatientReferral ref="patientRefferal" :contact="selectedChat" />
     </div>
 </template>
@@ -33,6 +33,7 @@ import ChatList from '~/components/chat/contact/ChatList.vue';
 import { type MenuOption } from '~/types/components/menu-options';
 import PatientReferral from '~/components/chat/PatientReferral.vue';
 import type { PatientRefferalExposed } from '~/components/chat/PatientReferral.vue';
+import CallPageOverlay from '~/components/call/CallPageOverlay.vue';
 definePageMeta({
     layout: 'dashboard',
     hideBottomNav: true
@@ -42,6 +43,7 @@ export default defineComponent({
     name: 'ChatPage',
     components: {
         ChatPageBar,
+        CallPageOverlay,
         ChatList,
         ChatInput,
         ChatProfileOverview,
@@ -55,23 +57,51 @@ export default defineComponent({
         const { t } = useI18n()
         const chatInput = ref<ChatTextField | null>(null)
         const { width } = useWindowSize()
+
+
+        const isCallMode = computed(() => {
+            const params = route.params.id;
+            return Array.isArray(params) && params.includes('call');
+        });
+        onMounted(() => {
+            startCall()
+            nextTick(() => {
+                console.log(isCallMode.value)
+            })
+        })
+
         const isMobile = computed(() => width.value < 768)
         const chatMessagesRef = ref<any>(null);
         const patientRefferal = useTemplateRef<PatientRefferalExposed>('patientRefferal');
+
+
         const chatId = computed(() => {
-            const id = route.params.id;
+            const params = route.params.id;
+            const id = Array.isArray(params) ? params[0] : params;
             return id ? parseInt(id as string) : null;
         });
 
         const canShowMessagingSection = computed(() => {
+            if (isCallMode.value) return false;
             if (isMobile.value) {
-                return !route.query.view
+                return !route.query.view;
             }
-            return true
-        })
+            return true;
+        });
+
+        const startCall = () => {
+            if (!chatId.value) return;
+            // Pushes to /dashboard/chat/6/call
+            router.push(`/dashboard/chat/${chatId.value}/call`);
+        };
+
+        const minimizeCall = () => {
+            if (!chatId.value) return;
+            // Returns to /dashboard/chat/6
+            router.push(`/dashboard/chat/${chatId.value}`);
+        };
 
         watch(() => route.params.id, () => {
-            console.log('fuck')
             if (chatId.value && selectedChat.value?.isActive) {
                 nextTick(() => {
                     console.log(chatInput.value)
@@ -140,11 +170,13 @@ export default defineComponent({
 
 
 
+
         return {
             medicOptions,
             t,
             chatId,
             chatInput,
+            isCallMode,
             openProfile,
             patientRefferal,
             chatMessagesRef,
