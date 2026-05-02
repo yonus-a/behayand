@@ -1,5 +1,5 @@
 <template>
-    <BPopup no-padding ref="popup">
+    <BPopup @closed="resetFields" no-padding ref="popup">
         <div class="md:max-w-86 w-dvw flex flex-col items-center py-4 px-6">
             <div class=" pb-4 flex items-center gap-x-3 w-full">
                 <BIcon icon="PhX" class=" cursor-pointer w-4 h-4 fill-on-surface/50" @click="close" />
@@ -162,11 +162,19 @@ export default defineComponent({
 
         expose({ close, open } as PatientRefferalExposed);
 
+        const resetFields = () => {
+            field.value.value = []
+            priority.value.value = 'high'
+            description.value.value = ''
+        }
+
+
         return {
             popup,
             t,
             isLoading,
             close,
+            resetFields,
             field,
             description,
             priority,
