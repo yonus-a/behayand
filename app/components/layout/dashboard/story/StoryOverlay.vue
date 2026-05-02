@@ -13,12 +13,10 @@
 
                 <div class="relative w-dvw sm:w-94 h-full sm:rounded-2xl bg-diamond-black dark:bg-diamond-gray overflow-hidden transition-all duration-200 ease-in-out"
                     :class="[isOpen ? 'scale-100 opacity-100' : 'scale-75 opacity-0 pointer-events-none']"
-                    @mousedown="!isMobile ? null : handlePressStart()" @mouseup="!isMobile ? null : handlePressEnd()"
-                    @mouseleave="!isMobile ? null : handlePressEnd()" @touchstart="handlePressStart"
-                    @touchend="handlePressEnd" @click="handleDesktopClick">
+                    @pointerdown="handlePressStart" @pointerup="handlePressEnd" @pointerleave="handlePressEnd"
+                    @click="handleDesktopClick">
 
-                    <div
-                        class="flex flex-col gap-y-1 w-full py-3 px-2 absolute top-0 z-50 ">
+                    <div class="flex flex-col gap-y-1 w-full py-3 px-2 absolute top-0 z-50 ">
                         <div class="w-full flex gap-x-1 items-center">
                             <div v-for="(story, index) in stories" :key="story.id"
                                 :style="{ width: `${100 / stories.length}%` }"
@@ -28,7 +26,7 @@
                             </div>
                         </div>
                         <div class="flex justify-end w-full px-1 pt-1">
-                            <BIcon class="cursor-pointer w-6 h-6 fill-white drop-shadow-md" @click="closeStory"
+                            <BIcon class="cursor-pointer w-6 h-6 fill-white drop-shadow-md" @click.stop="closeStory"
                                 icon="PhX" />
                         </div>
                     </div>
@@ -42,9 +40,9 @@
                     </template>
 
                     <div class="absolute inset-0 flex z-30 sm:hidden">
-                        <div class="w-[35%] h-full" @click="prevStory"></div>
+                        <div class="w-[35%] h-full" @click.stop="prevStory"></div>
                         <div class="flex-1 h-full"></div>
-                        <div class="w-[35%] h-full" @click="nextStory"></div>
+                        <div class="w-[35%] h-full" @click.stop="nextStory"></div>
                     </div>
                 </div>
 
@@ -128,21 +126,24 @@ export default defineComponent({
         };
 
         const handleDesktopClick = () => {
-            if (isMobile.value) return;
+  
+            if (isMobile.value || currentStory.value?.type === 'image') return;
+
             isPaused.value = !isPaused.value;
         };
 
         const handlePressStart = () => {
-            if (!isMobile.value) return;
+            if (!isMobile.value && currentStory.value?.type !== 'image') return;
+
             isPaused.value = true;
         };
 
         const handlePressEnd = () => {
-            if (!isMobile.value) return;
+            if (!isMobile.value && currentStory.value?.type !== 'image') return;
+
             isPaused.value = false;
         };
 
-        // Triggered by child components instantly if preloaded, or after buffering
         const onMediaReady = () => {
             if (currentStory.value) {
                 storiesStore.markAsRead(currentStory.value.id);
