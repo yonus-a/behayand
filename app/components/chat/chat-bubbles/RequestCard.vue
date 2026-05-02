@@ -47,13 +47,18 @@
                 :loading="button.loading" :color="button.color" :type="button.type" :text="button.text"
                 @click="handleAction(button.key)" />
         </div>
+        <div @click="handleCopyCode" class=" gap-x-3 w-full flex items-center justify-center cursor-pointer"
+            v-if="isMedic && message.request?.type === 'add-person' && message.request.request.status === 'approved'">
+            <div class=" text-on-surface text-label-lg select-none">{{ contact.nationalCode }}</div>
+            <BIcon :icon="isCopied ? 'PhCheckCircle' : 'PhCopy'" class=" w-4.5 h-4.5 fill-on-surface/50" />
+        </div>
         <BModal @action="handleModalAction" ref="modal" />
     </div>
 </template>
 <script lang="ts">
 import { defineComponent, type PropType, computed } from 'vue';
 import type { Message, Contact } from '~/types/chat';
-import { useI18n, useProfileStore, useChatActionStore } from '#imports';
+import { useI18n, useProfileStore, useChatActionStore, useAppToast } from '#imports';
 import ContactAvatar from '../contact/ContactAvatar.vue';
 import type { Modal } from '~/types/components/modal';
 import { useRoute } from 'vue-router';
@@ -77,7 +82,13 @@ export default defineComponent({
     setup(props) {
         const route = useRoute()
         const { t } = useI18n()
+        const { openToast } = useAppToast()
         const modal = ref<Modal | null>(null)
+        const isCopied = ref(false)
+
+
+
+
         const isSending = computed(() => !props.message.isSent)
         const chatActionStore = useChatActionStore()
         const profileStore = useProfileStore()
@@ -89,6 +100,19 @@ export default defineComponent({
             return request.value.request.provider
         })
 
+        const handleCopyCode = async () => {
+            if (!props.contact.nationalCode) return
+            try {
+                await navigator.clipboard.writeText(props.contact.nationalCode);
+                isCopied.value = true;
+                openToast(t('chat.requestCard.infoAccess.copySuccess'), 'success');
+                setTimeout(() => {
+                    isCopied.value = false;
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        };
 
 
         const isPending = computed(() => {
@@ -330,10 +354,13 @@ export default defineComponent({
             providers,
             isSending,
             chatActionStore,
+            handleCopyCode,
             requestButtonProps,
+            isMedic,
             modal,
             isCanceled,
             handleModalAction,
+            isCopied,
             infoAccessContent,
         }
     }
