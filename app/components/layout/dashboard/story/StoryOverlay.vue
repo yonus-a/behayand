@@ -37,7 +37,7 @@ export default defineComponent({
         return {
             storiesStore,
             closeStory,
-            opennedIndex,
+            opennedIndex,                                   
         }
     }
 })
