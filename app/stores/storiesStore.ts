@@ -15,30 +15,34 @@ export const useStoriesStore = defineStore("stories", () => {
    * Deletes metadata older than 24h and applies 'isRead' status to loaded stories.
    */
   const syncWithStorage = () => {
-    const storedData = localStorage.getItem('app_stories_meta');
+    const storedData = localStorage.getItem("app_stories_meta");
     const metaMap = storedData ? JSON.parse(storedData) : {};
     const now = new Date().getTime();
     const expiryMs = hoursToKeep * 60 * 60 * 1000;
 
-    const updatedMeta: Record<number, { isRead: boolean; timestamp: number }> = {};
-    
-    // Clean up expired entries from the map
-    Object.keys(metaMap).forEach(id => {
-      const item = metaMap[id];
-      if (now - item.timestamp < expiryMs) {
-        updatedMeta[Number(id)] = item;
+    const updatedMeta: Record<number, { isRead: boolean; timestamp: number }> =
+      {};
+
+    // Get valid IDs from the currently fetched stories to cross-reference
+    const validIds = new Set(stories.value.map((s) => s.id));
+
+    // Clean up expired entries OR entries that no longer exist in the backend
+    Object.keys(metaMap).forEach((idStr) => {
+      const id = Number(idStr);
+      const item = metaMap[idStr];
+      if (now - item.timestamp < expiryMs && validIds.has(id)) {
+        updatedMeta[id] = item;
       }
     });
 
     // Apply isRead status from storage to our reactive state
-    stories.value.forEach(story => {
-      const meta = updatedMeta[story.id];
-      if (meta) {
-        story.isRead = meta.isRead;
+    stories.value.forEach((story) => {
+      if (updatedMeta[story.id]) {
+        story.isRead = updatedMeta[story.id].isRead;
       }
     });
 
-    localStorage.setItem('app_stories_meta', JSON.stringify(updatedMeta));
+    localStorage.setItem("app_stories_meta", JSON.stringify(updatedMeta));
   };
 
   /**
@@ -46,19 +50,19 @@ export const useStoriesStore = defineStore("stories", () => {
    * Marks a story as read in state and localStorage.
    */
   const markAsRead = (id: number) => {
-    const story = stories.value.find(s => s.id === id);
+    const story = stories.value.find((s) => s.id === id);
     if (story && !story.isRead) {
       story.isRead = true;
-      
-      const storedData = localStorage.getItem('app_stories_meta');
+
+      const storedData = localStorage.getItem("app_stories_meta");
       const metaMap = storedData ? JSON.parse(storedData) : {};
-      
-      metaMap[id] = { 
-        isRead: true, 
-        timestamp: new Date(story.date).getTime() 
+
+      metaMap[id] = {
+        isRead: true,
+        timestamp: new Date(story.date).getTime(),
       };
-      
-      localStorage.setItem('app_stories_meta', JSON.stringify(metaMap));
+
+      localStorage.setItem("app_stories_meta", JSON.stringify(metaMap));
     }
   };
 
@@ -67,22 +71,26 @@ export const useStoriesStore = defineStore("stories", () => {
    * Fetches media files and converts them to local Blob URLs for instant playback.
    */
   const preloadStories = async () => {
-    // We run this in parallel for efficiency
-    stories.value.forEach(async (story) => {
-      if (story.isLoaded || story.isLoading) return;
+    await Promise.all(
+      stories.value.map(async (story) => {
+        if (story.isLoaded || story.isLoading) return;
 
-      story.isLoading = true;
-      try {
-        const response = await fetch(story.mediaUrl);
-        const blob = await response.blob();
-        story.localBlobUrl = URL.createObjectURL(blob);
-        story.isLoaded = true;
-      } catch (error) {
-        console.error(`Failed to preload story ${story.id}:`, error);
-      } finally {
-        story.isLoading = false;
-      }
-    });
+        story.isLoading = true;
+        try {
+          const response = await fetch(story.mediaUrl);
+          if (response.ok) {
+            const blob = await response.blob();
+            story.localBlobUrl = URL.createObjectURL(blob);
+            story.isLoaded = true;
+          }
+        } catch (error) {
+          console.error(`Failed to preload story ${story.id}:`, error);
+          story.isLoaded = false;
+        } finally {
+          story.isLoading = false;
+        }
+      }),
+    );
   };
 
   /**
@@ -105,7 +113,8 @@ export const useStoriesStore = defineStore("stories", () => {
           isRead: false,
           type: "image",
           isLoading: false,
-          isLoaded: false
+          isLoaded: false,
+          localBlobUrl: "",
         },
         {
           id: 502,
@@ -115,7 +124,8 @@ export const useStoriesStore = defineStore("stories", () => {
           isRead: false,
           type: "video",
           isLoading: false,
-          isLoaded: false
+          isLoaded: false,
+          localBlobUrl: "",
         },
         {
           id: 503,
@@ -125,7 +135,8 @@ export const useStoriesStore = defineStore("stories", () => {
           isRead: false,
           type: "image",
           isLoading: false,
-          isLoaded: false
+          isLoaded: false,
+          localBlobUrl: "",
         },
         {
           id: 504,
@@ -135,7 +146,8 @@ export const useStoriesStore = defineStore("stories", () => {
           isRead: false,
           type: "video",
           isLoading: false,
-          isLoaded: false
+          isLoaded: false,
+          localBlobUrl: "",
         },
       ];
 
@@ -144,7 +156,6 @@ export const useStoriesStore = defineStore("stories", () => {
       // After fetching, immediately sync metadata and start preloading
       syncWithStorage();
       preloadStories();
-
     } catch (error) {
       console.error("Error fetching stories:", error);
     } finally {
@@ -165,6 +176,6 @@ export const useStoriesStore = defineStore("stories", () => {
     fetchStories,
     openStory,
     markAsRead,
-    hoursToKeep
+    hoursToKeep,
   };
 });

@@ -157,7 +157,7 @@ export default defineComponent({
 
 
                 const status = request.value.request.status;
-                const isSelf = !isMedic.value;
+                const isSelf = isMedic.value;
                 const providersList = providers.value || [];
 
                 // 1. Handle Failed/Ended states

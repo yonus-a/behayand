@@ -45,7 +45,8 @@ export default defineComponent({
         autoAspect: { type: Boolean, default: false },
         imageClass: { type: String, default: '' }
     },
-    setup(props) {
+    emits: ['load'],
+    setup(props, { emit }) {
         const rootEl = ref<HTMLElement | null>(null)
         const content = ref<HTMLElement | null>(null)
 
@@ -153,6 +154,7 @@ export default defineComponent({
 
         const loadImage = (e: Event) => {
             isLoaded.value = true
+            emit('load')
             const target = e.target as HTMLImageElement
             if (target && target.naturalWidth && target.naturalHeight) {
                 imgRatio.value = target.naturalWidth / target.naturalHeight
