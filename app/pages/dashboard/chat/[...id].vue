@@ -14,22 +14,20 @@
             <div v-show="!chatId" class=" w-full h-full flex items-center justify-center">
             </div>
         </div>
-        <CallPageOverlay v-else-if="isCallMode" />
+        <CallPageOverlay v-else-if="isCallMode && selectedChat" :contact="selectedChat" />
         <PatientReferral ref="patientRefferal" :contact="selectedChat" />
         <<PermissionPopup />
     </div>
 </template>
 <script lang="ts">
 import { defineComponent, computed, useTemplateRef } from 'vue';
-import { useI18n, useSeoMeta } from '#imports';
+import { useI18n, useSeoMeta, useWindowSize, useChatStore, useCallStore } from '#imports';
 import ChatPageBar from '~/components/chat/ChatPageBar.vue';
 import { useRoute, useRouter } from 'vue-router';
 import ChatInput from '~/components/chat/ChatInput.vue';
-import { useChatStore } from '#imports';
 import { type ChatTextField } from '~/types/components/chat-input';
 import ChatProfileOverview from '~/components/chat/ChatProfileOverview.vue';
 import ChatMessages from '~/components/chat/ChatMessages.vue';
-import { useWindowSize } from '#imports';
 import ChatList from '~/components/chat/contact/ChatList.vue';
 import { type MenuOption } from '~/types/components/menu-options';
 import PatientReferral from '~/components/chat/PatientReferral.vue';
@@ -55,6 +53,7 @@ export default defineComponent({
     },
     setup() {
         const chatStore = useChatStore()
+        const callStore = useCallStore()
         const route = useRoute()
         const router = useRouter()
         const { t } = useI18n()
@@ -66,11 +65,29 @@ export default defineComponent({
             const params = route.params.id;
             return Array.isArray(params) && params.includes('call');
         });
+
+        const chatId = computed(() => {
+            const params = route.params.id;
+            const id = Array.isArray(params) ? params[0] : params;
+            return id ? parseInt(id as string) : null;
+        });
+
+        const selectedChat = computed(() => {
+            if (!chatId.value) return null;
+            return chatStore.getContactById(chatId.value);
+        });
+
         onMounted(() => {
-            //   startCall()
+            startCall()
             nextTick(() => {
                 console.log(isCallMode.value)
             })
+        })
+
+        watch(() => selectedChat.value, () => {
+            if (selectedChat.value) {
+                startCall()
+            }
         })
 
         const isMobile = computed(() => width.value < 768)
@@ -78,11 +95,7 @@ export default defineComponent({
         const patientRefferal = useTemplateRef<PatientRefferalExposed>('patientRefferal');
 
 
-        const chatId = computed(() => {
-            const params = route.params.id;
-            const id = Array.isArray(params) ? params[0] : params;
-            return id ? parseInt(id as string) : null;
-        });
+
 
         const canShowMessagingSection = computed(() => {
             if (isCallMode.value) return false;
@@ -92,9 +105,10 @@ export default defineComponent({
             return true;
         });
 
+
         const startCall = () => {
-            if (!chatId.value) return;
-            // Pushes to /dashboard/chat/6/call
+            if (selectedChat.value === null) return
+            callStore.chatContact = selectedChat.value
             router.push(`/dashboard/chat/${chatId.value}/call`);
         };
 
@@ -113,10 +127,7 @@ export default defineComponent({
             }
         })
 
-        const selectedChat = computed(() => {
-            if (!chatId.value) return null;
-            return chatStore.getContactById(chatId.value);
-        });
+
 
 
 

@@ -2,10 +2,13 @@
 import { ref } from "vue";
 import { useEventBus } from "@vueuse/core";
 export type PopupState =
+  | "permission"
   | "mic-error"
   | "cam-error"
   | "mic-permission"
-  | "cam-permission";
+  | "cam-permission"
+  | "screen-share-error"
+  | "screen-share-permission";
 
 interface PermissionRequest {
   state: PopupState;
@@ -28,33 +31,42 @@ export function useAppPermissions() {
   };
 
   // Requests BOTH at once as requested, with a fallback if hardware is missing
-  const requestMediaAccess = async (fallbackType: "audio" | "video") => {
+  const requestMediaAccess = async (need: "audio" | "video" | "both") => {
     try {
-      // Try getting both first
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
-      });
+      // 1. Try the primary request
+      const constraints: MediaStreamConstraints = {
+        audio: need === "audio" || need === "both",
+        video: need === "video" || need === "both",
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       stream.getTracks().forEach((track) => track.stop());
       return { success: true };
     } catch (error: any) {
-      console.log(error);
-      // If it failed because of missing hardware (e.g. Mac mini has no cam), fallback to the specific one needed
+      // 2. DETECT MISSING HARDWARE (Mac Mini case)
       if (
         error.name === "NotFoundError" ||
         error.name === "DevicesNotFoundError"
       ) {
-        try {
-          const singleStream = await navigator.mediaDevices.getUserMedia({
-            audio: fallbackType === "audio",
-            video: fallbackType === "video",
-          });
-          singleStream.getTracks().forEach((track) => track.stop());
-          return { success: true };
-        } catch (fallbackError: any) {
-          return { success: false, error: fallbackError.name };
+        console.warn("Hardware not found. Checking for partial success...");
+
+        // If they needed 'both' but only have one (or none), try a partial fallback
+        if (need === "both") {
+          try {
+            // Try ONLY video if audio failed
+            const vStream = await navigator.mediaDevices.getUserMedia({
+              video: true,
+            });
+            vStream.getTracks().forEach((t) => t.stop());
+            return { success: true, hardwareWarning: "no-mic" };
+          } catch {
+            return { success: false, error: "no-hardware" };
+          }
         }
+        return { success: false, error: "no-hardware" };
       }
+
+      // 3. Handle explicit denials (NotAllowedError)
       return { success: false, error: error.name };
     }
   };
@@ -66,17 +78,20 @@ export function useAppPermissions() {
     });
   };
 
-  const requestScreenShare = async () => {
-    try {
-      return await navigator.mediaDevices.getDisplayMedia({ video: true });
-    } catch (error) {
-      return null;
-    }
+  const requestScreenShare = async (): Promise<boolean> => {
+    return await requestWithPopup("screen-share-permission");
   };
 
   const requestWithPopup = (state: PopupState) => {
     return new Promise<boolean>((resolve) => {
       permissionBus.emit({ state, resolve });
+    });
+  };
+
+  const getNativeScreenShare = async (): Promise<MediaStream> => {
+    return await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: false,
     });
   };
 
@@ -86,5 +101,6 @@ export function useAppPermissions() {
     requestLocation,
     requestScreenShare,
     requestWithPopup,
+    getNativeScreenShare,
   };
 }

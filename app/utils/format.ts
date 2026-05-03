@@ -117,3 +117,17 @@ export const formatCountdown = (totalSeconds: number): string => {
 
   return `${paddedMins} : ${paddedSecs}`;
 };
+
+/**
+ * Formats seconds into HH:MM:SS
+ * @param totalSeconds - Total elapsed seconds
+ */
+export const formatDuration = (totalSeconds: number): string => {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const padded = (val: number) => val.toString().padStart(2, "0");
+
+  return `${padded(hours)}:${padded(minutes)}:${padded(seconds)}`;
+};

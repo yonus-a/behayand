@@ -39,11 +39,13 @@
     </div>
 </template>
 <script lang="ts">
-import { type PropType, defineComponent, computed } from 'vue';
+import { type PropType, defineComponent, onMounted, computed } from 'vue';
 import type { Contact } from '~/types/chat';
 import { useI18n, useCallStore, useWindowSize } from '#imports';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import CallMemberDisplay from './CallMemberDisplay.vue';
+import { useAppPermissions } from '#imports';
+import { v } from 'vue-router/dist/index-D_VEAp3P.js';
 export default defineComponent({
     name: 'CallPageOverlay',
     props: {
@@ -58,9 +60,15 @@ export default defineComponent({
     },
     setup(props) {
         const router = useRouter()
+        const route = useRoute()
         const { t } = useI18n()
         const callStore = useCallStore()
         const { width } = useWindowSize()
+        const { requestWithPopup, checkMediaStatus } = useAppPermissions()
+        const chatId = computed(() => Number(route.params.id))
+        const chatContact = computed(() => {
+            return callStore.chatContact
+        })
 
 
         const isMobile = computed(() => width.value < 768);
@@ -143,45 +151,91 @@ export default defineComponent({
                 key: 'add-user'
             },
             {
-                icon: 'PhSpeakerHigh',
+                icon: callStore.isSoundMuted ? 'PhSpeakerSlash' : 'PhSpeakerHigh',
                 key: 'toggle-sound'
             },
             {
-                icon: 'PhMicrophone',
+                icon: callStore.isMicMuted ? 'PhMicrophoneSlash' : 'PhMicrophone',
                 key: 'toggle-mic'
             },
             {
-                icon: 'PhVideoCamera',
+                icon: callStore.isCamDisabled ? 'PhVideoCameraSlash' : 'PhVideoCamera',
                 key: 'toggle-video'
             },
-        ])
-
+        ]);
         const goBack = () => {
             router.go(-1)
         }
 
-        const handleOptions = (key: string) => {
+        onMounted(() => {
+            if (chatContact.value) {
+                initPermissions()
+            }
+        })
+
+        watch(() => chatContact.value, () => {
+            console.log(chatContact.value)
+            if (chatContact.value) {
+                initPermissions()
+            }
+        })
+
+
+        const initPermissions = async () => {
+            if (!callStore.chatContact) return;
+            const service = callStore.chatContact.serviceType;
+            const isVideo = service === 'video-call';
+
+            await callStore.syncMediaSettings(service);
+            const status = await checkMediaStatus();
+
+            if ((isVideo && status.mic === 'granted' && status.cam === 'granted') ||
+                (!isVideo && status.mic === 'granted')) {
+                await callStore.initCall(isVideo);
+                return;
+            }
+
+            const state = isVideo ? 'permission' : 'mic-permission';
+            const granted = await requestWithPopup(state);
+
+            if (granted) {
+                await callStore.initCall(isVideo);
+            } else {
+                router.back();
+            }
+        };
+
+        const handleOptions = async (key: string) => {
             switch (key) {
                 case 'minimize-call':
 
                     break;
                 case 'share-screen':
-
+                    if (callStore.isSharingScreen) {
+                        callStore.stopScreenShare();
+                        return;
+                    }
+                    if (isMobile.value) {
+                        await requestWithPopup('screen-share-error');
+                        return;
+                    }
+                    await requestWithPopup('screen-share-permission');
                     break;
                 case 'add-user':
 
                     break;
                 case 'toggle-sound':
-
+                    callStore.toggleSound();
                     break;
                 case 'toggle-mic':
-
+                    callStore.toggleMic();
                     break;
                 case 'toggle-video':
-
+                    await callStore.toggleCam();
                     break;
                 case 'leave-call':
-
+                    callStore.stopCall();
+                    router.push(`/dashboard/chat/${chatId.value}`);
                     break;
                 case 'flip-camera':
 

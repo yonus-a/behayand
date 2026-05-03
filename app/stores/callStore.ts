@@ -1,56 +1,218 @@
-import { type Contact } from "~/types/chat";
-import { useProfileStore } from "#imports";
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import type { CallMember } from "~/types/call";
+import { useProfileStore, useAppPermissions } from "#imports";
 
 export const useCallStore = defineStore("call", () => {
   const profileStore = useProfileStore();
-  const isActive = ref(false);
+  const { checkMediaStatus, requestWithPopup } = useAppPermissions();
+
   const isPiP = ref(false);
+
+  const isActive = ref(false);
   const localStream = ref<MediaStream | null>(null);
   const remoteStream = ref<MediaStream | null>(null);
 
-  const initCall = async () => {
-    localStream.value = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true,
-    });
-    isActive.value = true;
+  const isSharingScreen = ref(false);
+  const screenStream = ref<MediaStream | null>(null);
+
+  const chatContact = ref<CallMember | null>();
+
+  // Timer State
+  const startTime = ref<number | null>(null);
+  const elapsedTime = ref(0);
+  const timerInterval = ref<NodeJS.Timeout | null>(null);
+
+  //settings :
+  const isMicMuted = ref(false);
+  const isCamDisabled = ref(false);
+  const isSoundMuted = ref(false);
+
+  const syncMediaSettings = async (serviceType: string) => {
+    const status = await checkMediaStatus();
+
+    // Set Mic: Mute if not granted
+    isMicMuted.value = status.mic !== "granted";
+
+    // Set Cam: Disable if service is voice-only OR permission not granted
+    if (serviceType === "voice-call") {
+      isCamDisabled.value = true;
+    } else {
+      isCamDisabled.value = status.cam !== "granted";
+    }
   };
 
-  const callMembers = computed<Contact[]>(() => {
-  // 1. Format current user from Profile Store as a Contact
-  const currentUser: Contact = {
-    ...profileStore.userData,
-    isOnline: true,
-    lastSeen: new Date(),
-    isActive: false,
-    unreadCount: 0,
-    serviceType: "chat",
-    birthDate: profileStore.userData.birthDate || new Date(),
+  const toggleMic = async () => {
+    if (isMicMuted.value) {
+      // 1. Check if we already have permission
+      const status = await checkMediaStatus();
+      if (status.mic === "granted") {
+        isMicMuted.value = false;
+        localStream.value?.getAudioTracks().forEach((t) => (t.enabled = true));
+        return; // Skip the popup
+      }
+
+      // 2. Only show popup if not granted
+      const granted = await requestWithPopup("mic-permission");
+      if (granted) {
+        isMicMuted.value = false;
+        localStream.value?.getAudioTracks().forEach((t) => (t.enabled = true));
+      }
+    } else {
+      isMicMuted.value = true;
+      localStream.value?.getAudioTracks().forEach((t) => (t.enabled = false));
+    }
   };
 
-  // 2. Create 4 mock members to reach a total of 5
-  const mockMembers: Contact[] = Array(4).fill(null).map((_, i) => ({
-    id: i + 2, // Unique ID starting from 2
-    name: "امیر",
-    lastName: "سعیدی",
-    isOnline: true,
-    lastSeen: new Date(),
-    imageUrl: `https://i.pravatar.cc/150?u=${i + 2}`,
-    isActive: false,
-    unreadCount: 2,
-    serviceType: "chat",
-    birthDate: new Date(),
-  }));
+  const toggleCam = async () => {
+    if (isCamDisabled.value) {
+      // 1. Check if we already have permission
+      const status = await checkMediaStatus();
+      if (status.cam === "granted") {
+        isCamDisabled.value = false;
+        localStream.value?.getVideoTracks().forEach((t) => (t.enabled = true));
+        return; // Skip the popup
+      }
 
-  return [currentUser, ...mockMembers];
-});
+      // 2. Only show popup if not granted
+      const granted = await requestWithPopup("cam-permission");
+      if (granted) {
+        isCamDisabled.value = false;
+        localStream.value?.getVideoTracks().forEach((t) => (t.enabled = true));
+      }
+    } else {
+      isCamDisabled.value = true;
+      localStream.value?.getVideoTracks().forEach((t) => (t.enabled = false));
+    }
+  };
+
+  /**
+   * Toggles the remote audio tracks (muting the call sound for the user).
+   */
+  const toggleSound = () => {
+    if (remoteStream.value) {
+      const remoteAudio = remoteStream.value.getAudioTracks();
+      isSoundMuted.value = !isSoundMuted.value;
+      remoteAudio.forEach((track) => (track.enabled = !isSoundMuted.value));
+    }
+  };
+
+  /**
+   * Enables/Disables the local video track.
+   * If enabling, it re-verifies camera permissions.
+   */
+
+  // Members Ref (the other people in the call)
+  // useCallStore.ts
+  const participants = ref<CallMember[]>(
+    Array.from({ length: 4 }, (_, i) => ({
+      id: i + 2,
+      name: "امیر",
+      lastName: "سعیدی",
+      isOnline: true,
+      lastSeen: new Date(),
+      imageUrl: `https://i.pravatar.cc/150?u=${i + 2}`,
+      isActive: false,
+      unreadCount: 2,
+      serviceType: "chat",
+      birthDate: new Date(),
+      // CallMember Extensions
+      stream: null,
+      isScreenSharing: false,
+      isCameraOn: false,
+      isSpeaking: false,
+      isMuted: false,
+    })),
+  );
+  const callMembers = computed<CallMember[]>(() => {
+    const currentUser: CallMember = {
+      ...profileStore.userData,
+      isOnline: true,
+      lastSeen: new Date(),
+      isActive: false,
+      unreadCount: 0,
+      serviceType: "chat",
+      birthDate: profileStore.userData.birthDate || new Date(),
+
+      // Reactive mapping from Store State
+      stream: isSharingScreen.value ? screenStream.value : localStream.value,
+      isScreenSharing: isSharingScreen.value,
+      isCameraOn: !isCamDisabled.value,
+      isSpeaking: !isMicMuted.value && isActive.value, // Simple mock for speaking state
+      isMuted: isMicMuted.value,
+    };
+
+    return [currentUser, ...participants.value];
+  });
+
+  const initCall = async (withVideo: boolean) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: withVideo,
+        audio: true,
+      });
+      localStream.value = stream;
+      isActive.value = true;
+
+      // Apply initial muted/disabled states to the tracks
+      stream.getAudioTracks().forEach((t) => (t.enabled = !isMicMuted.value));
+      stream
+        .getVideoTracks()
+        .forEach((t) => (t.enabled = !isCamDisabled.value));
+
+      startTimer();
+    } catch (err) {
+      console.error("Init call failed", err);
+    }
+  };
+
+  const startTimer = () => {
+    startTime.value = Date.now();
+    timerInterval.value = setInterval(() => {
+      elapsedTime.value = Math.floor(
+        (Date.now() - (startTime.value || 0)) / 1000,
+      );
+    }, 1000);
+  };
+
+  const stopCall = () => {
+    if (timerInterval.value) clearInterval(timerInterval.value);
+
+    localStream.value?.getTracks().forEach((t) => t.stop());
+    localStream.value = null;
+
+    stopScreenShare();
+
+    isActive.value = false;
+    elapsedTime.value = 0;
+  };
+
+  const stopScreenShare = () => {
+    if (screenStream.value) {
+      screenStream.value.getTracks().forEach((track) => track.stop());
+      screenStream.value = null;
+    }
+    isSharingScreen.value = false;
+  };
 
   return {
+    chatContact,
     isActive,
-    isPiP,
     localStream,
     remoteStream,
-    initCall,
+    elapsedTime,
     callMembers,
+    initCall,
+    stopCall,
+    syncMediaSettings,
+    isMicMuted,
+    isCamDisabled,
+    isSoundMuted,
+    toggleMic,
+    toggleCam,
+    toggleSound,
+    stopScreenShare,
+    isSharingScreen,
+    screenStream,
   };
 });

@@ -27,7 +27,8 @@ export default defineComponent({
     setup(_, { expose, emit }) {
         const popup = ref<Popup | null>(null)
         const { t } = useI18n()
-        const { requestMediaAccess } = useAppPermissions();
+        const { requestMediaAccess, getNativeScreenShare } = useAppPermissions();
+        const callStore = useCallStore();
         const popupMode = ref<PopupState>('mic-permission');
         const bus = useEventBus<any>('global-permission-popup');
         const isLoading = ref(false)
@@ -35,11 +36,24 @@ export default defineComponent({
 
 
         bus.on((payload) => {
-            popupMode.value = payload.state;
             currentResolver.value = payload.resolve;
-            isLoading.value = false;
-            popup.value?.open();
+            console.log(payload.state)
+            switchMode(payload.state);
         });
+
+        const switchMode = async (newMode: PopupState) => {
+            popup.value?.close();
+
+            // 300ms delay for a clean exit animation
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            popupMode.value = newMode;
+            isLoading.value = false;
+
+            nextTick(() => {
+                popup.value?.open();
+            });
+        };
 
 
 
@@ -54,11 +68,11 @@ export default defineComponent({
 
         const popupContent = computed(() => {
             switch (popupMode.value) {
-                //  case 'mic-permission':
-                //      return {
-                //          title: t('chat.permissions.permissionTitle'),
-                //          description: t('chat.permissions.description')
-                //      }
+                case 'permission':
+                    return {
+                        title: t('chat.permissions.permissionTitle'),
+                        description: t('chat.permissions.description')
+                    }
                 case 'cam-error':
                     return {
                         title: t('chat.permissions.camError.title'),
@@ -78,6 +92,16 @@ export default defineComponent({
                     return {
                         title: t('chat.permissions.mic.title'),
                         description: t('chat.permissions.mic.description')
+                    }
+                case 'screen-share-error':
+                    return {
+                        title: t('chat.permissions.screenError.title'),
+                        description: t('chat.permissions.screenError.description')
+                    }
+                case 'screen-share-permission':
+                    return {
+                        title: t('chat.permissions.screen.title'),
+                        description: t('chat.permissions.screen.description')
                     }
             }
         })
@@ -104,16 +128,53 @@ export default defineComponent({
 
         const handleAction = async () => {
             isLoading.value = true;
-            const isVideo = popupMode.value.startsWith('cam');
-            const result = await requestMediaAccess(isVideo ? 'video' : 'audio');
+            let success = false;
+
+            // --- 1. SCREEN SHARE FLOW (Standalone) ---
+            if (popupMode.value === 'screen-share-permission') {
+                try {
+                    const stream = await getNativeScreenShare();
+                    if (stream) {
+                        callStore.screenStream = stream;
+                        callStore.isSharingScreen = true;
+
+                        // Native Browser "Stop Sharing" handler
+                        stream.getVideoTracks()[0].onended = () => {
+                            callStore.stopScreenShare();
+                        };
+                        success = true;
+                    }
+                } catch (err: any) {
+                    console.error("Screen Share Error:", err.name);
+                    success = false;
+                }
+
+                isLoading.value = false;
+                if (success) {
+                    popup.value?.close();
+                    currentResolver.value?.(true);
+                } else {
+                    // macOS often throws NotAllowedError if System Settings are off
+                    return await switchMode('screen-share-error');
+                }
+                return; // EXIT HERE so it doesn't run the Mic/Cam logic below
+            }
+
+            // --- 2. MIC / CAM FLOW ---
+            let need: 'audio' | 'video' | 'both' = 'audio';
+            if (popupMode.value.startsWith('cam')) need = 'video';
+            if (popupMode.value === 'permission') need = 'both';
+
+            const result = await requestMediaAccess(need);
 
             isLoading.value = false;
             if (result.success) {
                 popup.value?.close();
                 currentResolver.value?.(true);
             } else {
-                // If native prompt fails, switch to error state
-                popupMode.value = isVideo ? 'cam-error' : 'mic-error';
+                // If hardware is missing (Mac Mini), show a specific error
+                const errorMode = (need === 'video' || need === 'both') ? 'cam-error' : 'mic-error';
+                return await switchMode(errorMode);
             }
         };
 
