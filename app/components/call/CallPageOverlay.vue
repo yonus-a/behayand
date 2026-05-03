@@ -26,10 +26,12 @@
             </div>
         </div>
         <div
-            class=" w-full h-21 flex justify-center gap-x-1.5 sm:gap-x-3 items-center bg-black-600 border-t border-t-[#2C2C2E]">
-            <div class=" bg-black-500 w-9 sm:w-12 cursor-pointer aspect-square rounded-full flex items-center justify-center"
+            class=" w-full h-21 bg-black-600 flex justify-center gap-x-1.5 sm:gap-x-3 items-center  border-t border-t-[#2C2C2E]">
+            <div class="  w-9 sm:w-12  transition-all duration-200 ease-in-out aspect-square rounded-full flex items-center justify-center"
+                :class="[option.isActive ? ' bg-white cursor-pointer' : (option.hasErrors ? 'bg-error-900 cursor-not-allowed' : 'cursor-pointer bg-black-500')]"
                 @click="handleOptions(option.key)" v-for="option in optionButtons" :key="option.key">
-                <BIcon :icon="option.icon" class=" sm:w-6 sm:h-6 w-4 h-4 fill-white" />
+                <BIcon :icon="option.icon" class=" sm:w-6 sm:h-6 w-4 h-4 "
+                    :class="[option.isActive ? ' fill-black-500' : (option.hasErrors ? ' fill-error-200' : ' fill-white')]" />
             </div>
             <div @click="handleOptions('leave-call')"
                 class=" rounded-full w-12 sm:w-15 aspect-square bg-diamond-error cursor-pointer flex items-center justify-center">
@@ -41,10 +43,9 @@
 <script lang="ts">
 import { type PropType, defineComponent, onMounted, computed } from 'vue';
 import type { Contact } from '~/types/chat';
-import { useI18n, useCallStore, useWindowSize } from '#imports';
+import { useI18n, useCallStore, useWindowSize, useAppPermissions, useDevice } from '#imports';
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router';
 import CallMemberDisplay from './CallMemberDisplay.vue';
-import { useAppPermissions } from '#imports';
 import { formatDuration } from '@/utils/format'
 export default defineComponent({
     name: 'CallPageOverlay',
@@ -66,6 +67,7 @@ export default defineComponent({
         const { width } = useWindowSize()
         const { requestWithPopup, checkMediaStatus } = useAppPermissions()
         const chatId = computed(() => Number(route.params.id))
+        const { hardware } = useDevice();
         const chatContact = computed(() => {
             return callStore.chatContact
         })
@@ -146,7 +148,8 @@ export default defineComponent({
             },
             {
                 icon: 'PhMonitorArrowUp',
-                key: 'share-screen'
+                key: 'share-screen',
+                isActive: callStore.isSharingScreen
             },
             {
                 icon: 'PhUserPlus',
@@ -158,11 +161,13 @@ export default defineComponent({
             },
             {
                 icon: callStore.isMicMuted ? 'PhMicrophoneSlash' : 'PhMicrophone',
-                key: 'toggle-mic'
+                key: 'toggle-mic',
+                hasErrors: !hardware.hasMicrophone
             },
             {
-                icon: callStore.isCamDisabled ? 'PhVideoCameraSlash' : 'PhVideoCamera',
-                key: 'toggle-video'
+                icon: !callStore.isCamDisabled ? 'PhVideoCameraSlash' : 'PhVideoCamera',
+                key: 'toggle-video',
+                hasErrors: !hardware.hasCamera,
             },
         ]);
         const goBack = () => {
