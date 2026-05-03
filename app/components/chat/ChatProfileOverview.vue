@@ -114,7 +114,7 @@
 import { defineComponent, type PropType, ref, watch, onMounted } from 'vue';
 import type { Contact } from '~/types/chat';
 import { useRoute, useRouter } from 'vue-router';
-import { useDate, useI18n, useProfileStore } from '#imports';
+import { useDate, useI18n, useCallStore, useProfileStore } from '#imports';
 import profileBackground from '/images/chat/profile-background.webp'
 import ContactAvatar from './contact/ContactAvatar.vue';
 import FileDisplay from './profile/FileDisplay.vue';
@@ -141,6 +141,7 @@ export default defineComponent({
     },
     setup(props) {
         const { getYearsPassed } = useDate()
+        const callStore = useCallStore()
         const router = useRouter()
         const route = useRoute()
         const { t } = useI18n()
@@ -284,10 +285,8 @@ export default defineComponent({
 
                     break;
                 case 'voice-call':
-
-                    break;
                 case 'video-call':
-
+                    callStore.startCall(props.profile, props.profile?.serviceType)
                     break;
             }
         }

@@ -77,18 +77,7 @@ export default defineComponent({
             return chatStore.getContactById(chatId.value);
         });
 
-        onMounted(() => {
-            startCall()
-            nextTick(() => {
-                console.log(isCallMode.value)
-            })
-        })
 
-        watch(() => selectedChat.value, () => {
-            if (selectedChat.value) {
-                startCall()
-            }
-        })
 
         const isMobile = computed(() => width.value < 768)
         const chatMessagesRef = ref<any>(null);
@@ -106,17 +95,7 @@ export default defineComponent({
         });
 
 
-        const startCall = () => {
-            if (selectedChat.value === null) return
-            callStore.chatContact = selectedChat.value
-            router.push(`/dashboard/chat/${chatId.value}/call`);
-        };
 
-        const minimizeCall = () => {
-            if (!chatId.value) return;
-            // Returns to /dashboard/chat/6
-            router.push(`/dashboard/chat/${chatId.value}`);
-        };
 
         watch(() => route.params.id, () => {
             if (chatId.value && selectedChat.value?.isActive) {

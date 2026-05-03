@@ -2,9 +2,11 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { CallMember } from "~/types/call";
 import { useProfileStore, useAppPermissions } from "#imports";
+import { useRouter } from "vue-router";
 
 export const useCallStore = defineStore("call", () => {
   const profileStore = useProfileStore();
+  const router = useRouter();
   const { checkMediaStatus, requestWithPopup } = useAppPermissions();
 
   const isPiP = ref(false);
@@ -249,10 +251,22 @@ export const useCallStore = defineStore("call", () => {
     }
   };
 
+  const startCall = async (
+    contact: CallMember,
+    serviceType: "voice-call" | "video-call",
+  ) => {
+    chatContact.value = contact;
+    await syncMediaSettings(serviceType);
+    await router.push(`/dashboard/chat/${contact.id}/call`);
+    const withVideo = serviceType === "video-call";
+    await initCall(withVideo);
+  };
+
   return {
     chatContact,
     isActive,
     localStream,
+    startCall,
     remoteStream,
     elapsedTime,
     callMembers,

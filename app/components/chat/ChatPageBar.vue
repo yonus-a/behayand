@@ -1,5 +1,5 @@
 <template>
-    <div class=" w-full">
+    <div class=" relative z-10 w-full">
         <div v-if="selectedChat"
             class=" h-16 w-full z-50 md:h-20 gap-x-4 relative bg-surface border-b border-b-outline-variant flex items-center justify-between py-4 px-5">
             <div
@@ -23,8 +23,9 @@
                         <div class="flex relative items-center gap-x-4 transition-all duration-200 ease-in-out"
                             :class="[isSelectMode ? ' pointer-events-none opacity-0' : ' opacity-100 pointer-events-auto']">
                             <div class="  hidden md:block">
-                                <BIcon icon="PhPhone" v-if="selectedChat.serviceType !== 'chat'"
-                                    class="w-6 h-6 fill-on-surface/50 cursor-pointer" @click="handleAction('call')" />
+                                <BIcon @click="initCall" icon="PhPhone" v-if="selectedChat.serviceType !== 'chat'"
+                                    class="w-6 h-6  cursor-pointer"
+                                    :class="[contact?.isActive ? 'cursor-pointer fill-on-surface/50' : 'fill-on-surface/25 cursor-not-allowed']" />
                             </div>
 
 
@@ -48,13 +49,15 @@
             </div>
             <BIcon @click="goBack" icon="PhArrowLeft" class=" md:hidden fill-on-surface/50 w-6 h-6 cursor-pointer" />
         </div>
-        <div class=" transition-all duration-200 ease-in-out overflow-hidden whitespace-nowrap text-wrap bg-primary"
-            :class="[callData.show ? ' h-11' : 'h-0']">
-            <div class=" w-full flex items-center gap-x-3 transition-all duration-200 ease-in-out"
-                :class="[callData.show ? 'opacity-100' : 'opacity-0']">
-                <BIcon class=" fill-white cursor-pointer w-5 shrink-0 h-5" icon="PhPhoneCall" />
-                <div class=" flex-1 text-white select-none text-label-md">{{ callData.duration }}</div>
-                <BIcon class=" fill-white cursor-pointer w-5 shrink-0 h-5" icon="PhFrameCorners" />
+        <div class=" w-full  absolute bottom-0 z-200 h-0 overflow-visible">
+            <div class=" w-full flex items-center  transition-all duration-200 ease-in-out overflow-hidden whitespace-nowrap text-wrap px-2 bg-diamond-primary-secondary"
+                :class="[callData.show ? ' h-11' : 'h-0']">
+                <div class=" w-full flex items-center gap-x-3 transition-all duration-200 ease-in-out"
+                    :class="[callData.show ? 'opacity-100' : 'opacity-0']">
+                    <BIcon class=" fill-white  w-5 shrink-0 h-5" icon="PhPhoneCall" />
+                    <div class=" flex-1 text-white select-none text-label-md">{{ callData.duration }}</div>
+                    <BIcon class=" fill-white cursor-pointer w-5 shrink-0 h-5" @click="backToCall" icon="PhFrameCorners" />
+                </div>
             </div>
         </div>
     </div>
@@ -209,11 +212,23 @@ export default defineComponent({
             }
         })
 
+        const initCall = () => {
+            console.log('fuck')
+            if (props.contact?.isActive) {
+                callStore.startCall(props.contact, props.contact.serviceType)
+            }
+        }
+
+        const backToCall = () => {
+            router.push(`/dashboard/chat/${callStore.chatContact?.id}/call`);
+        }
+
         return {
             t,
             copy,
             selectedChat,
             callData,
+            backToCall,
             formatRelativeDate,
             deleteMessages,
             actions,
@@ -227,6 +242,7 @@ export default defineComponent({
             openProfile,
             handleSelect,
             menuMode,
+            initCall,
         };
     }
 })
