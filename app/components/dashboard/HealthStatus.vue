@@ -21,7 +21,7 @@
 
         <div v-if="!noData" class="flex items-end justify-between px-2 md:px-4 mt-2">
             <div class="flex flex-col gap-y-1">
-                <div v-loading="isLoading" class="text-head-sm font-bold" :class="`text-${activeColor}`">
+                <div v-loading="isLoading" class="text-head-sm select-none font-bold" :class="`text-${activeColor}`">
                     {{ t(`dashboard.cards.status.${healthState}`) }}
                 </div>
 

@@ -1,6 +1,6 @@
 <template>
     <div v-if="callStore.isActive && callStore.isPiP" ref="pipContainer" :style="clampedStyle"
-        class="fixed max-w-[80vw] w-99 h-57.5 bg-black-600 rounded-2xl shadow-floating z-9999 overflow-hidden border border-white/10 flex flex-col items-center justify-center cursor-move touch-none"
+        class="fixed  w-70 h-40 bg-black-600 rounded-2xl shadow-floating z-9999 overflow-hidden border border-white/10 flex flex-col items-center justify-center cursor-move touch-none"
         :class="[!isDragging ? 'transition-all duration-300 ease-out' : '']">
 
         <!-- Video Background Layer -->
@@ -49,8 +49,8 @@ const { width: windowWidth, height: windowHeight } = useWindowSize();
 
 // --- DRAG LOGIC WITH BOUNDARIES & CORNER SNAPPING ---
 // Using the larger dimensions (sm breakpoints) to ensure it never clips off-screen
-const PIP_WIDTH = 396;
-const PIP_HEIGHT = 250;
+const PIP_WIDTH = 280;
+const PIP_HEIGHT = 160;
 const PADDING = 16;
 
 // 1. Initialize Draggable
