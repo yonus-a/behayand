@@ -1,15 +1,16 @@
 <template>
-    <div
-        class=" fixed top-0 left-0 md:w-full w-dvw md:absolute h-dvh md:backdrop-blur-none md:bg-transparent bg-on-surface/10 backdrop-blur-lg md:h-0 overflow-visible z-20">
+    <div class=" pointer-events-none fixed top-0 left-0 md:w-full w-dvw md:absolute h-dvh md:backdrop-blur-none md:bg-transparent bg-on-surface/10 backdrop-blur-lg md:h-0 overflow-visible z-20"
+        :class="[isOpen ? 'backdrop-blur-lg' : ' backdrop-blur-none']">
         <div
-            class=" md:-translate-y-full md:pb-4 md:block flex flex-col justify-between md:py-0 py-26 items-center md:h-auto h-full md:pr-4">
+            class=" md:-translate-y-full pointer-events-none md:pb-4 md:block flex flex-col justify-between md:py-0 py-26 items-center md:h-auto h-full md:pr-4">
             <div class=" md:hidden"></div>
-            <div class=" transition-all duration-200 ease-in-out"
-                :class="[isOpen ? ' opacity-100 scale-100 translate-y-0' : ' scale-0 opacity-0 translate-y-1/4']">
+            <div class=" transition-all duration-200 ease-in-out "
+                :class="[isOpen ? ' opacity-100 scale-100 pointer-events-auto translate-y-0' : ' pointer-events-none scale-0 opacity-0 translate-y-1/4']">
                 <BubbleVideo mode="recording" :stream="stream" :is-paused="isPaused" :recording-time="recordingTime"
                     :max-duration="60" />
             </div>
-            <div class=" md:hidden px-4 py-3 flex items-center gap-x-6 rounded-full bg-surface shadow-floating">
+            <div class=" md:hidden px-4 py-3 flex items-center gap-x-6 rounded-full bg-surface shadow-floating origin-bottom"
+                :class="[isOpen ? ' opacity-100 scale-100 pointer-events-auto translate-y-0' : ' pointer-events-none scale-0 opacity-0 translate-y-1/4']">
                 <BIcon v-for="option in mobileOptions" :key="option.key" :icon="option.icon"
                     @click="handleOption(option.key)" class=" w-6 h-6 fill-on-surface"
                     :class="[option.disabled ? ' opacity-50 cursor-not-allowed' : 'cursor-pointer opacity-100']" />

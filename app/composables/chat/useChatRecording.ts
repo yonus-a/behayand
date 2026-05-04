@@ -16,6 +16,30 @@ export function useChatRecording(
   const recordingTime = ref(0);
   let timerInterval: ReturnType<typeof setInterval> | null = null;
 
+  const mediaStream = ref<MediaStream | null>(null);
+  const currentFacingMode = ref<"user" | "environment">("user");
+
+  const toggleCamera = async () => {
+    if (!mediaStream.value || !isRecording.value) return;
+    currentFacingMode.value =
+      currentFacingMode.value === "user" ? "environment" : "user";
+
+    const oldTrack = mediaStream.value.getVideoTracks()[0];
+    if (oldTrack) oldTrack.stop();
+
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: currentFacingMode.value },
+      });
+      if (mediaStream.value && newStream.getVideoTracks()[0]) {
+        mediaStream.value.removeTrack(oldTrack);
+        mediaStream.value.addTrack(newStream.getVideoTracks()[0]);
+      }
+    } catch (err) {
+      console.error("Failed to flip camera:", err);
+    }
+  };
+
   // Drag State
   const isDragging = ref(false);
   const startX = ref(0);
@@ -59,6 +83,11 @@ export function useChatRecording(
 
   const stopRecording = (triggerSend = false) => {
     if (timerInterval) clearInterval(timerInterval);
+
+    if (mediaStream.value) {
+      mediaStream.value.getTracks().forEach((t) => t.stop());
+      mediaStream.value = null;
+    }
     isRecording.value = false;
     isLocked.value = false;
     isPaused.value = false;
@@ -94,6 +123,15 @@ export function useChatRecording(
         recordingTime.value = 0;
         callbacks.onStart();
         timerInterval = setInterval(() => recordingTime.value++, 1000);
+
+        try {
+          mediaStream.value = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: currentFacingMode.value },
+            audio: true,
+          });
+        } catch (err) {
+          console.error("Stream failed", err);
+        }
       }
     }, 400);
   };
@@ -151,6 +189,8 @@ export function useChatRecording(
     cancelOpacity,
     isLongPress,
     onPointerDown,
+    mediaStream,
+    toggleCamera,
     togglePause,
     stopRecording,
   };
