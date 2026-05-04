@@ -59,6 +59,10 @@ export default defineComponent({
         overlay: { type: Boolean, default: false },
         autoClose: {
             type: Boolean, default: false,
+        },
+        align: {
+            type: String as PropType<'left' | 'right' | 'top' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>,
+            default: null
         }
     },
     emits: ['select', 'open', 'close'],
@@ -129,16 +133,21 @@ export default defineComponent({
 
         const panelPositionStyles = computed(() => {
             const isVisible = isOpen.value;
+
+            // Determine effective alignment (prop override vs auto-calculation)
+            const v = props.align?.includes('top') ? 'top' : props.align?.includes('bottom') ? 'bottom' : verticalAlign.value;
+            const h = props.align?.includes('left') ? 'left' : props.align?.includes('right') ? 'right' : horizontalAlign.value;
+
             const styles: any = {
                 opacity: isVisible ? '1' : '0',
                 pointerEvents: isVisible ? 'auto' : 'none',
-                // REMOVE height: isVisible ? 'auto' : '0',
-                visibility: isVisible ? 'visible' : 'hidden', // Added for better screen reader/layout handling
+                visibility: isVisible ? 'visible' : 'hidden',
                 whiteSpace: 'nowrap',
                 position: 'absolute'
             };
 
-            if (verticalAlign.value === 'bottom') {
+            // Vertical Positioning
+            if (v === 'bottom') {
                 styles.top = '100%';
                 styles.bottom = 'auto';
                 styles.transform = isVisible ? 'translateY(12px)' : 'translateY(0px)';
@@ -148,8 +157,8 @@ export default defineComponent({
                 styles.transform = isVisible ? 'translateY(-12px)' : 'translateY(0px)';
             }
 
-            // Dynamic Horizontal Positioning
-            if (horizontalAlign.value === 'left') {
+            // Horizontal Positioning
+            if (h === 'left') {
                 styles.left = '0';
                 styles.right = 'auto';
             } else {

@@ -27,6 +27,15 @@
         </div>
         <div
             class=" w-full h-21 bg-black-600 flex justify-center gap-x-1.5 sm:gap-x-3 items-center  border-t border-t-[#2C2C2E]">
+
+            <CallBoard>
+                <template #trigger="{ isOpen }">
+                    <div class="w-9 sm:w-12 transition-all duration-200 aspect-square rounded-full flex items-center justify-center"
+                        :class="[isOpen ? 'bg-white' : 'bg-black-500']">
+                        <BIcon :icon="isOpen ? 'PhX':'PhPalette'" :class="[isOpen ? 'fill-black-500' : 'fill-white']" />
+                    </div>
+                </template>
+            </CallBoard>
             <div class="  w-9 sm:w-12  transition-all duration-200 ease-in-out aspect-square rounded-full flex items-center justify-center"
                 :class="[option.isActive ? ' bg-white cursor-pointer' : (option.hasErrors ? 'bg-error-900 cursor-not-allowed' : 'cursor-pointer bg-black-500')]"
                 @click="handleOptions(option.key)" v-for="option in optionButtons" :key="option.key">
@@ -47,6 +56,8 @@ import { useI18n, useCallStore, useWindowSize, useAppPermissions, useDevice } fr
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router';
 import CallMemberDisplay from './CallMemberDisplay.vue';
 import { formatDuration } from '@/utils/format'
+import CallPaintBoard from './CallPaintBoard.vue';
+import CallBoard from './CallBoard.vue';
 export default defineComponent({
     name: 'CallPageOverlay',
     props: {
@@ -58,6 +69,7 @@ export default defineComponent({
     },
     components: {
         CallMemberDisplay,
+        CallBoard,
     },
     setup(props) {
         const router = useRouter()
@@ -68,6 +80,9 @@ export default defineComponent({
         const { requestWithPopup, checkMediaStatus } = useAppPermissions()
         const chatId = computed(() => Number(route.params.id))
         const { hardware } = useDevice();
+        const isBoardOpen = ref(false)
+        const boardIcon = computed(() => isBoardOpen.value ? 'PhX' : 'PhPencilCircle')
+
         const chatContact = computed(() => {
             return callStore.chatContact
         })
@@ -151,10 +166,10 @@ export default defineComponent({
                 key: 'share-screen',
                 isActive: callStore.isSharingScreen
             },
-            {
-                icon: 'PhUserPlus',
-                key: 'add-user'
-            },
+            //  {
+            //      icon: 'PhUserPlus',
+            //      key: 'add-user'
+            //  },
             {
                 icon: callStore.isSoundMuted ? 'PhSpeakerSlash' : 'PhSpeakerHigh',
                 key: 'toggle-sound'
@@ -304,6 +319,8 @@ export default defineComponent({
             fullScreenId,
             callTimeDisplay,
             toggleFullScreen,
+            isBoardOpen,
+            boardIcon,
         }
     }
 })

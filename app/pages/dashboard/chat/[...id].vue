@@ -16,7 +16,7 @@
         </div>
         <CallPageOverlay v-else-if="isCallMode && selectedChat" :contact="selectedChat" />
         <PatientReferral ref="patientRefferal" :contact="selectedChat" />
-        <<PermissionPopup />
+        <PermissionPopup />
     </div>
 </template>
 <script lang="ts">
