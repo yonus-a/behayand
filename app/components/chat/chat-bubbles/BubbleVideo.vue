@@ -2,9 +2,9 @@
     <div class="relative w-60.5 h-60.5 p-2 shrink-0 group select-none flex items-center justify-center">
 
         <svg class="absolute w-57.5 h-57.5 -rotate-90 pointer-events-none z-20" viewBox="0 0 230 230">
-            <circle cx="115" cy="115" r="113" 
-                :class="[isUploading ? 'stroke-white/30' : 'stroke-white dark:stroke-surface']" 
-                stroke-width="4" fill="none" />
+            <circle cx="115" cy="115" r="113"
+                :class="[isUploading ? 'stroke-white/30' : 'stroke-white dark:stroke-surface']" stroke-width="4"
+                fill="none" />
 
             <circle cx="115" cy="115" r="113" class="stroke-primary transition-all ease-linear"
                 :class="[isPlaying || isUploading ? 'duration-200' : 'duration-75']" stroke-width="4" fill="none"
@@ -67,14 +67,17 @@ export default defineComponent({
             type: Object as PropType<MediaStream | null>,
             default: null
         },
-        messageId: { 
-            type: Number, 
-            required: false 
+        messageId: {
+            type: Number,
+            required: false
         },
-        isSent: { 
-            type: Boolean, 
-            default: true 
-        }
+        isSent: {
+            type: Boolean,
+            default: true
+        },
+        isPaused: { type: Boolean, default: false },
+        recordingTime: { type: Number, default: 0 },
+        maxDuration: { type: Number, default: 60 }
     },
     setup(props) {
         const chatActionStore = useChatActionStore();
@@ -90,15 +93,18 @@ export default defineComponent({
         // --- SVG Math ---
         const circumference = 2 * Math.PI * 115;
         const dashOffset = computed(() => {
-            // 1. If uploading, map the dash to the store's upload progress
+            // Uploading progress
             if (isUploading.value && uploadData.value) {
                 return circumference - (uploadData.value.progress / 100) * circumference;
             }
-            
-            // 2. If recording, fill the circle completely to show camera is active
-            if (props.mode === 'recording') return 0;
 
-            // 3. Otherwise, map to the standard video playback progress
+            // NEW: Live recording 60s progress
+            if (props.mode === 'recording') {
+                const progressPercent = Math.min((props.recordingTime / props.maxDuration) * 100, 100);
+                return circumference - (progressPercent / 100) * circumference;
+            }
+
+            // Playback progress
             return circumference - (progress.value / 100) * circumference;
         });
 
@@ -136,12 +142,22 @@ export default defineComponent({
             if (props.mode === 'recording' && videoRef.value) {
                 if (newStream) {
                     videoRef.value.srcObject = newStream;
-                    videoRef.value.play(); 
+                    videoRef.value.play();
                 } else {
                     videoRef.value.srcObject = null;
                 }
             }
         }, { immediate: true });
+
+        watch(() => props.isPaused, (paused) => {
+            if (props.mode === 'recording' && videoRef.value && videoRef.value.srcObject) {
+                if (paused) {
+                    videoRef.value.pause();
+                } else {
+                    videoRef.value.play();
+                }
+            }
+        });
 
         onBeforeUnmount(() => {
             if (videoRef.value) {

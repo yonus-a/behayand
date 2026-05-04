@@ -331,6 +331,8 @@ export default defineComponent({
         };
 
         const fetchMessages = async (page: number) => {
+                        console.log('fuck')
+
             if (isLoading.value || page > maxPages) return;
             isLoading.value = true;
             await new Promise(resolve => setTimeout(resolve, 800));

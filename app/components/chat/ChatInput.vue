@@ -1,8 +1,10 @@
 <template>
-    <div dir="rtl" class=" w-full">
+    <div dir="rtl" class=" w-full relative">
+        <VideoRecordDisplay ref="videoDisplayRef" :stream="mediaStream" :is-paused="isPaused"
+            :recording-time="currentRecordingSeconds" @flip-camera="handleFlipCamera" />
         <div>
             <div :class="[textMode !== 'normal' ? ' h-10' : 'h-0']"
-                class=" gap-x-3 px-3 w-full whitespace-nowrap overflow-hidden border-t select-none text-body-sm border-t-outline-variant flex justify-between items-center transition-all duration-200 ease-in-out bg-surface">
+                class=" gap-x-3 px-3 w-full whitespace-nowrap overflow-hidden border-t select-none text-body-sm border-t-outline-variant flex relative z-30 justify-between items-center transition-all duration-200 ease-in-out bg-surface">
                 <BIcon :icon="textMode === 'edit' ? 'PhPencilSimpleLine' : 'PhArrowBendUpLeft'"
                     class=" w-5 h-5 fill-on-surface shrink-0" />
                 <div class=" flex-1 flex items-center gap-x-2">
@@ -19,7 +21,7 @@
         </div>
         <div @contextmenu.prevent ref="rootElements"
             :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
-            class=" transition-all duration-200 ease-in-out min-h-19 py-4 w-full bg-surface flex items-end border-t border-t-outline-variant gap-x-5 relative overflow-visible select-none ">
+            class=" transition-all duration-200 ease-in-out min-h-19 py-4 w-full bg-surface flex items-end border-t border-t-outline-variant gap-x-5 relative z-40 overflow-visible select-none ">
 
             <div class="relative flex items-center justify-center shrink-0 z-30 mb-0.5" :style="{
                 transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)`,
@@ -92,10 +94,9 @@
                 <div class=" flex justify-center items-center text-body-md text-on-surface/70 transition-opacity"
                     :style="{ opacity: cancelOpacity }">
                     <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
-                    <span v-else class="text-primary  cursor-pointer px-4  z-20"
-                        @click="cancelRecording">{{
-                            t('chat.cancel')
-                        }}</span>
+                    <span v-else class="text-primary  cursor-pointer px-4  z-20" @click="cancelRecording">{{
+                        t('chat.cancel')
+                    }}</span>
                 </div>
 
                 <div class=" left-6 flex items-center  gap-x-2 shrink-0 z-10">
@@ -105,11 +106,11 @@
                     </div>
                     <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
                         formattedTime
-                    }}</span>
+                        }}</span>
                 </div>
             </div>
         </div>
-        <div class="md:hidden w-full transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] overflow-hidden"
+        <div class="md:hidden w-full transition-all relative z-30 duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] overflow-hidden"
             :class="showMobileEmojiPicker ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0'">
             <BEmojiPicker @select="handleEmojiSelect" />
         </div>
@@ -127,9 +128,10 @@ import { useRoute } from 'vue-router';
 import type { ExtendedMessage, Message } from '~/types/chat';
 import SafeEmojiText from '../general/SafeEmojiText.vue';
 import { parseEmojiArray } from '~/utils/emojiParser';
+import VideoRecordDisplay from './chat-input/VideoRecordDisplay.vue';
 export default defineComponent({
     name: 'ChatInput',
-    components: { InputAttachement, SafeEmojiText },
+    components: { InputAttachement, SafeEmojiText, VideoRecordDisplay },
     props: { isActive: { type: Boolean, default: false } },
     emits: ['send', 'edit'],
     setup(props, { expose, emit }) {
@@ -141,6 +143,7 @@ export default defineComponent({
         const savedRange = ref<Range | null>(null);
 
         const textMode = ref<'normal' | 'edit' | 'reply'>('normal');
+        const inputWidth = computed(() => rootElements.value?.clientWidth);
         const editingMessageData = ref<ExtendedMessage | null>(null); // Replace 'any' with ExtendedMessage if imported
         const replyingToMessageData = ref<ExtendedMessage | null>(null);
 
@@ -148,6 +151,44 @@ export default defineComponent({
         // const saveEdit = chatActionStore.saveEdit;
 
 
+        const videoDisplayRef = ref<any>(null);
+
+        const recording = useChatRecording(inputWidth, {
+            onStart: () => {
+                if (secondaryMessageType.value === 'video') videoDisplayRef.value?.open();
+            },
+            onCancel: () => {
+                if (secondaryMessageType.value === 'video') videoDisplayRef.value?.close();
+            },
+            onSend: ((mediaUrl?: string) => {
+                const finalUrl = mediaUrl || 'placeholder';
+                const msg = createBaseMessage();
+                msg.type = secondaryMessageType.value as any;
+                if (msg.type === 'voice') msg.voiceUrl = finalUrl;
+                if (msg.type === 'video' as any) msg.videoUrl = finalUrl;
+
+                chatActionStore.sendMessage([msg]);
+                chatActionStore.clearActions();
+
+                // Auto-close on send
+                if (secondaryMessageType.value === 'video') videoDisplayRef.value?.close();
+            }) as () => void,
+            requestPermission: async () => await ensurePermissions()
+        });
+
+        // Parse formattedTime ("00:15") into exact seconds
+        const currentRecordingSeconds = computed(() => {
+            if (!recording.formattedTime.value) return 0;
+            const [minutes, seconds] = recording.formattedTime.value.split(':').map(Number);
+            return (minutes * 60) + (seconds || 0);
+        });
+
+        // Force-send at 60 seconds
+        watch(currentRecordingSeconds, (sec) => {
+            if (sec >= 60 && recording.isRecording.value) {
+                recording.stopRecording(true); // true = send
+            }
+        });
 
 
         const handleEditMessage = (msg: ExtendedMessage) => {
@@ -191,27 +232,11 @@ export default defineComponent({
         // State
         const messageText = ref('');
         const secondaryMessageType = ref<'video' | 'voice'>('voice');
-        const inputWidth = computed(() => rootElements.value?.clientWidth);
 
         //const { requestMediaAccess, checkMediaStatus } = useAppPermissions();
 
 
-        const recording = useChatRecording(inputWidth, {
-            onStart: () => console.log('Recording Started'),
-            onCancel: () => console.log('Recording Canceled'),
-            onSend: ((mediaUrl?: string) => {
-                const finalUrl = mediaUrl || 'placeholder';
-                const msg = createBaseMessage();
-                msg.type = secondaryMessageType.value as any;
-                if (msg.type === 'voice') msg.voiceUrl = finalUrl;
-                if (msg.type === 'video' as any) msg.videoUrl = finalUrl;
 
-                // Call Store directly!
-                chatActionStore.sendMessage([msg]);
-                chatActionStore.clearActions();
-            }) as () => void,
-            requestPermission: async () => await ensurePermissions()
-        });
 
         // --- Permission Flow ---
         let permissionResolver: ((value: boolean) => void) | null = null;
@@ -478,6 +503,14 @@ export default defineComponent({
             }
         };
 
+        const handleFlipCamera = () => {
+            if (typeof (recording as any).toggleCamera === 'function') {
+                (recording as any).toggleCamera();
+            } else {
+                console.warn("Camera flip requested, but toggleCamera method is missing in useChatRecording");
+            }
+        };
+
 
         return {
             t, rootElements, inputRef, menuRef, messageText, handlePopupCancel,
@@ -501,9 +534,11 @@ export default defineComponent({
             showMobileEmojiPicker,
             onInputFocus,
             handleContentInput,
+            handleFlipCamera,
+            videoDisplayRef,
+            currentRecordingSeconds,
             saveCursorPosition,
             toggleMobileEmoji,
-
             ...recording // Spreads all the recording refs (isRecording, dragOffset, formattedTime, etc.) to the template
         };
     }
