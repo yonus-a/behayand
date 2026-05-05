@@ -181,7 +181,11 @@ export default defineComponent({
             if (props.ignoreGlobal) return;
             if (newId !== instanceId) isOpen.value = false;
         });
-        useClickOutside(menuWrapper, closeMenu);
+        useClickOutside(menuWrapper, () => {
+            if (props.autoClose) {
+                closeMenu()
+            }
+        });
         const handleSelect = (key: string) => { emit('select', key); closeMenu(); };
         const getColorClass = (color?: string) => {
             switch (color) {
