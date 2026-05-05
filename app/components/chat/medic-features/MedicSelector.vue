@@ -5,7 +5,8 @@
         <slot name="trigger" />
     </div>
     <!-- DESKTOP FLOW -->
-    <BMenu v-else ref="menuRef" :options="displayOptions" @select="handleSelect" @close="resetMenuMode">
+    <BMenu :auto-close="!isMenuOpenned" @open="handleMenuState(true)" v-else ref="menuRef" :options="displayOptions"
+        @select="handleSelect" @close="resetMenuMode">
         <template #trigger>
             <!-- Change to named slot -->
             <slot name="trigger" />
@@ -16,7 +17,7 @@
             <MedicSelectorContent @close="closeAll" />
         </div>
     </BMenu>
-    <BPopup ref="popupRef" >
+    <BPopup ref="popupRef">
         <MedicSelectorContent @close="closeAll" />
     </BPopup>
 </template>
@@ -44,6 +45,7 @@ export default defineComponent({
         const { t } = useI18n();
         const popupRef = ref<Popup | null>(null);
         const menuRef = ref<Menu | null>(null);
+        const isMenuOpenned = ref(false)
         const { width } = useWindowSize();
         const isTransitioning = ref(false);
 
@@ -53,6 +55,10 @@ export default defineComponent({
         );
 
         const isMobile = computed(() => width.value < 768);
+
+        const handleMenuState = (isOpen: boolean) => {
+            isMenuOpenned.value = isOpen;
+        }
 
         const handleSelect = (key: string) => {
             if (key === 'add-user') {
@@ -80,6 +86,7 @@ export default defineComponent({
             if (isTransitioning.value) return;
             setTimeout(() => {
                 // Reset to initial mode
+                handleMenuState(false)
                 internalMenuMode.value = (props.mode === 'medic' || props.options.length === 0) ? 'medic' : 'options';
             }, 300);
         };
@@ -99,7 +106,9 @@ export default defineComponent({
 
         return {
             isMobile, handleMobileClick, displayOptions, popupRef, menuRef,
-            closeAll, t, internalMenuMode, handleSelect, resetMenuMode
+            closeAll, t, internalMenuMode, handleSelect, resetMenuMode,
+            handleMenuState,
+            isMenuOpenned,
         };
     }
 });

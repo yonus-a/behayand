@@ -126,6 +126,7 @@ export default defineComponent({
             if (!isOpen.value) {
                 globalActiveMenuId.value = instanceId;
                 isOpen.value = true;
+                emit('open')
                 calculateAlignment(); // Run the logic here
             } else {
                 closeMenu();
