@@ -2,7 +2,7 @@
     <div v-if="isMobile" class="contents" @click="handleMobileClick">
         <slot name="trigger" :isOpen="isPopupOpen" />
     </div>
-    <BMenu :auto-close="false" :align="'top-right'" v-else ref="menuRef">
+    <BMenu ignore-global :auto-close="false" :align="'top-right'" v-else ref="menuRef">
         <template #trigger="{ isOpen }">
             <slot name="trigger" :isOpen="isOpen" />
         </template>
@@ -12,7 +12,7 @@
             <CallPaintBoard @close="closeAll" />
         </div>
     </BMenu>
-    <BPopup ref="popupRef" @close="isPopupOpen = false">
+    <BPopup no-padding ref="popupRef" @close="isPopupOpen = false">
         <!-- CHANGE: Render the Content component, not yourself -->
         <CallPaintBoard @close="closeAll" />
     </BPopup>
@@ -24,7 +24,7 @@ import { useWindowSize } from '#imports';
 // CHANGE: Import the Content component specifically
 import type { Menu } from '~/types/components/menu';
 import type { Popup } from '~/types/components/popup';
-import CallPaintBoard from './CallPaintBoard.vue';
+import CallPaintBoard from './paint-board/CallPaintBoard.vue';
 
 export default defineComponent({
     name: 'CallBoard', // CHANGE: Rename to prevent recursion

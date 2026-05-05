@@ -32,7 +32,7 @@
                 <template #trigger="{ isOpen }">
                     <div class="w-9 sm:w-12 transition-all duration-200 aspect-square rounded-full flex items-center justify-center"
                         :class="[isOpen ? 'bg-white' : 'bg-black-500']">
-                        <BIcon :icon="isOpen ? 'PhX':'PhPalette'" :class="[isOpen ? 'fill-black-500' : 'fill-white']" />
+                        <BIcon :icon="isOpen ? 'PhX' : 'PhPalette'" class="sm:w-6 sm:h-6 w-4 h-4" :class="[isOpen ? 'fill-black-500' : 'fill-white']" />
                     </div>
                 </template>
             </CallBoard>
@@ -56,7 +56,6 @@ import { useI18n, useCallStore, useWindowSize, useAppPermissions, useDevice } fr
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router';
 import CallMemberDisplay from './CallMemberDisplay.vue';
 import { formatDuration } from '@/utils/format'
-import CallPaintBoard from './CallPaintBoard.vue';
 import CallBoard from './CallBoard.vue';
 export default defineComponent({
     name: 'CallPageOverlay',
@@ -157,10 +156,10 @@ export default defineComponent({
         const callMembers = computed(() => callStore.callMembers)
 
         const optionButtons = computed(() => [
-            {
-                icon: 'PhX',
-                key: 'minimize-call'
-            },
+            //   {
+            //       icon: 'PhX',
+            //       key: 'minimize-call'
+            //   },
             {
                 icon: 'PhMonitorArrowUp',
                 key: 'share-screen',

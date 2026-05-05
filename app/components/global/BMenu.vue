@@ -63,7 +63,8 @@ export default defineComponent({
         align: {
             type: String as PropType<'left' | 'right' | 'top' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>,
             default: null
-        }
+        },
+        ignoreGlobal: { type: Boolean, default: false },
     },
     emits: ['select', 'open', 'close'],
     setup(props, { emit, expose }) {
@@ -176,7 +177,10 @@ export default defineComponent({
             if (globalActiveMenuId.value === instanceId) globalActiveMenuId.value = null;
         };
 
-        watch(globalActiveMenuId, (newId) => { if (newId !== instanceId) isOpen.value = false; });
+        watch(globalActiveMenuId, (newId) => {
+            if (props.ignoreGlobal) return;
+            if (newId !== instanceId) isOpen.value = false;
+        });
         useClickOutside(menuWrapper, closeMenu);
         const handleSelect = (key: string) => { emit('select', key); closeMenu(); };
         const getColorClass = (color?: string) => {

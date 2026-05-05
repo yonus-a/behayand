@@ -112,7 +112,7 @@
 </template>
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onBeforeUnmount, watch, type PropType, nextTick } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n, useChatActionStore, useChatStore, useDate, useProfileStore } from '#imports';
 import { useVirtualizer } from '@tanstack/vue-virtual';
 import ChatBubble from './ChatBubble.vue';
@@ -125,10 +125,9 @@ import type { MenuOption } from '~/types/components/menu-options';
 import MedicSelector from './medic-features/MedicSelector.vue';
 import type { Menu } from '~/types/components/menu';
 import { useEventBus } from '@vueuse/core';
-import PatientReferral from './PatientReferral.vue';
 export default defineComponent({
     name: 'ChatMessages',
-    components: { ChatBubble, NoDataDisplay, MedicSelector, PatientReferral },
+    components: { ChatBubble, NoDataDisplay, MedicSelector },
     props: {
         contact: {
             type: Object as PropType<Contact | null>,
@@ -145,12 +144,30 @@ export default defineComponent({
         const modal = ref<Modal | null>(null);
         const profileStore = useProfileStore();
         const route = useRoute();
+        const router = useRouter()
         const chatStore = useChatStore();
         const { t } = useI18n();
         const chatActionStore = useChatActionStore();
         const { formatDateShort } = useDate();
         const chatId = computed(() => parseInt(route.params.id as string))
 
+        const handleGlobalKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                back();
+            }
+        };
+
+        const back = ()=>{
+            router.push('/dashboard/chat')
+        }
+
+        onMounted(() => {
+            window.addEventListener('keydown', handleGlobalKeyDown);
+        });
+
+        onUnmounted(() => {
+            window.removeEventListener('keydown', handleGlobalKeyDown);
+        });
 
 
         const referBus = useEventBus('open-referral');
@@ -331,7 +348,7 @@ export default defineComponent({
         };
 
         const fetchMessages = async (page: number) => {
-                        console.log('fuck')
+            console.log('fuck')
 
             if (isLoading.value || page > maxPages) return;
             isLoading.value = true;
