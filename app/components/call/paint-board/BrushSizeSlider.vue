@@ -1,6 +1,6 @@
 <template>
     <div dir="ltr" ref="sliderRef"
-        class="relative w-12 h-44 bg-white rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.1)] flex justify-center touch-none select-none overflow-visible cursor-pointer"
+        class="relative w-12 h-44 bg-surface rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.1)] flex justify-center touch-none select-none overflow-visible cursor-pointer"
         @pointerdown.stop.prevent="startDrag">
 
         <!-- Tapered Track (Thin at top, thick at bottom) -->

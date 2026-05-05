@@ -24,7 +24,7 @@
                         <template #trigger>
                             <div
                                 class="rounded-full gap-x-2.5 p-2.5 flex items-center justify-center cursor-pointer bg-surface-variant relative h-11">
-                                <div class=" text-label-sm select-none">+{{ pages.length - 1 }}</div>
+                                <div class=" text-label-sm text-on-surface select-none">+{{ pages.length - 1 }}</div>
                                 <BIcon icon="PhFiles" class=" fill-on-surface w-6 h-6" />
                             </div>
                         </template>
