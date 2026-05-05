@@ -1,8 +1,9 @@
 <template>
-    <div v-if="isMobile" class="contents" @click="handleMobileClick">
+    <div v-show="isMobile" class="contents" @click="handleMobileClick">
         <slot name="trigger" :isOpen="isPopupOpen" />
     </div>
-    <BMenu ignore-global :auto-close="false" :align="'top-right'" v-else ref="menuRef">
+    <BMenu ignore-global 
+        :align="'top-right'" v-show="!isMobile" ref="menuRef">
         <template #trigger="{ isOpen }">
             <slot name="trigger" :isOpen="isOpen" />
         </template>
@@ -39,6 +40,10 @@ export default defineComponent({
         const { width } = useWindowSize();
         const isMobile = computed(() => width.value < 768);
 
+        const handleMenuState = (open: boolean) => {
+            isMenuOpen.value = open;
+        }
+
         const handleMobileClick = () => {
             isPopupOpen.value = true;
             popupRef.value?.open();
@@ -51,7 +56,7 @@ export default defineComponent({
             emit('close'); // Forward the close event if needed
         };
 
-        return { isMobile, isPopupOpen, handleMobileClick, closeAll, popupRef, menuRef };
+        return { isMobile, isPopupOpen, isMenuOpen, handleMenuState, handleMobileClick, closeAll, popupRef, menuRef };
     }
 });
 </script>

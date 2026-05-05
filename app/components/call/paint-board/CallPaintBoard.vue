@@ -40,7 +40,7 @@
                         <BIcon icon="PhEraser" class="w-6 h-6 fill-on-surface" />
                     </div>
                     <!-- VERTICAL BRUSH SIZE SLIDER IN BMENU -->
-                    <BMenu align="top" :autoClose="false">
+                    <BMenu align="top">
                         <template #trigger="{ isOpen }">
                             <div
                                 class="aspect-square w-11 rounded-full flex items-center justify-center cursor-pointer bg-surface-variant">
@@ -112,17 +112,24 @@ export default defineComponent({
         const resizeCanvas = () => {
             const canvas = canvasRef.value;
             if (!canvas) return;
+
+            // Prevent resizing to 0x0 if the menu is closed/hidden
+            if (canvas.offsetWidth === 0 || canvas.offsetHeight === 0) return;
+
             const ratio = Math.max(window.devicePixelRatio || 1, 1);
             canvas.width = canvas.offsetWidth * ratio;
             canvas.height = canvas.offsetHeight * ratio;
             canvas.getContext("2d")?.scale(ratio, ratio);
 
-            // Restore drawing after resize
-            if (signaturePadInstance && history.value.length > 0) {
-                signaturePadInstance.fromData(history.value);
+            if (signaturePadInstance) {
+                if (history.value.length > 0) {
+                    signaturePadInstance.fromData(history.value);
+                } else {
+                    // Crucial: Re-apply the white background color after resizing
+                    signaturePadInstance.clear();
+                }
             }
         };
-
         onMounted(async () => {
             const SignaturePadModule = await import('signature_pad');
             const SignaturePad = SignaturePadModule.default;
@@ -144,6 +151,7 @@ export default defineComponent({
                 });
             }
         });
+
 
         onBeforeUnmount(() => {
             stopStreaming();
@@ -294,9 +302,10 @@ export default defineComponent({
 
         watch(() => props.isOpen, (val) => {
             if (val) {
-                nextTick(() => {
+                setTimeout(() => {
+                    resizeCanvas();
                     startStreaming();
-                });
+                }, 50);
             } else {
                 callStore.stopScreenShare();
             }

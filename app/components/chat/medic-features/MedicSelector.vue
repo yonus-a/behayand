@@ -5,7 +5,7 @@
         <slot name="trigger" />
     </div>
     <!-- DESKTOP FLOW -->
-    <BMenu :auto-close="!isMenuOpenned" @open="handleMenuState(true)" v-else ref="menuRef" :options="displayOptions"
+    <BMenu @open="handleMenuState(true)" v-else ref="menuRef" :auto-close :options="displayOptions"
         @select="handleSelect" @close="resetMenuMode">
         <template #trigger>
             <!-- Change to named slot -->

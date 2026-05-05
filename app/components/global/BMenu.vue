@@ -1,5 +1,5 @@
 <template>
-    <div ref="menuWrapper" class="relative">
+    <div ref="menuWrapper" id="menu" class="relative">
         <div @click.stop="toggleMenu" class="cursor-pointer relative" :class="[overlay ? 'z-10001' : '']">
             <slot name="trigger" :isOpen="isOpen" />
         </div>
@@ -75,18 +75,7 @@ export default defineComponent({
         const slots = useSlots(); // Add this
 
         const hasCustomContent = computed(() => {
-            if (!slots.default) return false;
-
-            const checkNodes = (nodes: any[]): boolean => {
-                return nodes.some(node => {
-                    if (node.type === Comment) return false;
-                    if (node.type === Fragment && Array.isArray(node.children)) return checkNodes(node.children);
-                    if (node.type === Text && typeof node.children === 'string' && !node.children.trim()) return false;
-                    return true;
-                });
-            };
-
-            return checkNodes(slots.default({ isOpen: isOpen.value, close: closeMenu }));
+            return !props.options || props.options.length === 0;
         });
 
 
@@ -182,6 +171,7 @@ export default defineComponent({
             if (props.ignoreGlobal) return;
             if (newId !== instanceId) isOpen.value = false;
         });
+
         useClickOutside(menuWrapper, () => {
             if (props.autoClose) {
                 closeMenu()
@@ -199,9 +189,9 @@ export default defineComponent({
         };
 
         const handleContentClick = () => {
-            if (!hasCustomContent.value || props.autoClose) {
-                closeMenu()
-            }
+            if (hasCustomContent.value) return
+            if (!props.autoClose) return
+            closeMenu()
         }
 
         expose({ open: () => { globalActiveMenuId.value = instanceId; isOpen.value = true; calculateAlignment(); }, close: closeMenu });
