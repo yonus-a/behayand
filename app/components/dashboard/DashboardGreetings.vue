@@ -15,12 +15,18 @@
             </div>
             <div class=" flex items-center gap-x-3">
                 <div v-loading="isLoading" class=" shrink-0 py-0.5 px-3  rounded-lg bg-primary/20">
+
                     <div class=" select-none text-label-sm md:text-label-md text-primary">{{
                         t('dashboard.greetings.imBehno') }}
                     </div>
                 </div>
-                <div v-loading="isLoading" class=" md:block hidden text-label-md select-none text-on-surface/50">{{
-                    t('dashboard.greetings.text') }}
+                <div v-loading="isHealthLoading">
+                    <i18n-t keypath="dashboard.greetings.text" tag="span"
+                        class="md:block hidden text-label-md select-none text-on-surface/50">
+                        <template #state>
+                            <span :class="[healthStateColor]">{{ healthState }}</span>
+                        </template>
+                    </i18n-t>
                 </div>
             </div>
         </div>
@@ -34,7 +40,7 @@ import { defineComponent, computed } from 'vue';
 import { useProfileStore } from '~/stores/profileStore';
 import greetingsImage from '/images/dashboard/greetings.webp'
 import { useI18n } from '#imports';
-import { useStoriesStore } from '#imports';
+import { useStoriesStore, useHealthStore } from '#imports';
 import StoryDisplay from '../layout/dashboard/story/StoryDisplay.vue';
 export default defineComponent({
     name: 'DashboardGreetings',
@@ -44,12 +50,20 @@ export default defineComponent({
     setup() {
         const storiesStore = useStoriesStore()
         const { t } = useI18n()
+        const healthStore = useHealthStore()
         const profileStore = useProfileStore()
         const firstName = computed(() => profileStore.userData.name)
         const isLoading = computed(() => profileStore.isLoading)
-
+        const isHealthLoading = computed(() => healthStore.isGlobalLoading)
         const allStories = computed(() => storiesStore.stories)
 
+        const healthState = computed(() => t(`dashboard.greetings.healthStates.${healthStore.overallStatus}`))
+
+        const healthStateColor = computed(() => {
+            if (healthStore.overallStatus === 'bad') return 'text-error'
+            if (healthStore.overallStatus === 'medium') return 'text-warning'
+            if (healthStore.overallStatus === 'good') return 'text-primary'
+        })
 
 
         return {
@@ -57,7 +71,10 @@ export default defineComponent({
             isLoading,
             greetingsImage,
             firstName,
+            healthStateColor,
+            healthState,
             allStories,
+            isHealthLoading,
         }
     }
 })
