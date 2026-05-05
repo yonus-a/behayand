@@ -178,6 +178,13 @@ export const useNavigation = () => {
       to: prefix("/calendar"),
     },
     {
+      key: "referral",
+      label: t("sidebar.referral"),
+      roles: ["user", "employee"],
+      icon: "PhTreeStructure",
+      to: prefix("/referral"),
+    },
+    {
       key: "financial",
       label: t("sidebar.financial"),
       roles: ["user"],

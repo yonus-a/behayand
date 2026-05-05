@@ -2,8 +2,10 @@
     <div class="flex flex-col max-h-full h-full gap-y-3.5 md:gap-y-6 w-full">
         <DashboardGreetings class=" md:flex hidden" />
 
-        <div v-if="hasData || isLoadingHealthData" class="grid grid-cols-2 lg:grid-cols-4 w-full gap-3 md:gap-4">
-            <HealthStatus v-for="healthState in healthCardProps" :key="healthState" :type="healthState" />
+        <div v-if="hasData || isLoadingHealthData"
+            class="grid grid-cols-2  md:grid-cols-3 w-full gap-3 md:gap-4">
+            <HealthStatus v-for="(healthState, index) in healthCardProps" :key="healthState" :type="healthState"
+                :class="{ 'col-span-2 md:col-span-1': index === 0 }" />
         </div>
         <NoHealthData v-else />
         <div class=" md:grid grid-cols-3 flex flex-col md:gap-y-0 gap-y-3 md:gap-x-4">
@@ -28,7 +30,7 @@ import WalletDisplay from '~/components/dashboard/WalletDisplay.vue';
 import HealthStatus from '~/components/dashboard/HealthStatus.vue';
 import DashboardServices from '~/components/dashboard/DashboardServices.vue';
 import NoHealthData from '~/components/dashboard/NoHealthData.vue';
-const healthCardProps = ['all', 'social', 'physical', 'mental'];
+const healthCardProps = ['social', 'physical', 'mental'];
 const serviceTabTypes = ['consulting', 'special', 'history'];
 const healthStore = useHealthStore()
 const hasData = computed(() => healthStore.hasData)

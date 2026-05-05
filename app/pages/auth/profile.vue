@@ -41,7 +41,8 @@
             <BSelect :disabled="isLoading" :title="t('auth.profile.personalDetails.gender.title')" class=" min-w-full"
                 :placeholder="t('auth.profile.select')" :options="genders" v-model="gender.value" :color="gender.color"
                 :message="gender.message" />
-
+            <BInput v-model="referalCode" :title="t('auth.profile.referalCode')"
+                :placeholder="t('auth.profile.write')" />
             <div class=" flex md:items-start items-end md:flex-auto flex-1 w-full">
                 <BButton :loading="isLoading || isSending" class=" min-w-full" :text="t('auth.profile.submit')"
                     @click="validateFields" :disabled="hasErrors" />
@@ -66,14 +67,16 @@ const hasErrors = ref(false);
 const router = useRouter()
 
 useSeoMeta({
-  title: () => t('seo.auth.profile.title'),
-  description: () => t('seo.auth.profile.description'),
-  ogTitle: () => `${t('seo.siteName')} - ${t('seo.auth.profile.title')}`,
+    title: () => t('seo.auth.profile.title'),
+    description: () => t('seo.auth.profile.description'),
+    ogTitle: () => `${t('seo.siteName')} - ${t('seo.auth.profile.title')}`,
 });
 
 // --- Local Form State ---
 const name = ref({ value: '', color: 'primary', message: '' });
 const lastName = ref({ value: '', color: 'primary', message: '' });
+
+const referalCode = ref('')
 
 const gender = ref({ value: '', color: 'primary', message: '' });
 const birthDay = ref({ value: '', color: 'primary', message: '' });
