@@ -10,6 +10,16 @@
         "bad": "ضعیف"
       }
     },
+    "referral": {
+      "title": "شما یک ارجاع به {field} دارید.",
+      "reserve": "همین الان نوبت بگیرید.",
+      "priority": "اولویت ارجاع :‌ {priority}",
+      "priorities": {
+        "low": "پایین",
+        "medium": "متوسط",
+        "high": "بالا"
+      }
+    },
     "cards": {
       "status": {
         "bad": "ضعیف",

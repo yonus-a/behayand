@@ -35,6 +35,18 @@ export const useProfileStore = defineStore("profile", () => {
     gender: null,
     birthDate: null as Date | null,
     balance: 1000000,
+    referral: {
+      id: 1,
+      date: new Date(),
+      priority: "high",
+      service: {
+        id: 1,
+        label: "پزشک قلب",
+        expertiseLevel: "speciality",
+        fellowships: [],
+        price: 100000,
+      },
+    },
   });
 
   // --- Static Metadata ---
@@ -105,6 +117,18 @@ export const useProfileStore = defineStore("profile", () => {
         imageUrl: "",
         birthDate: new Date("1999-11-25T00:00:00Z"),
         balance: 1000000,
+        referral: {
+          id: 1,
+          date: new Date(),
+          priority: "high",
+          service: {
+            id: 1,
+            label: "پزشک قلب",
+            expertiseLevel: "speciality",
+            fellowships: [],
+            price: 100000,
+          },
+        },
       };
 
       if (userData.value.imageUrl.trim().length === 0) {

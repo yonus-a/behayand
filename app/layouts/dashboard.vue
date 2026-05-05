@@ -3,14 +3,16 @@
         <div class=" md:block hidden shrink-0 h-full">
             <SideBar />
         </div>
-        <div class="flex-1 h-full  flex flex-col min-w-0" :class="[shouldShowBottomNav ? 'md:max-h-[auto] max-h-[calc(100vh-56px)]' : 'max-h-full']">
+        <div class="flex-1 h-full  flex flex-col min-w-0"
+            :class="[shouldShowBottomNav ? 'md:max-h-full  max-h-[calc(100vh-56px)]' : 'max-h-full']">
             <div v-if="hasHeader" class=" w-full shrink-0">
                 <DashboardHeader />
             </div>
-            <div ref="pageContainer" @scroll="handleScroll" class="flex-1 w-full overflow-y-auto">
-                <div class=" h-full w-full" :class="[hasHeader ? 'px-3 md:px-8 md:py-0 py-6' : '']">
+            <div ref="pageContainer" @scroll="handleScroll" class="flex-1 flex-col w-full overflow-y-auto">
+                <div class=" flex-1 shrink-0 w-full" :class="[hasHeader ? 'px-3 md:px-8 md:py-0 py-6' : '']">
                     <NuxtPage />
                 </div>
+                <div class=" h-0 md:h-6 shrink-0"></div>
             </div>
         </div>
         <MobileNavigation v-if="shouldShowBottomNav" />
@@ -34,7 +36,6 @@ const lastScrollY = ref(0);
 const scrollThreshold = 10;
 
 const handleScroll = () => {
-    console.log('fuck')
     const currentScrollY = pageContainer.value?.scrollTop;
     if (!currentScrollY) return
     if (currentScrollY > lastScrollY.value + scrollThreshold && storiesStore.isStoriesOpen) {

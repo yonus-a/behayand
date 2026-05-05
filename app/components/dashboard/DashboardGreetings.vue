@@ -52,7 +52,6 @@ export default defineComponent({
         const { t } = useI18n()
         const healthStore = useHealthStore()
         const profileStore = useProfileStore()
-        const firstName = computed(() => profileStore.userData.name)
         const isLoading = computed(() => profileStore.isLoading)
         const isHealthLoading = computed(() => healthStore.isGlobalLoading)
         const allStories = computed(() => storiesStore.stories)
@@ -64,6 +63,29 @@ export default defineComponent({
             if (healthStore.overallStatus === 'medium') return 'text-warning'
             if (healthStore.overallStatus === 'good') return 'text-primary'
         })
+
+        const firstName = ref('');
+        const rawName = computed(() => profileStore.userData.name);
+        const isLoaded = computed(() => profileStore.isLoaded);
+
+        watch(isLoaded, (loaded) => {
+            if (loaded && rawName.value) {
+                let i = 0;
+                firstName.value = '';
+                const typingSpeed = 50;
+                setTimeout(() => {
+                    const timer = setInterval(() => {
+                        if (i < rawName.value.length) {
+                            firstName.value += rawName.value.charAt(i);
+                            i++;
+                        } else {
+                            clearInterval(timer);
+                        }
+                    }, typingSpeed);
+                }, 200)
+
+            }
+        }, { immediate: true });
 
 
         return {

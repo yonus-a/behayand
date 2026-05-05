@@ -1,9 +1,8 @@
 <template>
     <div class="flex flex-col max-h-full h-full gap-y-3.5 md:gap-y-6 w-full">
         <DashboardGreetings class=" md:flex hidden" />
-
-        <div v-if="hasData || isLoadingHealthData"
-            class="grid grid-cols-2  md:grid-cols-3 w-full gap-3 md:gap-4">
+        <ReferralNoticeDisplay v-if="profileStore.userData.referral" />
+        <div v-if="hasData || isLoadingHealthData" class="grid grid-cols-2  md:grid-cols-3 w-full gap-3 md:gap-4">
             <HealthStatus v-for="(healthState, index) in healthCardProps" :key="healthState" :type="healthState"
                 :class="{ 'col-span-2 md:col-span-1': index === 0 }" />
         </div>
@@ -30,9 +29,11 @@ import WalletDisplay from '~/components/dashboard/WalletDisplay.vue';
 import HealthStatus from '~/components/dashboard/HealthStatus.vue';
 import DashboardServices from '~/components/dashboard/DashboardServices.vue';
 import NoHealthData from '~/components/dashboard/NoHealthData.vue';
+import ReferralNoticeDisplay from '~/components/dashboard/ReferralNoticeDisplay.vue';
 const healthCardProps = ['social', 'physical', 'mental'];
 const serviceTabTypes = ['consulting', 'special', 'history'];
 const healthStore = useHealthStore()
+const profileStore = useProfileStore()
 const hasData = computed(() => healthStore.hasData)
 const isLoadingHealthData = computed(() => healthStore.categories.all.loading)
 

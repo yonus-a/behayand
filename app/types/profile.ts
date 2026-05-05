@@ -1,3 +1,5 @@
+import type { Service } from "./service";
+
 export interface Profile {
   id: number;
   name: string;
@@ -8,6 +10,7 @@ export interface Profile {
   imageUrl: string;
   birthDate: Date | null;
   balance: number;
+  referral?: Referral;
 }
 
 export type UserRoleKey = "user" | "employee" | "business" | "support";
@@ -15,4 +18,11 @@ export type UserRoleKey = "user" | "employee" | "business" | "support";
 export interface RoleDetail {
   label: string;
   key: UserRoleKey;
+}
+
+export interface Referral {
+  id: number;
+  date: Date;
+  priority: "high" | "medium" | "low";
+  service: Service;
 }
