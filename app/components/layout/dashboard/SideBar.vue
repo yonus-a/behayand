@@ -1,7 +1,6 @@
 <template>
     <div class=" shadow-floating relative z-10 h-full shrink-0 flex ">
-        <div class=" relative h-full transition-all duration-200 shadow-floating ease-in-out w-18 flex flex-col"
-           >
+        <div class=" relative h-full transition-all duration-200 shadow-floating ease-in-out w-18 flex flex-col">
             <div class=" shrink-0 w-full aspect-square flex items-center justify-center">
                 <div class=" w-10 h-10">
                     <NuxtLinkLocale class="cursor-pointer w-full h-full" to="/">
@@ -11,8 +10,13 @@
             </div>
             <div class=" flex-1 relative flex items-center  p-4 flex-col justify-between">
                 <div class=" flex flex-col gap-y-2 items-center">
-                    <CategoryItem :is-active="isRouteActive(category)" @click="setActiveCategory(category)"
-                        :route-item="category" v-for="category in getCategories" :key="category.key" />
+                    <BToolTip v-for="category in getCategories" :key="category.key" :text="category.label"
+                        :position="tooltipDir">
+                        <template #trigger>
+                            <CategoryItem :is-active="isRouteActive(category)" @click="setActiveCategory(category)"
+                                :route-item="category" />
+                        </template>
+                    </BToolTip>
                 </div>
                 <div class=" relative flex flex-col items-center gap-y-2">
                     <div class=" w-10 h-10 flex justify-center items-center">
@@ -42,16 +46,14 @@
     </div>
 </template>
 <script lang="ts">
-import { ref, defineComponent, onMounted } from '#imports';
+import { ref, defineComponent, onMounted, useNavigation, useTheme, useLocale } from '#imports';
 import logo from '/images/logo/logo.svg'
-import { useNavigation } from '#imports';
 import CategoryItem from './sidebar/CategoryItem.vue';
 import RouteItem from './sidebar/RouteItem.vue';
 import { useRoute, useRouter } from 'vue-router';
 import SidebarLocaleSwitch from './sidebar/SidebarLocaleSwitch.vue';
 import type { NavItem } from '~/types/components/nav-item';
 import RouteList from './sidebar/RouteList.vue';
-import { useTheme } from '#imports';
 import ContactCard from './sidebar/ContactCard.vue';
 export default defineComponent({
     name: 'Sidebar',
@@ -67,6 +69,8 @@ export default defineComponent({
         const route = useRoute()
         const router = useRouter()
         const isOpen = ref(true)
+        const {dir} = useLocale()
+        const tooltipDir = computed(()=> dir.value==='rtl' ? 'left' : 'right')
         const { getCategories, getRoutesByCategory, secondaryRoutes } = useNavigation()
         const activeCategory = ref('')
         const themeButtonIcon = computed(() => colorMode.value === 'light' ? 'PhMoon' : 'PhSun')
@@ -124,6 +128,7 @@ export default defineComponent({
             toggleTheme,
             routeList,
             getCategories,
+            tooltipDir,
             secondaryRoutes,
             themeButtonIcon,
         }
