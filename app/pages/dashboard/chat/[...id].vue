@@ -1,8 +1,8 @@
 <template>
     <div class="  w-full bg-surface-variant h-full">
-        <div v-show="canShowMessagingSection" class=" h-full w-full flex">
+        <div v-show="canShowMessagingSection || isProfile" class=" h-full w-full flex">
             <ChatProfileOverview :profile="selectedChat" />
-            <div class=" flex flex-1 flex-col justify-between items-center h-full" v-show="chatId">
+            <div class=" flex flex-1 flex-col justify-between items-center h-full" v-show="chatId && isChatMode">
                 <div class=" w-full bg-surface h-16 md:h-20">
                     <ChatPageBar :options="medicOptions" @open-profile="openProfile" :contact="selectedChat" />
                 </div>
@@ -63,6 +63,7 @@ export default defineComponent({
         const { t } = useI18n()
         const chatInput = ref<ChatTextField | null>(null)
         const { width } = useWindowSize()
+        const isMobile = computed(() => width.value < 768)
 
 
         const isCallMode = computed(() => {
@@ -76,6 +77,15 @@ export default defineComponent({
             return id ? parseInt(id as string) : null;
         });
 
+        const isProfile = computed(() => route.query.view === 'profile')
+        const isChatMode = computed(() => {
+            if (isMobile.value) {
+                return !isProfile.value
+            } else {
+                return canShowMessagingSection.value
+            }
+        })
+
         const selectedChat = computed(() => {
             if (!chatId.value) return null;
             return chatStore.getContactById(chatId.value);
@@ -83,7 +93,6 @@ export default defineComponent({
 
 
 
-        const isMobile = computed(() => width.value < 768)
         const chatMessagesRef = ref<any>(null);
         const patientRefferal = useTemplateRef<PatientRefferalExposed>('patientRefferal');
 
@@ -173,11 +182,14 @@ export default defineComponent({
             t,
             chatId,
             chatInput,
+            isProfile,
             isCallMode,
             openProfile,
             patientRefferal,
             chatMessagesRef,
             selectedChat,
+            isMobile,
+            isChatMode,
             canShowMessagingSection,
             handleNewMessages,
             handleEditMessage,
