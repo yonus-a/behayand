@@ -70,19 +70,26 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import { useI18n } from '#imports';
+import { useI18n, useCallStore } from '#imports';
 import BrushSizeSlider from './BrushSizeSlider.vue';
 import BoardColorPicker from './BoardColorPicker.vue';
 import type { BoardColorPickerExposed } from './BoardColorPicker.vue';
 export default defineComponent({
-    name: 'CallPaintBoardContent',
+    name: 'CallPaintBoard',
     emits: ['close'],
+    props: {
+        isOpen: {
+            type: Boolean,
+            default: false,
+        }
+    },
     components: {
         BrushSizeSlider,
         BoardColorPicker,
     },
-    setup() {
+    setup(props) {
         const { t } = useI18n();
+        const callStore = useCallStore();
         const boardColorPicker = useTemplateRef<BoardColorPickerExposed>('boardColorPicker');
         const pages = ref<{ data: any[], history: any[], redo: any[] }[]>([
             { data: [], history: [], redo: [] }
@@ -117,7 +124,6 @@ export default defineComponent({
         };
 
         onMounted(async () => {
-            // Dynamic import to prevent Nuxt SSR crashing
             const SignaturePadModule = await import('signature_pad');
             const SignaturePad = SignaturePadModule.default;
 
@@ -126,28 +132,28 @@ export default defineComponent({
                     minWidth: brushSize.value,
                     maxWidth: brushSize.value + 2,
                     penColor: selectedColor.value,
-                    backgroundColor: 'rgb(255, 255, 255)' // Required for clean JPEG saving
+                    backgroundColor: 'rgb(255, 255, 255)'
                 });
 
                 resizeCanvas();
                 window.addEventListener("resize", resizeCanvas);
 
-                // Save stroke to history array when user finishes drawing a line
                 signaturePadInstance.addEventListener("endStroke", () => {
                     history.value = signaturePadInstance.toData();
-                    redoHistory.value = []; // Clear redo stack on new drawing
+                    redoHistory.value = [];
                 });
             }
         });
 
         onBeforeUnmount(() => {
+            stopStreaming();
             window.removeEventListener("resize", resizeCanvas);
             if (signaturePadInstance) {
                 signaturePadInstance.off();
             }
         });
 
-        // Reactively update pad settings
+
         watch(brushSize, (newSize) => {
             if (signaturePadInstance) {
                 signaturePadInstance.minWidth = newSize;
@@ -197,7 +203,9 @@ export default defineComponent({
                     };
                     pages.value.push({ data: [], history: [], redo: [] });
                     selectedPage.value = pages.value.length - 1;
+
                     signaturePadInstance.clear();
+
                     history.value = [];
                     redoHistory.value = [];
                     break;
@@ -267,6 +275,32 @@ export default defineComponent({
                 switchPage(targetIndex);
             }
         };
+
+        const startStreaming = () => {
+            if (!canvasRef.value || !signaturePadInstance) return;
+
+            const stream = (canvasRef.value as any).captureStream(30);
+            callStore.setScreenStream(stream);
+
+            if (history.value && history.value.length > 0) {
+                signaturePadInstance.fromData(history.value);
+            } else {
+                signaturePadInstance.clear();
+            }
+        };
+        const stopStreaming = () => {
+            callStore.stopScreenShare();
+        };
+
+        watch(() => props.isOpen, (val) => {
+            if (val) {
+                nextTick(() => {
+                    startStreaming();
+                });
+            } else {
+                callStore.stopScreenShare();
+            }
+        }, { immediate: true });
 
         return {
             t,

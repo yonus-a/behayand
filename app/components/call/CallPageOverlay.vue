@@ -32,7 +32,8 @@
                 <template #trigger="{ isOpen }">
                     <div class="w-9 sm:w-12 transition-all duration-200 aspect-square rounded-full flex items-center justify-center"
                         :class="[isOpen ? 'bg-white' : 'bg-black-500']">
-                        <BIcon :icon="isOpen ? 'PhX' : 'PhPalette'" class="sm:w-6 sm:h-6 w-4 h-4" :class="[isOpen ? 'fill-black-500' : 'fill-white']" />
+                        <BIcon :icon="isOpen ? 'PhX' : 'PhPalette'" class="sm:w-6 sm:h-6 w-4 h-4"
+                            :class="[isOpen ? 'fill-black-500' : 'fill-white']" />
                     </div>
                 </template>
             </CallBoard>
@@ -94,7 +95,7 @@ export default defineComponent({
         const fullScreenId = ref<number | null>(null);
 
         const toggleFullScreen = (id: number) => {
-            fullScreenId.value = fullScreenId.value === id ? null : id;
+           fullScreenId.value = fullScreenId.value === id ? null : id;
         };
 
         // Replace gridLayoutClasses with wrapperClasses
@@ -203,9 +204,35 @@ export default defineComponent({
             }
         })
 
+        watch(callMembers, (newMembers, oldMembers) => {
+            const justStartedStreaming = newMembers.find((member, index) => {
+                const wasStreaming = oldMembers?.[index]
+                    ? (oldMembers[index].isCameraOn || oldMembers[index].isScreenSharing)
+                    : false;
+                const isStreaming = member.isCameraOn || member.isScreenSharing;
+
+                return isStreaming && !wasStreaming;
+            });
+
+            if (justStartedStreaming) {
+                fullScreenId.value = justStartedStreaming.id;
+                return;
+            }
+
+            if (fullScreenId.value) {
+                const currentFullScreenMember = newMembers.find(m => m.id === fullScreenId.value);
+                const isStillStreaming = currentFullScreenMember
+                    ? (currentFullScreenMember.isCameraOn || currentFullScreenMember.isScreenSharing)
+                    : false;
+
+                if (!isStillStreaming) {
+                    fullScreenId.value = null;
+                }
+            }
+        }, { deep: true });
 
 
-        onMounted(async () => {
+        onBeforeMount(() => {
             callStore.isPiP = false;
 
             if (!callStore.isActive) {
@@ -217,7 +244,9 @@ export default defineComponent({
                 router.push(`/dashboard/chat/${fallbackId}`);
                 return;
             }
+        })
 
+        onMounted(async () => {
             if (chatContact.value) {
                 await initPermissions();
             }

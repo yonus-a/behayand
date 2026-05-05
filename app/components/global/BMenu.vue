@@ -1,5 +1,5 @@
 <template>
-    <div ref="menuWrapper" class="relative">
+    <div ref="menuWrapper" class="relative z-10">
         <div @click.stop="toggleMenu" class="cursor-pointer relative" :class="[overlay ? 'z-90' : '']">
             <slot name="trigger" :isOpen="isOpen" />
         </div>
@@ -15,7 +15,7 @@
             :class="[isOpen ? 'shadow-[0px_8px_24px_rgba(149,157,165,0.2)]' : 'shadow-none', !hasCustomContent && options && options.length > 0 ? 'w-50' : '']">
 
             <div v-if="hasCustomContent" key="menu-custom">
-                <slot :close="closeMenu" />
+                <slot :isOpen="isOpen" :close="closeMenu" />
             </div>
 
             <div v-else-if="options && options.length > 0" key="menu-list" class="flex p-3 flex-col gap-y-1">
@@ -58,7 +58,7 @@ export default defineComponent({
         options: { type: Array as PropType<Option[]>, default: () => [] },
         overlay: { type: Boolean, default: false },
         autoClose: {
-            type: Boolean, default: false,
+            type: Boolean, default: true,
         },
         align: {
             type: String as PropType<'left' | 'right' | 'top' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>,
@@ -86,7 +86,7 @@ export default defineComponent({
                 });
             };
 
-            return checkNodes(slots.default({ close: closeMenu }));
+            return checkNodes(slots.default({ isOpen: isOpen.value, close: closeMenu }));
         });
 
 

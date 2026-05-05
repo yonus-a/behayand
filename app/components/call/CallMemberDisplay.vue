@@ -67,19 +67,18 @@ export default defineComponent({
         });
 
         const toggleFullScreen = () => {
-            if (isMine.value && !hasActiveStream) return;
             emit('toggle-fullscreen');
         };
 
-        watch(() => hasActiveStream.value, () => {
-            if (hasActiveStream.value) {
-                toggleFullScreen()
-            } else {
-                if (!isMine.value && props.isFullScreen) {
-                    toggleFullScreen()
-                }
-            }
-        })
+        //  watch(() => hasActiveStream.value, () => {
+        //      if (hasActiveStream.value) {
+        //          toggleFullScreen()
+        //      } else {
+        //          if (!isMine.value && props.isFullScreen) {
+        //              toggleFullScreen()
+        //          }
+        //      }
+        //  })
 
         // Manual binding for the MediaStream object
         const updateStream = () => {

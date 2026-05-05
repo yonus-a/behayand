@@ -7,14 +7,15 @@
             <slot name="trigger" :isOpen="isOpen" />
         </template>
 
-        <div class="p-1">
-            <!-- CHANGE: Render the Content component, not yourself -->
-            <CallPaintBoard @close="closeAll" />
-        </div>
+        <template #default="{ isOpen }">
+            <div class="p-1">
+                <CallPaintBoard :is-open="isOpen" @close="closeAll" />
+            </div>
+        </template>
     </BMenu>
     <BPopup no-padding ref="popupRef" @close="isPopupOpen = false">
         <!-- CHANGE: Render the Content component, not yourself -->
-        <CallPaintBoard @close="closeAll" />
+        <CallPaintBoard :is-open="isPopupOpen" @close="closeAll" />
     </BPopup>
 </template>
 
@@ -34,6 +35,7 @@ export default defineComponent({
         const popupRef = ref<Popup | null>(null);
         const menuRef = ref<Menu | null>(null);
         const isPopupOpen = ref(false);
+        const isMenuOpen = ref(false)
         const { width } = useWindowSize();
         const isMobile = computed(() => width.value < 768);
 

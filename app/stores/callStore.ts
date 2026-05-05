@@ -257,9 +257,14 @@ export const useCallStore = defineStore("call", () => {
   ) => {
     chatContact.value = contact;
     isActive.value = true;
-    startTimer()
+    startTimer();
     await syncMediaSettings(serviceType);
     await router.push(`/dashboard/chat/${contact.id}/call`);
+  };
+
+  const setScreenStream = (stream: MediaStream) => {
+    screenStream.value = stream;
+    isSharingScreen.value = true;
   };
 
   return {
@@ -272,6 +277,7 @@ export const useCallStore = defineStore("call", () => {
     callMembers,
     initCall,
     stopCall,
+    setScreenStream,
     syncMediaSettings,
     isMicMuted,
     isCamDisabled,
