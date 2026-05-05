@@ -209,6 +209,12 @@ export default defineComponent({
             }
         });
 
+        watch(() => route.path, () => {
+            if (!route.path.endsWith('/call') && callStore.isActive) {
+                callStore.isPiP = true;
+            }
+        })
+
         watch(() => chatContact.value, () => {
             console.log(chatContact.value)
             if (chatContact.value) {
