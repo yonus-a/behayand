@@ -27,6 +27,10 @@
                                 </div>
                             </div>
                         </div>
+                        <div class=" relative w-full h-full grid grid-cols-7">
+                            <CalendarDayHolder v-for="(day, index) in headers" :key="index" :day="day"
+                                :other-month="isOtherMonth(day.date)" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -39,11 +43,13 @@ import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
 import type { CalendarMode, CalendarDateRange, CalendarTimeRange } from '~/types/components/calendar';
 import CalendarHeaderItem from './CalendarHeaderItem.vue';
 import CalendarSideItem from './CalendarSideItem.vue';
+import CalendarDayHolder from './CalendarDayHolder.vue';
 export default defineComponent({
     name: 'CalendarGrid',
     components: {
         CalendarHeaderItem,
         CalendarSideItem,
+        CalendarDayHolder,
     },
     props: {
         range: {
@@ -60,7 +66,7 @@ export default defineComponent({
         }
     },
     setup(props) {
-        const { getCalendarHeaders } = useCalendarDate();
+        const { getCalendarHeaders, getParts } = useCalendarDate();
         const columnWidths = computed(() => `${100 / (headers.value.length + (props.mode == 'monthly' ? 0 : 1))}%`)
 
         const headers = computed(() => {
@@ -71,6 +77,15 @@ export default defineComponent({
             if (props.mode !== 'monthly') return headers.value
             return headers.value.slice(0, 7);
         })
+
+        const isOtherMonth = (date: Date) => {
+            if (props.mode !== 'monthly' || !props.range) return false;
+            const midMonthAnchor = new Date(props.range.start);
+            midMonthAnchor.setDate(midMonthAnchor.getDate() + 15);
+            const target = getParts(midMonthAnchor);
+            const current = getParts(date);
+            return target.month !== current.month || target.year !== current.year;
+        };
 
         onMounted(() => {
             console.log('range applied', getCalendarHeaders(props.range, 'monthly'))
@@ -83,6 +98,7 @@ export default defineComponent({
 
         return {
             headers,
+            isOtherMonth,
             columnWidths,
             displayedHeader,
         }

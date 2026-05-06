@@ -107,14 +107,28 @@ export const useCalendarDate = () => {
   };
 
   const getParts = (date: Date) => {
-    const cal = getActiveCalendar.value;
+    // 1. Clone the date and set to NOON to prevent midnight timezone/DST shifting
+    const safeDate = new Date(date);
+    safeDate.setHours(12, 0, 0, 0);
+
+    let cal = getActiveCalendar.value;
+
+    // 2. Sync Ghamari (Hijri) logic with getDayDetails
+    if (cal === "islamic-uma") {
+      cal = "islamic-civil"; // Best engine support
+      safeDate.setDate(safeDate.getDate() - 1); // Apply the exact same -1 day offset
+    }
+
+    // 3. Extract parts
     const parts = new Intl.DateTimeFormat(`en-u-ca-${cal}`, {
       year: "numeric",
       month: "numeric",
       day: "numeric",
-    }).formatToParts(date);
+    }).formatToParts(safeDate);
+
     const find = (type: string) =>
       parseInt(parts.find((p) => p.type === type)?.value || "0");
+
     return { year: find("year"), month: find("month"), day: find("day") };
   };
 
