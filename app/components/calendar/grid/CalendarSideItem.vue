@@ -1,7 +1,7 @@
 <template>
     <div class="w-full h-full flex flex-col ltr:border-r rtl:border-l border-l-outline-variant">
         <div v-for="hour in hoursList" :key="hour.raw" :style="{ height: itemHeights }"
-            class="flex items-center text-center justify-center px-3  text-label-md text-on-surface/50 border-b min-h-20 border-b-outline-variant select-none">
+            class="flex items-center text-center justify-center  text-label-md text-on-surface/50 border-b min-h-20 border-b-outline-variant select-none">
             {{ hour.label }}
         </div>
     </div>
@@ -9,7 +9,7 @@
 
 <script lang="ts">
 import { defineComponent, type PropType, computed } from 'vue';
-import { useI18n } from '#imports';
+import { useI18n, useWindowSize } from '#imports';
 import type { CalendarTimeRange } from '~/types/components/calendar';
 
 export default defineComponent({
@@ -22,6 +22,10 @@ export default defineComponent({
     },
     setup(props) {
         const { t } = useI18n();
+        const { width } = useWindowSize()
+
+        const isMobile = computed(() => width.value < 768)
+
 
         const numFormat = new Intl.NumberFormat('fa-IR');
         const itemHeights = computed(() => `${100 / (hoursList.value.length)}%`)
@@ -47,7 +51,7 @@ export default defineComponent({
 
                 list.push({
                     raw: h,
-                    label: `${numFormat.format(displayHour)} ${t(`calendar.dayTimes.${suffixKey}`)}`
+                    label: `${numFormat.format(displayHour)} ${isMobile.value ? '' : t(`calendar.dayTimes.${suffixKey}`)}`
                 });
             }
             return list;

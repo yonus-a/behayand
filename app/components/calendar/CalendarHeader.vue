@@ -1,5 +1,5 @@
 <template>
-    <div class=" px-8 py-5 w-full flex justify-between shrink-0 items-center">
+    <div class=" px-8 py-5 w-full flex justify-center md:justify-between shrink-0 items-center">
         <div class=" flex items-center gap-x-4">
             <div class=" flex items-center gap-x-2">
                 <div @click="prevStep"
@@ -7,13 +7,16 @@
                     <BIcon icon="PhCaretRight" class="rtl:rotate-0 ltr:rotate-180 w-5 h-5 fill-on-surface/50" />
                 </div>
                 <div @click="nextStep"
-                    class=" w-10 aspect-square flex items-center justify-center cursor-pointer border border-outline rounded-xl">
+                    class=" w-10 aspect-square hidden md:flex items-center justify-center cursor-pointer border border-outline rounded-xl">
                     <BIcon icon="PhCaretLeft" class=" rtl:rotate-0 ltr:rotate-180 w-5 h-5 fill-on-surface/50" />
                 </div>
                 <BTab mode="fill" :tabs="displayModes" v-model="currentDisplayMode" />
-
+                <div @click="nextStep"
+                    class=" w-10 aspect-square md:hidden flex items-center justify-center cursor-pointer border border-outline rounded-xl">
+                    <BIcon icon="PhCaretLeft" class=" rtl:rotate-0 ltr:rotate-180 w-5 h-5 fill-on-surface/50" />
+                </div>
             </div>
-            <div class=" flex items-center gap-x-4">
+            <div class=" hidden md:flex items-center gap-x-4">
                 <BMenu @select="handleYearSelect" :options="getYears">
                     <template #trigger="{ isOpen }">
                         <div class=" flex cursor-pointer items-center py-1.5 px-3 gap-x-2">
@@ -34,7 +37,7 @@
                 </BMenu>
             </div>
         </div>
-        <div class=" flex items-center gap-x-2">
+        <div class=" hidden md:flex items-center gap-x-2">
             <BButton @click="handleOption(option.key)" v-for="option in optionButtons" :key="option.key"
                 :icon="option.icon" color="secondary" />
             <BButton :text="t('calendar.addEvent')" color="primary" right-icon="PhPlus" />

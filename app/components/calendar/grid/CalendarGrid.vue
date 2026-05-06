@@ -4,12 +4,13 @@
         <div class="w-full flex-1 min-h-0 overflow-hidden">
             <div class="h-full w-full overflow-y-auto hide-scrollbar">
                 <div class="flex items-stretch min-h-full w-full">
-                    <div v-if="mode !== 'monthly'" class="shrink-0 basis-25">
+                    <div v-if="mode !== 'monthly'" class="shrink-0 basis-9 md:basis-25">
                         <CalendarSideItem :range="hours" />
                     </div>
 
                     <!-- Main Grid: items-stretch makes this match the Sidebar height exactly -->
                     <div class=" flex-1 relative">
+                        <CalendarPointer :mode="mode" :hours="hours" :headers="headers" />
                         <div class=" w-full h-full" v-if="mode !== 'monthly'">
                             <!-- Grid displays-->
                             <div
@@ -22,12 +23,12 @@
                             <div
                                 class=" w-full absolute top-0 left-0 h-full flex-col pointer-events-none justify-between flex items-stretch">
                                 <div class=" w-full border border-surface-variant"
-                                    :class="[n === headers.length + 1 || n === 1 ? ' border-0' : 'border']"
+                                    :class="[n === 0 || n === 1 ? 'opacity-0' : 'opacity-100']"
                                     v-for="n in (hours.end - hours.start + 2)" :key="n">
                                 </div>
                             </div>
                         </div>
-                        <div class=" relative w-full h-full grid grid-cols-7">
+                        <div v-else class=" relative w-full h-full grid grid-cols-7">
                             <CalendarDayHolder v-for="(day, index) in headers" :key="index" :day="day"
                                 :other-month="isOtherMonth(day.date)" />
                         </div>
@@ -44,12 +45,14 @@ import type { CalendarMode, CalendarDateRange, CalendarTimeRange } from '~/types
 import CalendarHeaderItem from './CalendarHeaderItem.vue';
 import CalendarSideItem from './CalendarSideItem.vue';
 import CalendarDayHolder from './CalendarDayHolder.vue';
+import CalendarPointer from './CalendarPointer.vue';
 export default defineComponent({
     name: 'CalendarGrid',
     components: {
         CalendarHeaderItem,
         CalendarSideItem,
         CalendarDayHolder,
+        CalendarPointer,
     },
     props: {
         range: {
