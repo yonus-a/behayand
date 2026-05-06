@@ -2,7 +2,7 @@
     <div class=" w-full h-full max-h-full flex flex-col">
         <CalendarHeader @update:mode="handleModeUpdate" @update:range="handleRangeUpdate" />
         <div class=" w-full flex-1 ">
-            <CalendarGrid :range="currentRange" />
+            <CalendarGrid :range="currentRange" :mode="currentMode" />
         </div>
     </div>
 </template>
@@ -10,7 +10,7 @@
 import { defineComponent, ref, computed } from 'vue';
 import { useI18n, useSeoMeta } from '#imports';
 import CalendarHeader from '~/components/calendar/CalendarHeader.vue';
-import CalendarGrid from '~/components/calendar/CalendarGrid.vue';
+import CalendarGrid from '~/components/calendar/grid/CalendarGrid.vue';
 definePageMeta({
     layout: 'dashboard',
     title: 'seo.dashboard.calendar.title'
@@ -27,6 +27,7 @@ export default defineComponent({
 
 
         const currentRange = ref<{ start: Date; end: Date } | null>(null);
+        const currentMode = ref('monthly')
 
 
         const handleRangeUpdate = (range: { start: Date; end: Date }) => {
@@ -38,7 +39,7 @@ export default defineComponent({
         };
 
         const handleModeUpdate = (mode: 'daily' | 'weekly' | 'monthly') => {
-            console.log(mode)
+            currentMode.value = mode
         }
 
 
@@ -54,6 +55,7 @@ export default defineComponent({
         return {
             handleModeUpdate,
             handleRangeUpdate,
+            currentMode,
             t,
             currentRange,
         }

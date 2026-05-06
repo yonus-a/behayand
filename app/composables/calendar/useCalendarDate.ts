@@ -176,6 +176,135 @@ export const useCalendarDate = () => {
     return getMonthBounds(d).start; // Return day 1
   };
 
+  const getDayDetails = (date: Date) => {
+    const lang = String(locale.value).split("-")[0];
+
+    // --- HIJRI OFFSET ---
+    // Iran's Ghamari calendar is often 1 day behind the standard Intl algorithms.
+    const hijriOffsetDays = -1;
+    const ghamariDate = new Date(date);
+    ghamariDate.setDate(ghamariDate.getDate() + hijriOffsetDays);
+
+    // Fast number extractor that accepts an optional target date
+    const getDayNum = (cal: string, targetDate: Date = date) => {
+      const parts = new Intl.DateTimeFormat(`en-u-ca-${cal}`, {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+      }).formatToParts(targetDate);
+      return parseInt(parts.find((p) => p.type === "day")?.value || "0");
+    };
+
+    // Extract days, passing the offset date ONLY to the Ghamari calculation
+    const gregorian = getDayNum("gregory");
+    const jalaali = getDayNum("persian");
+    const ghamari = getDayNum("islamic-civil", ghamariDate);
+
+    // Mapping based on locale requirements
+    let primary, secondary, tertiary;
+    if (lang === "fa") {
+      primary = jalaali;
+      secondary = gregorian;
+      tertiary = ghamari;
+    } else if (lang === "ar") {
+      primary = ghamari;
+      secondary = gregorian;
+      tertiary = jalaali;
+    } else {
+      // 'en' default
+      primary = gregorian;
+      secondary = jalaali;
+      tertiary = ghamari;
+    }
+
+    // Checking if today
+    const today = new Date();
+    const isToday =
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+
+    // Checking if weekend (Friday for FA/AR, Sunday & Saturday for EN)
+    const dayOfWeek = date.getDay();
+    const isWeekend =
+      lang === "fa" || lang === "ar"
+        ? dayOfWeek === 5
+        : dayOfWeek === 0 || dayOfWeek === 6;
+
+    // Localized names
+    const activeCal = getActiveCalendar.value;
+    const name = new Intl.DateTimeFormat(`${lang}-u-ca-${activeCal}`, {
+      weekday: "long",
+    }).format(date);
+    const shortName = new Intl.DateTimeFormat(`${lang}-u-ca-${activeCal}`, {
+      weekday: "short",
+    }).format(date);
+
+    return {
+      date: new Date(date),
+      primary,
+      secondary,
+      tertiary,
+      jalaali,
+      gregorian,
+      ghamari,
+      isToday,
+      isWeekend,
+      name,
+      shortName,
+      dayOfWeek,
+    };
+  };
+
+  const getStartOfWeek = (date: Date): Date => {
+    const lang = String(locale.value).split("-")[0];
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+
+    const day = d.getDay(); // 0 (Sun) to 6 (Sat)
+
+    // Saturday (6) is the start for Persian/Arabic, Sunday (0) for English/Others
+    const weekStartDay = lang === "fa" || lang === "ar" ? 6 : 0;
+
+    const diff = (day < weekStartDay ? 7 : 0) + day - weekStartDay;
+    d.setDate(d.getDate() - diff);
+
+    return d;
+  };
+  // Generates the array of days for the grid header
+  const getCalendarHeaders = (
+    range: { start: Date; end: Date } | null,
+    mode: "daily" | "weekly" | "monthly",
+  ) => {
+    if (!range) return [];
+
+    const days = [];
+    const start = new Date(range.start);
+    start.setHours(0, 0, 0, 0);
+
+    if (mode === "monthly") {
+      // Monthly: We just need 7 sequential days to represent the week columns
+      const weekStart = getStartOfWeek(start);
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(weekStart);
+        d.setDate(d.getDate() + i);
+        days.push(getDayDetails(d));
+      }
+    } else if (mode === "weekly") {
+      // Weekly: Exact 7 days of the provided range
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        days.push(getDayDetails(d));
+      }
+    } else {
+      // Daily: Just the 1 day
+      days.push(getDayDetails(start));
+    }
+
+    return days;
+  };
+
   return {
     getYears,
     getMonths,
@@ -185,5 +314,7 @@ export const useCalendarDate = () => {
     getParts,
     getMonthBounds,
     setTargetMonth,
+    getCalendarHeaders,
+    getDayDetails,
   };
 };

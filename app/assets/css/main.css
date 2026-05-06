@@ -139,3 +139,14 @@ html[lang="ar"] button {
   background-origin: border-box !important;
   background-clip: padding-box, border-box !important;
 }
+
+.font-latin {
+  font-family: "IranYekan", "AppleColorEmoji", sans-serif !important;
+}
+
+/* Ensure it forces the font on children like inputs or buttons if applied to a parent */
+.font-latin input,
+.font-latin textarea,
+.font-latin button {
+  font-family: "IranYekan", "AppleColorEmoji", sans-serif !important;
+}
