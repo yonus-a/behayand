@@ -1,15 +1,16 @@
 <template>
     <div class=" w-full h-full max-h-full flex flex-col">
-        <CalendarHeader @share="openSharePopup" @update:mode="handleModeUpdate" @update:range="handleRangeUpdate" />
+        <CalendarHeader @refresh="refreshCalendar" @share="openSharePopup" @update:mode="handleModeUpdate"
+            @update:range="handleRangeUpdate" />
         <div class=" w-full overflow-hidden flex-1 ">
             <CalendarGrid :range="currentRange" :mode="currentMode" />
         </div>
-        <SharePopup ref="sharePopup"/>
+        <SharePopup ref="sharePopup" />
     </div>
 </template>
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
-import { useI18n, useSeoMeta } from '#imports';
+import { useI18n, useSeoMeta, useCalendarStore } from '#imports';
 import CalendarHeader from '~/components/calendar/CalendarHeader.vue';
 import CalendarGrid from '~/components/calendar/grid/CalendarGrid.vue';
 import SharePopup from '~/components/calendar/SharePopup.vue';
@@ -29,6 +30,7 @@ export default defineComponent({
     setup() {
         const { t } = useI18n()
         const sharePopup = ref<Popup | null>(null)
+        const calendarStore = useCalendarStore()
 
         const currentRange = ref<{ start: Date; end: Date } | null>(null);
         const currentMode = ref('monthly')
@@ -42,6 +44,10 @@ export default defineComponent({
             });
         };
 
+        const refreshCalendar = () => {
+            calendarStore.refreshData()
+        }
+
         const handleModeUpdate = (mode: 'daily' | 'weekly' | 'monthly') => {
             currentMode.value = mode
         }
@@ -50,9 +56,7 @@ export default defineComponent({
             sharePopup.value?.open()
         }
 
-        onMounted(()=>{
-            openSharePopup()
-        })
+     
 
         useSeoMeta({
             title: () => t('seo.dashboard.calendar.title'),
@@ -68,6 +72,7 @@ export default defineComponent({
             handleRangeUpdate,
             currentMode,
             openSharePopup,
+            refreshCalendar,
             sharePopup,
             t,
             currentRange,

@@ -1,8 +1,8 @@
 <template>
     <div
-        class=" flex rounded-3xl border bg-surface-variant  border-outline-variant items-stretch px-2 py-4 md:gap-x-3 gap-x-2 w-full select-none">
-        <div class=" h-full min-h-full max-h-full ">
-            <div class=" h-full min-h-full md:w-2 w-1 rounded-full shrink-0" :class="[color?.fill]"></div>
+        class=" flex rounded-3xl border bg-surface-variant  border-outline-variant items-center px-2 py-4 md:gap-x-3 gap-x-2 w-full select-none">
+        <div class="self-stretch py-1">
+            <div class="h-full md:w-2 w-1 rounded-full shrink-0" :class="[color?.fill]"></div>
         </div>
         <div
             class=" flex rtl:pl-4 ltr:pr-4 md:flex-row flex-1 flex-col justify-center items-start md:items-center  gap-y-3 md:gap-y-0 md:justify-between ">

@@ -15,6 +15,8 @@ export const useCalendarStore = defineStore("calendar", () => {
   const processingIds = ref<Record<number, boolean>>({});
   const sharedUsers = ref<SharedUserCalendar[]>([]);
 
+  const isLoadingCalendar = ref(false);
+
   // --- Mock Data Generator ---
   const generateMockUsers = (): SharedUserCalendar[] => [
     {
@@ -132,6 +134,8 @@ export const useCalendarStore = defineStore("calendar", () => {
     }
   };
 
+  const refreshData = () => {};
+
   return {
     isSending,
     errorLoadingShared,
@@ -142,6 +146,8 @@ export const useCalendarStore = defineStore("calendar", () => {
     addSharedUser,
     processingIds,
     updateAccessType,
+    isLoadingCalendar,
+    refreshData,
     removeSharedUser,
   };
 });

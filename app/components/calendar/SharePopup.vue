@@ -1,23 +1,25 @@
 <template>
     <BPopup @closed="onPopupClose" ref="popup" no-padding>
-        <div class=" w-dvw max-w-98 pb-18 md:pb-4 py-4 px-6">
-            <div class=" select-none flex items-center gap-x-3">
-                <BIcon icon="PhX" class=" w-6 h-6 cursor-pointer fill-on-surface/50" />
-                <div class=" text-label-sm text-on-surface">{{ t('calendar.share.title') }}</div>
-            </div>
-            <div class=" mt-4 w-full">
-                <BInput @action="copy" :placeholder="t('calendar.share.link')" readonly :icon="inputIcon"
-                    v-model="shareUrl" />
-                <BSelect :disabled="!canAdd" :options="familyOptions" :loading="isLoadingFamilyMembers"
-                    v-model="selectedUsers" :placeholder="userSelectPlaceholder" :title="t('calendar.share.addUser')"
-                    :no-result-text="t('calendar.share.noUsers')" />
-            </div>
-            <div class=" flex flex-col gap-y-1.5 w-full">
-                <TransitionGroup tag="div" name="list-item" class="w-full relative flex flex-col">
-                    <SharedUserDisplay v-for="user in localSharedUsers" :key="user.id" :user="user"
-                        :loading="isLoadingSharedUsers" :sending="isUserProcessing(user.id)" class="mb-1.5"
-                        :is-deleting="user.isDeleting" />
-                </TransitionGroup>
+        <div class="w-dvw flex justify-center md:max-w-98 max-w-full">
+            <div class=" w-dvw max-w-98 pb-18 md:pb-4 py-4 px-6">
+                <div class=" select-none flex items-center gap-x-3">
+                    <BIcon icon="PhX" class=" w-6 h-6 cursor-pointer fill-on-surface/50" />
+                    <div class=" text-label-sm text-on-surface">{{ t('calendar.share.title') }}</div>
+                </div>
+                <div class=" mt-4 w-full">
+                    <BInput @action="copy" :placeholder="t('calendar.share.link')" readonly :icon="inputIcon"
+                        v-model="shareUrl" />
+                    <BSelect :disabled="!canAdd" :options="familyOptions" :loading="isLoadingFamilyMembers"
+                        v-model="selectedUsers" :placeholder="userSelectPlaceholder"
+                        :title="t('calendar.share.addUser')" :no-result-text="t('calendar.share.noUsers')" />
+                </div>
+                <div class=" flex flex-col gap-y-1.5 w-full">
+                    <TransitionGroup tag="div" name="list-item" class="w-full relative flex flex-col">
+                        <SharedUserDisplay v-for="user in localSharedUsers" :key="user.id" :user="user"
+                            :loading="isLoadingSharedUsers" :sending="isUserProcessing(user.id)" class="mb-1.5"
+                            :is-deleting="user.isDeleting" />
+                    </TransitionGroup>
+                </div>
             </div>
         </div>
     </BPopup>

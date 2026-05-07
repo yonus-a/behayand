@@ -39,22 +39,32 @@
         </div>
         <div class=" hidden md:flex items-center gap-x-2">
             <BButton @click="handleOption(option.key)" v-for="option in optionButtons" :key="option.key"
-                :icon="option.icon" color="secondary" />
+                :icon="option.icon" :disabled="option.disabled && option.disabled === true" color="secondary" />
             <BButton :text="t('calendar.addEvent')" color="primary" right-icon="PhPlus" />
         </div>
     </div>
+    <Teleport v-if="isMobile" to="#header-custom-actions">
+        <div class=" flex md:hidden items-center gap-x-2">
+            <BButton @click="handleOption(option.key)" v-for="option in optionButtons" :key="option.key"
+                :icon="option.icon" :disabled="option.disabled && option.disabled === true" color="secondary" />
+        </div>
+    </Teleport>
 </template>
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
-import { useI18n } from '#imports';
+import { useI18n, useCalendarStore, useWindowSize } from '#imports';
 import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
 
 export default defineComponent({
     name: 'CalendarHeader',
-    emits: ['update:range', 'update:mode', 'share'],
+    emits: ['update:range', 'update:mode', 'share', 'refresh'],
     setup(_, { emit }) {
         const { t, locale } = useI18n()
         const calendar = useCalendarDate()
+        const calendarStore = useCalendarStore()
+        const isSyncingCalendar = computed(() => calendarStore.isLoadingCalendar)
+        const { width } = useWindowSize()
+        const isMobile = computed(() => width.value < 768)
 
 
         // Source of truth. Start at today.
@@ -88,11 +98,12 @@ export default defineComponent({
         const optionButtons = ref([
             {
                 key: 'share',
-                icon: 'PhShareNetwork'
+                icon: 'PhShareNetwork',
             },
             {
                 key: 'sync',
-                icon: 'PhArrowsClockwise'
+                icon: 'PhArrowsClockwise',
+                disabled: isSyncingCalendar.value
             },
             //   {
             //       key: 'settings',
@@ -106,7 +117,7 @@ export default defineComponent({
                     emit('share')
                     break;
                 case 'sync':
-
+                    emit('refresh')
                     break;
                 case 'settings':
 
@@ -213,6 +224,7 @@ export default defineComponent({
             getInitialMonthIndex,
             getYears: calendar.getYears,
             getMonths: calendar.getMonths,
+            isMobile,
             prevStep,
             nextStep,
             selectedYearText,
