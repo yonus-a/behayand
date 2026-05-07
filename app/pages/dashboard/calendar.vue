@@ -1,11 +1,12 @@
 <template>
     <div class=" w-full h-full max-h-full flex flex-col">
-        <CalendarHeader @refresh="refreshCalendar" @share="openSharePopup" @update:mode="handleModeUpdate"
-            @update:range="handleRangeUpdate" />
+        <CalendarHeader @add="openEventPopup" @refresh="refreshCalendar" @share="openSharePopup"
+            @update:mode="handleModeUpdate" @update:range="handleRangeUpdate" />
         <div class=" w-full overflow-hidden flex-1 ">
             <CalendarGrid :range="currentRange" :mode="currentMode" />
         </div>
         <SharePopup ref="sharePopup" />
+        <MainPopup ref="eventPopup" />
     </div>
 </template>
 <script lang="ts">
@@ -15,6 +16,7 @@ import CalendarHeader from '~/components/calendar/CalendarHeader.vue';
 import CalendarGrid from '~/components/calendar/grid/CalendarGrid.vue';
 import SharePopup from '~/components/calendar/SharePopup.vue';
 import type { Popup } from '~/types/components/popup';
+import MainPopup from '~/components/calendar/event-management/MainPopup.vue';
 definePageMeta({
     layout: 'dashboard',
     title: 'seo.dashboard.calendar.title'
@@ -23,14 +25,18 @@ definePageMeta({
 export default defineComponent({
     name: 'CalendarPage',
     components: {
+        MainPopup,
         CalendarHeader,
         CalendarGrid,
         SharePopup,
     },
     setup() {
         const { t } = useI18n()
-        const sharePopup = ref<Popup | null>(null)
         const calendarStore = useCalendarStore()
+
+        const eventPopup = ref<Popup | null>(null)
+        const sharePopup = ref<Popup | null>(null)
+
 
         const currentRange = ref<{ start: Date; end: Date } | null>(null);
         const currentMode = ref('monthly')
@@ -56,7 +62,7 @@ export default defineComponent({
             sharePopup.value?.open()
         }
 
-     
+
 
         useSeoMeta({
             title: () => t('seo.dashboard.calendar.title'),
@@ -65,6 +71,9 @@ export default defineComponent({
         });
 
 
+        const openEventPopup = () => {
+            eventPopup.value?.open()
+        }
 
 
         return {
@@ -73,8 +82,10 @@ export default defineComponent({
             currentMode,
             openSharePopup,
             refreshCalendar,
+            openEventPopup,
             sharePopup,
             t,
+            eventPopup,
             currentRange,
         }
     }

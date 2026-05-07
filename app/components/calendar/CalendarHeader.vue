@@ -40,7 +40,7 @@
         <div class=" hidden md:flex items-center gap-x-2">
             <BButton @click="handleOption(option.key)" v-for="option in optionButtons" :key="option.key"
                 :icon="option.icon" :disabled="option.disabled && option.disabled === true" color="secondary" />
-            <BButton :text="t('calendar.addEvent')" color="primary" right-icon="PhPlus" />
+            <BButton @click="handleOption('add')" :text="t('calendar.addEvent')" color="primary" right-icon="PhPlus" />
         </div>
     </div>
     <Teleport v-if="isMobile" to="#header-custom-actions">
@@ -57,7 +57,7 @@ import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
 
 export default defineComponent({
     name: 'CalendarHeader',
-    emits: ['update:range', 'update:mode', 'share', 'refresh'],
+    emits: ['update:range', 'update:mode', 'share', 'refresh', 'add'],
     setup(_, { emit }) {
         const { t, locale } = useI18n()
         const calendar = useCalendarDate()
@@ -121,6 +121,9 @@ export default defineComponent({
                     break;
                 case 'settings':
 
+                    break;
+                case 'add':
+                    emit('add')
                     break;
             }
         }

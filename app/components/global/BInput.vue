@@ -3,9 +3,9 @@
 
         <div class=" text-label-sm mb-1.5 select-none text-on-surface">{{ title }}</div>
         <div :style="inputStyle" class="w-full relative">
-            <input v-if="!textarea" ref="inputField" :id="`b-input-${uniqueId}`" :name="`field-${uniqueId}`"
-                :readonly="readonly || (type === 'password' && !isFocus)" :maxlength="maxlength" :type="finalInputType"
-                v-model="inputValue" class="b-input" :class="[
+            <input v-if="!textarea && preset !== 'time'" ref="inputField" :id="`b-input-${uniqueId}`"
+                :name="`field-${uniqueId}`" :readonly="readonly || (type === 'password' && !isFocus)"
+                :maxlength="maxlength" :type="finalInputType" v-model="inputValue" class="b-input" :class="[
                     {
                         'is-focused': isFocus,
                         'is-readonly': readonly,
@@ -17,6 +17,26 @@
                 :inputmode="type === 'phone' || type === 'number' ? 'numeric' : undefined" :placeholder="placeholder"
                 @keypress="handleKeypress" @keydown.enter="handleSubmit" @paste="handlePaste" @focus="handleFocus"
                 @blur="handleBlur" :disabled="disabled" />
+            <div v-else-if="preset === 'time'" dir="ltr"
+                class="b-input flex items-center justify-center gap-x-1 cursor-text"
+                :class="{ 'is-focused': isFocus, 'is-readonly': readonly, 'is-disabled': disabled }"
+                @click="focusTimeInput">
+
+                <input ref="hoursInput" :value="hours" @input="e => handleTimeInput('h', e)"
+                    @keydown="e => handleTimeKeydown('h', e)" @focus="handleTimeFocus('h')" @blur="handleTimeBlur('h')"
+                    :disabled="disabled" :readonly="readonly"
+                    class="w-7 text-center bg-transparent outline-none p-0 border-none text-inherit font-inherit placeholder:text-inherit placeholder:opacity-50"
+                    placeholder="00" inputmode="numeric" maxlength="2" />
+
+                <span class="text-on-surface select-none pb-0.5 opacity-70">:</span>
+
+                <input ref="minutesInput" :value="minutes" @input="e => handleTimeInput('m', e)"
+                    @keydown="e => handleTimeKeydown('m', e)" @focus="handleTimeFocus('m')" @blur="handleTimeBlur('m')"
+                    :disabled="disabled" :readonly="readonly || isMinutesLocked"
+                    class="w-7 text-center bg-transparent outline-none p-0 border-none text-inherit font-inherit placeholder:text-inherit placeholder:opacity-50 transition-opacity"
+                    :class="{ 'opacity-30 pointer-events-none': isMinutesLocked }" placeholder="00" inputmode="numeric"
+                    maxlength="2" />
+            </div>
             <input autocomplete="false" name="hidden" type="text" style="display:none;">
 
             <textarea v-if="textarea" ref="inputField" :readonly="readonly" :maxlength="maxlength"
@@ -187,7 +207,8 @@ const props = defineProps({
     prefix: { type: String, default: '' },
     passfix: { type: String, default: '' },
     caption: { type: String, default: '' },
-    align: { type: String as PropType<'' | 'left' | 'right' | 'center'>, default: '' }
+    align: { type: String as PropType<'' | 'left' | 'right' | 'center'>, default: '' },
+    preset: { type: String as PropType<'' | 'time'>, default: '' }
 });
 
 const emit = defineEmits(['update:modelValue', 'focus', 'blur', 'submit', 'paste', 'action']);
@@ -267,6 +288,13 @@ const inputStyle = computed(() => {
     };
 });
 
+const hours = ref('');
+const minutes = ref('');
+const tempHours = ref(''); // Stores value temporarily on click
+const tempMinutes = ref('');
+const hoursInput = useTemplateRef<HTMLInputElement>('hoursInput');
+const minutesInput = useTemplateRef<HTMLInputElement>('minutesInput');
+
 /* --- PHONE / COUNTRIES LOGIC --- */
 const countryOptions = computed<MenuOption[]>(() => {
     return defaultCountries.map(c => ({
@@ -292,9 +320,23 @@ const handleCountrySelect = (code: string) => {
 };
 
 /* --- VALUE WATCHERS & FORMATTING --- */
-watch(() => props.modelValue, (newVal) => { inputValue.value = newVal; });
+watch(() => props.modelValue, (val) => {
+    if (props.preset === 'time') {
+        if (val) {
+            const [h, m] = val.split(':');
+            if (hours.value !== h) hours.value = h || '';
+            if (minutes.value !== m) minutes.value = m || '';
+        } else {
+            hours.value = '';
+            minutes.value = '';
+        }
+    } else {
+        inputValue.value = val;
+    }
+}, { immediate: true });
 
 watch(() => inputValue.value, (newVal) => {
+    if (props.preset === 'time') return;
     if (!newVal) return emit('update:modelValue', '');
 
     if (props.type === 'number' || props.type === 'phone') {
@@ -387,6 +429,95 @@ const messageIcon = computed(() => {
     }
 });
 
+const isMinutesLocked = computed(() => !hours.value && !tempHours.value);
+
+const focusTimeInput = (e: MouseEvent) => {
+    // Prevent hijacking focus if the user explicitly clicked inside one of the inputs
+    if (e.target === minutesInput.value || e.target === hoursInput.value) return;
+
+    if (isMinutesLocked.value) hoursInput.value?.focus();
+    else minutesInput.value?.focus();
+};
+
+const handleTimeFocus = (type: 'h' | 'm') => {
+    handleFocus();
+    // Temporarily clear the visual input and store it so they can type easily
+    if (type === 'h') {
+        tempHours.value = hours.value;
+        hours.value = '';
+    } else {
+        tempMinutes.value = minutes.value;
+        minutes.value = '';
+    }
+};
+
+const handleTimeInput = (type: 'h' | 'm', e: Event) => {
+    const target = e.target as HTMLInputElement;
+    let val = target.value.replace(/[^0-9]/g, ''); // Strip non-numbers
+
+    if (type === 'h') {
+        // Auto-pad hours greater than 2 (3-9 becomes 03-09)
+        if (val.length === 1 && parseInt(val) > 2) val = `0${val}`;
+        else if (val.length > 0 && parseInt(val) > 23) val = '23';
+
+        hours.value = val;
+        tempHours.value = val; // Update temp so blur doesn't revert a valid change
+
+        // Auto jump to minutes
+        if (val.length === 2) minutesInput.value?.focus();
+    } else {
+        // Auto-pad minutes greater than 5 (6-9 becomes 06-09)
+        if (val.length === 1 && parseInt(val) > 5) val = `0${val}`;
+        else if (val.length > 0 && parseInt(val) > 59) val = '59';
+
+        minutes.value = val;
+        tempMinutes.value = val;
+    }
+
+    target.value = val; // Force UI update if characters were stripped
+    emitTime();
+};
+
+const handleTimeKeydown = (type: 'h' | 'm', e: KeyboardEvent) => {
+    if (type === 'h') {
+        // On Enter or ArrowRight/Left, format the single digit and advance
+        if (['Enter', 'ArrowRight', 'ArrowLeft'].includes(e.key)) {
+            if (!hours.value) return;
+            e.preventDefault();
+            if (hours.value.length === 1) hours.value = `0${hours.value}`;
+            minutesInput.value?.focus();
+        }
+    } else if (type === 'm') {
+        // Jump back to hours on backspace if minutes are completely empty
+        if (e.key === 'Backspace' && minutes.value === '') {
+            e.preventDefault();
+            hoursInput.value?.focus();
+        }
+    }
+};
+
+const handleTimeBlur = (type: 'h' | 'm') => {
+    handleBlur();
+
+    // Revert to temporary variable if blurred while empty, otherwise pad single digits
+    if (type === 'h') {
+        if (hours.value === '') hours.value = tempHours.value;
+        else if (hours.value.length === 1) hours.value = `0${hours.value}`;
+    } else {
+        if (minutes.value === '') minutes.value = tempMinutes.value;
+        else if (minutes.value.length === 1) minutes.value = `0${minutes.value}`;
+    }
+
+    emitTime();
+};
+
+const emitTime = () => {
+    const h = hours.value || tempHours.value || '';
+    const m = minutes.value || tempMinutes.value || '';
+
+    if (!h && !m) emit('update:modelValue', '');
+    else emit('update:modelValue', `${h || '00'}:${m || '00'}`);
+};
 defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.value?.blur() });
 </script>
 
