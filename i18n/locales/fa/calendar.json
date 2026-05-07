@@ -32,6 +32,52 @@
         },
         "error": "در پردازش درخواست شما مشکلی پیش آمد !"
       }
+    },
+    "form": {
+      "addEvent": "ایجاد رویداد",
+      "type": {
+        "title": "نوع",
+        "medicine": "دارو",
+        "event": "رویداد",
+        "task": "و‍ظیفه",
+        "service": "خدمت"
+      },
+      "medicineName": "نام دارو",
+      "checkList": "چک لیست",
+      "eventTitle": "عنوان رویداد",
+      "addPerson": "افزودن شخص",
+      "attachement": "پیوست",
+      "descriptions": "توضیحات",
+      "color": "رنگ",
+      "continue": "ادامه",
+      "date": "تاریخ",
+      "hour": "ساعت",
+      "wholeDay": "روز کامل",
+      "repeat": "تکرار",
+      "back": "بازگشت",
+      "submit": "ثبت",
+      "startDate": "تاریخ شروع",
+      "repeatEvery": "تکرار هر",
+      "repetition": {
+        "day": "روز",
+        "hour": "ساعت",
+        "custom": "دلخواه"
+      },
+      "repeatEndDate": "تاریخ پایان تکرار",
+      "endDate": "تاریخ پایان",
+      "repeatEnding": {
+        "title": "پایان تکرار",
+        "times": "تعداد دفعات",
+        "date": "تاریخ مشخص"
+      },
+      "time": "زمان",
+      "fromTo": "از {start} تا {end}",
+      "delete": {
+        "delete": "حذف",
+        "title": "حذف رویداد",
+        "description": "از حذف رویداد مطمئن هستید ؟‌",
+        "cancel": "انصراف"
+      }
     }
   }
 }
