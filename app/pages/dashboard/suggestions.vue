@@ -152,7 +152,6 @@ export default defineComponent({
         // Update the function signature to destructure the incoming object
         // Replace your onImagePick function with this
         const onImagePick = (files: any[]) => {
-            console.log('kir')
             // The file picker directive always returns an array
             if (!files || files.length === 0) return;
 

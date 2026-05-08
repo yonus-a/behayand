@@ -72,6 +72,7 @@
         "times": "تعداد دفعات",
         "date": "تاریخ مشخص"
       },
+      "deleteAttachement":"حذف پیوست",
       "time": "زمان",
       "fromTo": "از {start} تا {end}",
       "delete": {
