@@ -54,10 +54,7 @@ export default defineComponent({
         const localCheckList = ref<EventCheckList[]>([]);
         const localError = ref('');
 
-        // 2. Clear error when any text changes (ignoring checkboxes)
-        watch(() => localCheckList.value.map(item => item.text), () => {
-            if (localError.value) localError.value = '';
-        }, { deep: true });
+
 
         // 3. Validation Logic
         const validate = (): boolean => {
@@ -103,15 +100,22 @@ export default defineComponent({
 
         // Sync incoming props
         watch(() => props.modelValue, (newVal) => {
-            if (newVal.length === 0 && localCheckList.value.length > 0) {
-                // If parent cleared it, we clear it
+            // If the parent provides data (e.g., coming back from Step 2), 
+            // we must take it even if we've already initialized defaults.
+            if (newVal && newVal.length > 0) {
+                // Only update if it's actually a different list to avoid infinite loops
+                const isDifferent = JSON.stringify(newVal) !== JSON.stringify(localCheckList.value);
+                if (isDifferent) {
+                    localCheckList.value = [...newVal];
+                }
+            } else if (newVal && newVal.length === 0 && localCheckList.value.length > 0) {
+                // If the parent explicitly clears the list
                 resetList();
-            } else if (localCheckList.value.length === 0 && newVal.length > 0) {
-                localCheckList.value = [...newVal];
             }
-        }, { immediate: true });
+        }, { immediate: true, deep: true });
 
         const syncUpdate = () => {
+            if (localError.value) localError.value = '';
             emit('update:modelValue', [...localCheckList.value]);
         };
 
