@@ -63,6 +63,9 @@ export default defineComponent({
         }
 
 
+        onMounted(() => {
+            openEventPopup()
+        })
 
         useSeoMeta({
             title: () => t('seo.dashboard.calendar.title'),

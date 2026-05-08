@@ -42,6 +42,7 @@
         "task": "و‍ظیفه",
         "service": "خدمت"
       },
+      "checkListError":"مقادیر چک لیست وارد نشده اند!",
       "medicineName": "نام دارو",
       "checkList": "چک لیست",
       "eventTitle": "عنوان رویداد",
@@ -50,6 +51,7 @@
       "descriptions": "توضیحات",
       "color": "رنگ",
       "continue": "ادامه",
+      "taskTitle":"عنوان تسک",
       "date": "تاریخ",
       "hour": "ساعت",
       "wholeDay": "روز کامل",

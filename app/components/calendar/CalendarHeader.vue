@@ -25,6 +25,7 @@
                                 class=" w-5 aspect-square transition-all duration-200 ease-in-out fill-on-surface/50" />
                         </div>
                     </template>
+                    
                 </BMenu>
                 <BMenu :options="getMonths" @select="handleMonthSelect">
                     <template #trigger="{ isOpen }">

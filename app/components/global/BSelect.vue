@@ -29,6 +29,8 @@
                     </template>
                     <BImage class=" max-w-6 max-h-6 min-w-6 min-h-6 w-6 h-6 rounded-full overflow-hidden"
                         v-if="!multiple && selectedItem?.image && selectedItem" :src="selectedItem.image" />
+                    <div v-if="!multiple && selectedItem?.color && selectedItem" class=" w-6 aspect-square rounded-full"
+                        :style="{ backgroundColor: selectedItem.color }"></div>
                     <span v-if="!multiple && selectedItem && (!searchable || !isOpen)"
                         class="text-sm font-medium select-none truncate text-on-surface opacity-100 shrink-0">
                         {{ selectedItem.label }}
@@ -55,8 +57,10 @@
             </div>
 
             <transition name="dropdown-fade">
-                <div v-if="isOpen"
-                    class="absolute border overflow-hidden border-outline top-[calc(100%+6px)] left-0 w-full bg-surface rounded-xl z-50 flex flex-col shadow-[0_12px_16px_-4px_rgba(13,13,18,0.08)] dark:shadow-[0_12px_16px_-4px_rgba(0,0,0,0.4)]">
+                <div v-if="isOpen" :class="[
+                    'absolute border overflow-hidden border-outline left-0 w-full bg-surface rounded-xl z-50 flex flex-col shadow-[0_12px_16px_-4px_rgba(13,13,18,0.08)] dark:shadow-[0_12px_16px_-4px_rgba(0,0,0,0.4)]',
+                    openDirection === 'up' ? 'bottom-[calc(100%+6px)] origin-bottom' : 'top-[calc(100%+6px)] origin-top'
+                ]">
 
                     <div v-if="loading" class="flex items-center justify-center h-18.75 w-full">
                         <BIcon icon="PhCircleNotch" class="w-7 h-7 animate-spin fill-outline" />
@@ -93,12 +97,15 @@
                                 ]">
 
                                     <div v-if="multiple" class="shrink-0 pointer-events-none">
-                                        <DCheckBox :modelValue="isSelected(filteredOptions[virtualRow.index])" />
+                                        <BCheckBox :modelValue="isSelected(filteredOptions[virtualRow.index])" />
                                     </div>
 
                                     <BImage v-if="filteredOptions[virtualRow.index].image"
                                         :src="filteredOptions[virtualRow.index].image"
                                         class="w-6 max-w-6 max-h-6 min-h-6 min-w-6 rounded-sm h-6 shrink-0 object-cover" />
+                                    <div v-else-if="filteredOptions[virtualRow.index]?.color"
+                                        class=" rounded-full overflow-hidden w-6 aspect-square"
+                                        :style="{ backgroundColor: filteredOptions[virtualRow.index]?.color }"></div>
                                     <BIcon v-else-if="filteredOptions[virtualRow.index].icon"
                                         :icon="filteredOptions[virtualRow.index].icon" class="w-6 h-6 shrink-0"
                                         :class="isSelected(filteredOptions[virtualRow.index]) ? 'fill-primary' : 'fill-on-surface'" />
@@ -171,6 +178,24 @@ export default defineComponent({
         const optionsListRef = ref<HTMLElement | null>(null);
         const highlightedIndex = ref(-1);
         let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+
+        const openDirection = ref<'down' | 'up'>('down');
+
+        const calculatePosition = () => {
+            if (!dropdownRef.value) return;
+            const rect = dropdownRef.value.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            // 260px is the approx max-height of your dropdown (max-h-50 + padding + search input)
+            const requiredSpace = 260;
+
+            // If there's not enough space below, AND there is enough space above, open UP
+            if (spaceBelow < requiredSpace && rect.top > requiredSpace) {
+                openDirection.value = 'up';
+            } else {
+                openDirection.value = 'down';
+            }
+        };
 
         // --- Error/Message Styling ---
         const messageColorClass = computed(() => {
@@ -285,6 +310,7 @@ export default defineComponent({
         const toggleDropdown = () => {
             if (props.disabled) return;
             if (!isOpen.value) {
+                calculatePosition();
                 isOpen.value = true;
 
                 // Highlight initialization
@@ -416,6 +442,7 @@ export default defineComponent({
             messageColorClass, messageIcon, virtualizer,
             toggleDropdown, closeDropdown, toggleOption, removeItem, createOption,
             highlightNext, highlightPrev, selectHighlighted, openOnTab, containerClasses,
+            openDirection,
         };
     }
 });
@@ -425,13 +452,14 @@ export default defineComponent({
 .dropdown-fade-enter-active,
 .dropdown-fade-leave-active {
     transition: all 0.2s ease-in-out;
-    transform-origin: top;
+    /* transform-origin is now handled dynamically by Tailwind classes */
 }
 
 .dropdown-fade-enter-from,
 .dropdown-fade-leave-to {
     opacity: 0;
-    transform: translateY(-5px) scaleY(0.95);
+    transform: scaleY(0.95);
+    /* Removed translateY so it doesn't jump the wrong way when opening up */
 }
 
 /* Horizontal & Vertical Scrollbar Hiding */

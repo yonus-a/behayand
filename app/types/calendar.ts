@@ -31,7 +31,7 @@ export enum EventType {
 }
 
 export interface EventCheckList {
-  id: number;
+  id?: number;
   text: string;
   isChecked: boolean;
 }
