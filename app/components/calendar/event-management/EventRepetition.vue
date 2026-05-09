@@ -16,6 +16,9 @@
 import { defineComponent, watch, ref } from 'vue';
 import { useI18n } from '#imports';
 import type { MenuOption } from '~/types/components/menu-options';
+
+
+type RepetitionTypes = 'day' | 'hour' | 'custom'
 export default defineComponent({
     name: 'EventRepetition',
     setup() {
@@ -24,6 +27,7 @@ export default defineComponent({
         const wholeDay = ref(false)
         const repetitionStart = ref({ value: '', color: 'primary', message: '' })
         const repeatTimeCycle = ref({ value: '', color: 'primary', message: '' })
+        const repetitionType = ref<RepetitionTypes>('custom')
 
         const repetitionTypes = computed<MenuOption[]>(() => [
             {
@@ -40,8 +44,8 @@ export default defineComponent({
             },
         ])
 
-        const selectOption = (key: string) => {
-            console.log(key)
+        const selectOption = (key: RepetitionTypes) => {
+            repetitionType.value = key;
         }
 
         return {
