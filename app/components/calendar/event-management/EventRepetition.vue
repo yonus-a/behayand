@@ -2,15 +2,17 @@
     <div class=" w-full ">
         <BCheckBox v-model="hasRepetition" :label="t('calendar.form.repeat')" />
         <div class=" w-full mt-3">
-            <BInput v-model="repetitionStart.value" :color="repetitionStart.color" :message="repetitionStart.message"
-                :title="t('calendar.form.startDate')" type="date" :placeholder="t('general.select')" />
-            <BInput :selected-option-key="repetitionType" :readonly="repetitionType === 'custom'" @select="selectOption"
+            <BInput :disabled="!hasRepetition" v-model="repetitionStart.value" :color="repetitionStart.color"
+                :message="repetitionStart.message" :title="t('calendar.form.startDate')" type="date"
+                :placeholder="t('general.select')" />
+            <BInput :disabled="!hasRepetition" :selected-option-key="repetitionType"
+                :readonly="repetitionType === 'custom'" @select="selectOption"
                 :type="repetitionType === 'custom' ? 'text' : 'number'"
                 :maxlength="repetitionType === 'custom' ? undefined : 2" :options="repetitionTypes"
                 v-model="repeatTimeCycle.value" :color="repeatTimeCycle.color" :message="repeatTimeCycle.message"
                 :title="t('calendar.form.repeatEvery')" :placeholder="t('general.write')" />
             <div class=" w-full flex justify-between items-center transition-all duration-200 ease-in-out overflow-hidden whitespace-nowrap text-wrap"
-                :class="[repetitionType === 'custom' ? ' h-auto opacity-100' : ' opacity-0 h-0']">
+                :class="[repetitionType === 'custom' ? ' h-auto opacity-100' : ' opacity-0 h-0', !hasRepetition ? ' opacity-50 pointer-events-none' : ' pointer-events-auto']">
                 <div @click="addSelection(day.dayOfWeek)" v-for="(day, index) in getWeekDayNames"
                     class=" cursor-pointer w-9 aspect-square  transition-all duration-200 ease-in-out rounded-full flex  items-center justify-center"
                     :class="[isSelected(day.dayOfWeek) ? ' border-outline-variant/0 bg-diamond-black dark:bg-diamond-gray border-0' : ' border border-outline-variant']">
@@ -20,23 +22,23 @@
                 </div>
             </div>
             <div class=" py-4">
-                <BCheckBox mode="switch" v-model="wholeDay" :label="t('calendar.form.wholeDay')" />
+                <BCheckBox :disabled="!hasRepetition" mode="switch" v-model="wholeDay" :label="t('calendar.form.wholeDay')" />
             </div>
-            <BInput :title="t('calendar.form.hour')" v-model="chosenTime.value" :color="chosenTime.color"
+            <BInput :disabled="!hasRepetition" :title="t('calendar.form.hour')" v-model="chosenTime.value" :color="chosenTime.color"
                 :message="chosenTime.message" preset="time" />
             <div class="pb-4">
-                <BCheckBox mode="switch" v-model="isReminder" :label="t('calendar.form.remind')" />
+                <BCheckBox :disabled="!hasRepetition" mode="switch" v-model="isReminder" :label="t('calendar.form.remind')" />
             </div>
             <div class=" w-full  transition-all duration-200 ease-in-out  whitespace-nowrap text-wrap"
                 :class="[isReminder ? ' h-auto opacity-100 overflow-visible' : ' opacity-0 h-0 overflow-hidden']">
-                <BSelect :options="reminderOptions" v-model="selectedReminder.value" :color="selectedReminder.color"
+                <BSelect :disabled="!hasRepetition" :options="reminderOptions" v-model="selectedReminder.value" :color="selectedReminder.color"
                     :message="selectedReminder.message" :placeholder="t('general.select')"
                     :title="t('calendar.form.remindingTime')" />
             </div>
-            <BSelect :title="t('calendar.form.repeatEnding.title')" :placeholder="t('general.select')"
+            <BSelect :disabled="!hasRepetition" :title="t('calendar.form.repeatEnding.title')" :placeholder="t('general.select')"
                 :options="repetitionEndTypes" v-model="repeatitionEnd.value" :color="repeatitionEnd.color"
                 :message="repeatitionEnd.message" />
-            <BInput :maxlength="endingDetailsProps.type === 'date' ? undefined : 3" v-model="repetitionAmount.value"
+            <BInput :disabled="!hasRepetition" :maxlength="endingDetailsProps.type === 'date' ? undefined : 3" v-model="repetitionAmount.value"
                 :color="repetitionAmount.color" :message="repetitionAmount.message" :title="endingDetailsProps.title"
                 :placeholder="endingDetailsProps.placeholder" :type="endingDetailsProps.type" />
             <div class=" flex w-full items-center gap-x-3">
@@ -97,24 +99,27 @@ export default defineComponent({
         ])
         const repetitionType = ref<RepetitionTypes>(repetitionTypes.value[0]?.key)
 
-        const getFormData = () => ({
-            hasRepetition: hasRepetition.value,
-            repetitionStart: repetitionStart.value.value,
-            repeatTimeCycle: repeatTimeCycle.value.value,
-            repetitionType: repetitionType.value,
-            selectedDays: selectedDays.value,
-            wholeDay: wholeDay.value,
-            chosenTime: chosenTime.value.value,
-            isReminder: isReminder.value,
-            selectedReminder: selectedReminder.value.value,
-            repeatitionEnd: repeatitionEnd.value.value,
-            repetitionAmount: repetitionAmount.value.value
-        });
+        const getFormData = () => {
+            if (!hasRepetition.value) return { hasRepetition: false };
+            return {
+                hasRepetition: hasRepetition.value,
+                repetitionStart: repetitionStart.value.value,
+                repeatTimeCycle: repeatTimeCycle.value.value,
+                repetitionType: repetitionType.value,
+                selectedDays: selectedDays.value,
+                wholeDay: wholeDay.value,
+                chosenTime: chosenTime.value.value,
+                isReminder: isReminder.value,
+                selectedReminder: selectedReminder.value.value,
+                repeatitionEnd: repeatitionEnd.value.value,
+                repetitionAmount: repetitionAmount.value.value
+            };
+        };
 
         onMounted(() => {
             if (props.initialData) {
                 mode.value = props.initialData.mode || 'create';
-                hasRepetition.value = props.initialData.hasRepetition ?? false;
+                hasRepetition.value = props.initialData.hasRepetition ?? true;
                 repetitionStart.value.value = props.initialData.repetitionStart || '';
                 repeatTimeCycle.value.value = props.initialData.repeatTimeCycle || '';
                 repetitionType.value = props.initialData.repetitionType || 'day';
@@ -125,6 +130,8 @@ export default defineComponent({
                 selectedReminder.value.value = props.initialData.selectedReminder || 15;
                 repeatitionEnd.value.value = props.initialData.repeatitionEnd || 'date';
                 repetitionAmount.value.value = props.initialData.repetitionAmount || '';
+            } else {
+                hasRepetition.value = true; // Default true on fresh open
             }
             initialSnapshot.value = JSON.stringify(getFormData());
         });
@@ -166,9 +173,6 @@ export default defineComponent({
             return JSON.stringify(getFormData()) !== initialSnapshot.value;
         });
 
-        watch(() => getFormData(), () => {
-            hasErrors.value = false;
-        }, { deep: true });
 
         const buttonsProps = computed(() => {
             if (mode.value === 'create') {
@@ -183,6 +187,11 @@ export default defineComponent({
             ];
         });
 
+        watch(() => getFormData(), () => {
+            hasErrors.value = false;
+        }, { deep: true });
+
+        // 4. Individual Watchers for resetting specific field styling when typing
         const clearField = (fieldRef: any) => {
             if (fieldRef.value.color === 'error') {
                 fieldRef.value.color = 'primary';
@@ -194,7 +203,6 @@ export default defineComponent({
         watch(() => repeatTimeCycle.value.value, () => clearField(repeatTimeCycle));
         watch(() => repetitionAmount.value.value, () => clearField(repetitionAmount));
         watch(() => selectedDays.value, () => clearField(repeatTimeCycle), { deep: true });
-
 
 
         const endingDetailsProps = computed(() => {
@@ -258,27 +266,31 @@ export default defineComponent({
             hasErrors.value = false;
             let isValid = true;
 
-            // Zero-out the time to strictly compare dates
+            // If user turned it off, skip validation entirely
+            if (!hasRepetition.value) {
+                submitFields();
+                return;
+            }
+
             const now = new Date();
             now.setHours(0, 0, 0, 0);
 
-            // Rule A: Start Date (Required, Not Past)
             if (!repetitionStart.value.value || new Date(repetitionStart.value.value) < now) {
                 repetitionStart.value.color = 'error';
-                repetitionStart.value.message = t('calendar.form.timeErrors.past');
+                repetitionStart.value.message = t('calendar.form.validation.pastDate');
                 isValid = false;
             }
 
-            // Rule B: Time Cycle (Positive Num OR Selected Days)
             if (repetitionType.value !== 'custom') {
                 const cycle = Number(repeatTimeCycle.value.value);
                 if (!repeatTimeCycle.value.value || isNaN(cycle) || cycle <= 0) {
                     repeatTimeCycle.value.color = 'error';
+                    repeatTimeCycle.value.message = t('calendar.form.validation.positiveNumber');
                     isValid = false;
                 }
             } else {
                 if (selectedDays.value.length === 0) {
-                    isValid = false;
+                    isValid = false; // Disable button silently or use a global toast
                 }
             }
 
@@ -286,12 +298,13 @@ export default defineComponent({
                 const amount = Number(repetitionAmount.value.value);
                 if (!repetitionAmount.value.value || isNaN(amount) || amount <= 0) {
                     repetitionAmount.value.color = 'error';
+                    repetitionAmount.value.message = t('calendar.form.validation.positiveNumber');
                     isValid = false;
                 }
             } else {
                 if (!repetitionAmount.value.value || new Date(repetitionAmount.value.value) < now) {
                     repetitionAmount.value.color = 'error';
-                    repetitionAmount.value.message = t('calendar.form.timeErrors.past');
+                    repetitionAmount.value.message = t('calendar.form.validation.pastDate');
                     isValid = false;
                 }
             }
