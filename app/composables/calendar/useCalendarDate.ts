@@ -322,9 +322,45 @@ export const useCalendarDate = () => {
     return days;
   };
 
+  const getWeekDayNames = computed(() => {
+    // Get the first part of the locale string (e.g., 'fa' or 'en')
+    const lang = String(locale.value).split("-");
+    const calendar = getActiveCalendar.value;
+
+    const lc = locale.value;
+    // Sat (6) for Persian/Arabic, Sun (0) for others
+    const weekStartDay = lc === "fa" || lc === "ar" ? 6 : 0;
+
+    // Reference date: Jan 11, 2025 is a Saturday, Jan 12 is a Sunday
+    const start = new Date(2025, 0, weekStartDay === 6 ? 11 : 12);
+
+    // Formatter for 'ش', 'ی', 'S', 'M'
+    const narrowFormatter = new Intl.DateTimeFormat(
+      `${lang}-u-ca-${calendar}`,
+      {
+        weekday: "narrow",
+      },
+    );
+
+    const fullFormatter = new Intl.DateTimeFormat(`${lang}-u-ca-${calendar}`, {
+      weekday: "long",
+    });
+
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      return {
+        dayOfWeek: d.getDay(), // Native JS 0-6 (Sun-Sat)
+        label: narrowFormatter.format(d),
+        fullName: fullFormatter.format(d), // Added full name here
+      };
+    });
+  });
+
   return {
     getYears,
     getMonths,
+    getWeekDayNames,
     getYearIndex,
     getMonthIndex,
     getTodayIndices,

@@ -17,8 +17,9 @@
                 </BMenu>
             </div>
             <input v-if="!textarea && preset !== 'time'" ref="inputField" :id="`b-input-${uniqueId}`"
-                :name="`field-${uniqueId}`" :readonly="readonly || (type === 'password' && !isFocus)"
-                :maxlength="maxlength" :type="finalInputType" v-model="inputValue" class="b-input" :class="[
+                :key="finalInputType" :name="`field-${uniqueId}`"
+                :readonly="readonly || (type === 'password' && !isFocus)" :maxlength="maxlength" :type="finalInputType"
+                v-model="inputValue" class="b-input" :class="[
                     {
                         'is-focused': isFocus,
                         'is-readonly': readonly,
@@ -342,6 +343,7 @@ const handleCountrySelect = (code: string) => {
 
 /* --- VALUE WATCHERS & FORMATTING --- */
 watch(() => props.modelValue, (val) => {
+    console.log('fuck', props.modelValue)
     if (props.preset === 'time') {
         if (val) {
             const [h, m] = val.split(':');
@@ -352,11 +354,13 @@ watch(() => props.modelValue, (val) => {
             minutes.value = '';
         }
     } else {
+        console.log(val)
         inputValue.value = val;
     }
 }, { immediate: true });
 
 watch(() => inputValue.value, (newVal) => {
+
     if (props.preset === 'time') return;
     if (!newVal) return emit('update:modelValue', '');
 
@@ -474,20 +478,20 @@ const handleTimeFocus = (type: 'h' | 'm') => {
 
 const handleTimeInput = (type: 'h' | 'm', e: Event) => {
     const target = e.target as HTMLInputElement;
-    let val = target.value.replace(/[^0-9]/g, ''); // Strip non-numbers
+    let val = target.value.replace(/[^0-9]/g, '');
+
+    let shouldAdvance = false;
 
     if (type === 'h') {
-        // Auto-pad hours greater than 2 (3-9 becomes 03-09)
         if (val.length === 1 && parseInt(val) > 2) val = `0${val}`;
         else if (val.length > 0 && parseInt(val) > 23) val = '23';
 
         hours.value = val;
-        tempHours.value = val; // Update temp so blur doesn't revert a valid change
+        tempHours.value = val;
 
-        // Auto jump to minutes
-        if (val.length === 2) minutesInput.value?.focus();
+        // Flag to advance, but don't do it yet
+        if (val.length === 2) shouldAdvance = true;
     } else {
-        // Auto-pad minutes greater than 5 (6-9 becomes 06-09)
         if (val.length === 1 && parseInt(val) > 5) val = `0${val}`;
         else if (val.length > 0 && parseInt(val) > 59) val = '59';
 
@@ -495,21 +499,27 @@ const handleTimeInput = (type: 'h' | 'm', e: Event) => {
         tempMinutes.value = val;
     }
 
-    target.value = val; // Force UI update if characters were stripped
+    target.value = val;
     emitTime();
+    if (shouldAdvance) {
+        nextTick(() => minutesInput.value?.focus());
+    }
 };
 
 const handleTimeKeydown = (type: 'h' | 'm', e: KeyboardEvent) => {
     if (type === 'h') {
-        // On Enter or ArrowRight/Left, format the single digit and advance
         if (['Enter', 'ArrowRight', 'ArrowLeft'].includes(e.key)) {
             if (!hours.value) return;
             e.preventDefault();
-            if (hours.value.length === 1) hours.value = `0${hours.value}`;
-            minutesInput.value?.focus();
+            if (hours.value.length === 1) {
+                hours.value = `0${hours.value}`;
+                tempHours.value = hours.value;
+                emitTime(); // Ensure emit happens before jumping
+            }
+            // Delay focus here as well
+            nextTick(() => minutesInput.value?.focus());
         }
     } else if (type === 'm') {
-        // Jump back to hours on backspace if minutes are completely empty
         if (e.key === 'Backspace' && minutes.value === '') {
             e.preventDefault();
             hoursInput.value?.focus();

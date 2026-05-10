@@ -31,6 +31,15 @@
       "pink": "صورتی",
       "darkPink": "گلبهی",
       "black": "مشکی"
+    },
+    "timeframes": {
+      "seconds": "ثانیه",
+      "minutes": "دقیقه",
+      "hours": "ساعت",
+      "days": "روز",
+      "week": "هفته",
+      "month": "ماه",
+      "year": "سال"
     }
   }
 }
