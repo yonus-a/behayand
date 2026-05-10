@@ -11,7 +11,8 @@
                         @submit="handleStep1Submit" />
                     <EventTiming v-if="mode === 'timing'" :initial-data="timingData" @back="handleTimingBack"
                         @submit="handleTimingSubmit" />
-                    <EventRepetition v-if="mode === 'repetition'" />
+                    <EventRepetition v-if="mode === 'repetition'" :initial-data="repetitionData"
+                        @back="handleRepetitionBack" @submit="handleRepetitionSubmit" />
 
                     <div v-if="mode === 'create' && step === 2" class="w-full max-w-99 px-6 py-4 bg-surface rounded-xl">
                         <div class="text-label-md mb-4">{{ t('calendar.form.step2Title') || 'Step 2 Details' }}</div>
@@ -77,33 +78,70 @@ export default defineComponent({
             }, 300);
         };
 
-        const finalSubmit = () => {
-            console.log("FINAL API PAYLOAD:", eventData.value);
-            // Example: api.post('/events', eventData.value)
-            close();
-        };
 
-        const handleTimingSubmit = (payload: Record<string, any>) => {
-            timingData.value = payload;
-            const finalPayload = {
-                ...eventData.value,
-                ...timingData.value
-            };
-            console.log("Submitting Final Event:", finalPayload);
-            close();
-        };
 
         const open = () => popup.value?.open();
         const close = () => popup.value?.close();
 
         // Wipe data completely when popup is dismissed to prevent leaking state to the next open
-        const onClosed = () => {
-            mode.value = 'create';
-            eventData.value = null;
-            timingData.value = null;
-        };
+
 
         expose({ open, close });
+
+        const repetitionData = ref<Record<string, any> | null>(null);
+
+        // 2. Replace handleTimingSubmit with this:
+        const handleTimingSubmit = (payload: Record<string, any>) => {
+            timingData.value = payload;
+
+            // Check if we need to show the third step
+            if (payload.hasRepetition) {
+                popup.value?.close();
+                setTimeout(() => {
+                    step.value = 3;
+                    mode.value = 'repetition';
+                    popup.value?.open();
+                }, 300);
+            } else {
+                finalSubmit();
+            }
+        };
+
+        // 3. Add these new functions:
+        const handleRepetitionBack = () => {
+            popup.value?.close();
+            setTimeout(() => {
+                step.value = 2;
+                mode.value = 'timing';
+                popup.value?.open();
+            }, 300);
+        };
+
+        const handleRepetitionSubmit = (payload: Record<string, any>) => {
+            repetitionData.value = payload;
+            finalSubmit();
+        };
+
+        // 4. Update finalSubmit to merge all 3 steps:
+        const finalSubmit = () => {
+            const finalPayload = {
+                ...eventData.value,
+                ...timingData.value,
+                // Only merge repetition data if they actually enabled it
+                ...(timingData.value?.hasRepetition ? repetitionData.value : {})
+            };
+            console.log("FINAL API PAYLOAD:", finalPayload);
+            close();
+        };
+
+        // 5. Update onClosed to clear the new state:
+        const onClosed = () => {
+            mode.value = 'create';
+            step.value = 1;
+            eventData.value = null;
+            timingData.value = null;
+            repetitionData.value = null;
+        };
 
         return {
             t,
@@ -115,9 +153,12 @@ export default defineComponent({
             timingData,
             handleTimingBack,
             handleStep1Submit,
+            handleRepetitionSubmit,
             finalSubmit,
             onClosed,
-            close
+            close,
+            repetitionData,
+            handleRepetitionBack,
         };
     }
 });

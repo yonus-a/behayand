@@ -42,6 +42,11 @@
         "task": "و‍ظیفه",
         "service": "خدمت"
       },
+      "validation": {
+        "positiveNumber": "مقدار باید بزرگتر از صفر باشد.",
+        "pastDate": "تاریخ نمی‌تواند در گذشته باشد.",
+        "customDaysRequired": "لطفاً حداقل یک روز را انتخاب کنید."
+      },
       "checkListError": "مقادیر چک لیست وارد نشده اند!",
       "medicineName": "نام دارو",
       "medicineDescription": "توضیحات دارو",
@@ -57,6 +62,7 @@
       "hour": "ساعت",
       "wholeDay": "روز کامل",
       "repeat": "تکرار",
+      "save": "ذخیره",
       "back": "بازگشت",
       "submit": "ثبت",
       "remind": "یادآوری",
@@ -65,8 +71,8 @@
       "timeErrors": {
         "past": "تاریخ رویداد نمیتواند در گذشته باشد."
       },
-      "reminderOption": "{time}{unit} قبل",
-      "remindingTime":"زمان یادآوری",
+      "reminderOption": "{time} {unit} قبل",
+      "remindingTime": "زمان یادآوری",
       "repetition": {
         "day": "روز",
         "hour": "ساعت",

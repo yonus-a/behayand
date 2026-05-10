@@ -4,7 +4,7 @@
         <div class=" text-label-sm mb-1.5 select-none text-on-surface">{{ title }}</div>
         <div :style="inputStyle" class="w-full relative">
             <div v-if="options.length > 0"
-                class="   flex items-center justify-center ltr:rtl:rounded-r-(--i-radius) rtl:rounded-l-(--i-radius) h-full absolute z-10 w-20 rtl:left-0 ltr:right-0">
+                class=" rtl:origin-left ltr:origin-right flex items-center ltr:rtl:rounded-r-(--i-radius) rtl:rounded-l-(--i-radius) h-full absolute z-10  rtl:left-0 ltr:right-0">
                 <BMenu @select="handleOptionSelect" :options="options">
                     <template #trigger="{ isOpen }">
                         <div class="flex rtl:pl-4 ltr:pr-4 cursor-pointer text-on-surface/50 items-center gap-x-3">
@@ -215,6 +215,7 @@ const props = defineProps({
     prefix: { type: String, default: '' },
     passfix: { type: String, default: '' },
     caption: { type: String, default: '' },
+    selectedOptionKey: { type: String, default: '' },
     options: {
         type: Array as PropType<MenuOption[]>,
         default: () => []
@@ -341,9 +342,14 @@ const handleCountrySelect = (code: string) => {
     isPhoneMenuOpen.value = false;
 };
 
-/* --- VALUE WATCHERS & FORMATTING --- */
+watch(() => props.selectedOptionKey, (newKey) => {
+    if (props.options.length > 0 && newKey) {
+        const idx = props.options.findIndex(opt => opt.key === newKey);
+        if (idx > -1) selectedOptionIndex.value = idx;
+    }
+}, { immediate: true });
+
 watch(() => props.modelValue, (val) => {
-    console.log('fuck', props.modelValue)
     if (props.preset === 'time') {
         if (val) {
             const [h, m] = val.split(':');
@@ -354,7 +360,6 @@ watch(() => props.modelValue, (val) => {
             minutes.value = '';
         }
     } else {
-        console.log(val)
         inputValue.value = val;
     }
 }, { immediate: true });

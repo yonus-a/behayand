@@ -35,6 +35,7 @@ export interface EventCheckList {
   text: string;
   isChecked: boolean;
 }
+
 export interface EventRepetition {
   repeatingDays: WeekDays | number;
   startDate: Date;
