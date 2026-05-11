@@ -17,6 +17,7 @@ import CalendarGrid from '~/components/calendar/grid/CalendarGrid.vue';
 import SharePopup from '~/components/calendar/SharePopup.vue';
 import type { Popup } from '~/types/components/popup';
 import type { CalendarEvent } from '~/types/components/calendar';
+import type { CalendarEventPayload, EventCategory, RepetitionCycleType } from '~/types/calendar';
 import MainPopup from '~/components/calendar/event-management/MainPopup.vue';
 definePageMeta({
     layout: 'dashboard',
@@ -113,7 +114,7 @@ export default defineComponent({
                         repetitionStart: startDate,
                         repetitionType: repType,
                         repeatTimeCycle: Math.floor(Math.random() * 5) + 1,
-                        selectedDays: repType === 'custom' ? : undefined,
+                        selectedDays: repType === 'custom' ? [0, 1, 2, 3, 4, 5, 6].sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 3) + 1) : undefined,
                         wholeDay: isFullDay,
                         chosenTime: event.time,
                         isReminder: Math.random() > 0.5,
@@ -134,6 +135,7 @@ export default defineComponent({
             currentRange.value = range;
             // Generate new events whenever range changes
             generateMockEvents();
+            console.log(events.value)
         };
 
         const handleModeUpdate = (mode: 'daily' | 'weekly' | 'monthly') => {
