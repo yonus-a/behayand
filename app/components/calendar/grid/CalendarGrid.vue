@@ -7,7 +7,10 @@
                 <div class="flex items-stretch min-h-full w-full">
 
                     <div class="transition-all duration-300 ease-in-out shrink-0 overflow-hidden whitespace-nowrap"
-                        :class="mode !== 'monthly' ? 'w-9 md:w-25 opacity-100' : 'w-0 opacity-0'">
+                        :class="[
+                            mode !== 'monthly' ? 'w-9 md:w-25 opacity-100' : 'w-0 opacity-0',
+                            isSidebarActive ? '' : '!hidden'
+                        ]">
                         <CalendarSideItem class="w-9 md:w-25 h-full" :range="hours" />
                     </div>
 
@@ -58,8 +61,9 @@
         </div>
     </div>
 </template>
+
 <script lang="ts">
-import { defineComponent, type PropType, computed } from 'vue';
+import { defineComponent, type PropType, computed, ref, watch } from 'vue'; // Added ref and watch
 import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
 import type { CalendarMode, CalendarDateRange, CalendarTimeRange, CalendarDay } from '~/types/components/calendar';
 import type { CalendarEventPayload } from '~/types/calendar';
@@ -157,6 +161,24 @@ export default defineComponent({
             emit('update:mode', 'daily', new Date(day.date));
         };
 
+        // FIX: Safely manages the sidebar's presence in the DOM
+        const isSidebarActive = ref(props.mode !== 'monthly');
+
+        watch(() => props.mode, (newMode) => {
+            if (newMode !== 'monthly') {
+                // Instantly show before animation starts so height is ready
+                isSidebarActive.value = true;
+            } else {
+                // Wait exactly 300ms (matches duration-300 in template) for width animation to finish, 
+                // then hide to eliminate the massive scroll margin
+                setTimeout(() => {
+                    if (props.mode === 'monthly') {
+                        isSidebarActive.value = false;
+                    }
+                }, 300);
+            }
+        });
+
         return {
             headers,
             isOtherMonth,
@@ -164,7 +186,8 @@ export default defineComponent({
             displayedHeader,
             eventsByDay,
             visibleGridEvents,
-            openSpecificDay
+            openSpecificDay,
+            isSidebarActive // Exported to template
         }
     }
 })
