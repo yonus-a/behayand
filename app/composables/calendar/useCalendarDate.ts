@@ -19,7 +19,7 @@ export const useCalendarDate = () => {
 
   const getYears = computed((): Option[] => {
     const calendar = getActiveCalendar.value;
-    const lang = String(locale.value).split("-")[0];
+    const lang = String(locale.value).split("-");
 
     const rawFormatter = new Intl.DateTimeFormat(`en-u-ca-${calendar}`, {
       year: "numeric",
@@ -35,13 +35,13 @@ export const useCalendarDate = () => {
     const years: Option[] = [];
     const baseDate = new Date();
 
-    for (let i = currentYear - 5; i <= currentYear + 100; i++) {
-      // Create a display label for each year
+    // Changed from - 5 to - 100
+    for (let i = currentYear - 100; i <= currentYear + 100; i++) {
       const date = new Date(baseDate);
       date.setFullYear(baseDate.getFullYear() + (i - currentYear));
 
       years.push({
-        key: String(i), // Explicitly stringify
+        key: String(i),
         label: labelFormatter.format(date),
       });
     }
@@ -323,23 +323,18 @@ export const useCalendarDate = () => {
   };
 
   const getWeekDayNames = computed(() => {
-    // Get the first part of the locale string (e.g., 'fa' or 'en')
+    // FIX: Added here so lang is a string, not an array
     const lang = String(locale.value).split("-");
     const calendar = getActiveCalendar.value;
 
     const lc = locale.value;
-    // Sat (6) for Persian/Arabic, Sun (0) for others
     const weekStartDay = lc === "fa" || lc === "ar" ? 6 : 0;
 
-    // Reference date: Jan 11, 2025 is a Saturday, Jan 12 is a Sunday
     const start = new Date(2025, 0, weekStartDay === 6 ? 11 : 12);
 
-    // Formatter for 'ش', 'ی', 'S', 'M'
     const narrowFormatter = new Intl.DateTimeFormat(
       `${lang}-u-ca-${calendar}`,
-      {
-        weekday: "narrow",
-      },
+      { weekday: "narrow" },
     );
 
     const fullFormatter = new Intl.DateTimeFormat(`${lang}-u-ca-${calendar}`, {
@@ -350,9 +345,9 @@ export const useCalendarDate = () => {
       const d = new Date(start);
       d.setDate(start.getDate() + i);
       return {
-        dayOfWeek: d.getDay(), // Native JS 0-6 (Sun-Sat)
+        dayOfWeek: d.getDay(),
         label: narrowFormatter.format(d),
-        fullName: fullFormatter.format(d), // Added full name here
+        fullName: fullFormatter.format(d),
       };
     });
   });
