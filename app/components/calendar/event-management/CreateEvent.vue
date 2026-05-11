@@ -42,7 +42,7 @@ import { defineComponent, computed, ref, watch, useTemplateRef, onMounted } from
 import { useI18n, useProfileStore } from '#imports';
 import type { DropdownOption } from '~/types/components/select';
 import CheckList, { type CheckListExposed } from './CheckList.vue';
-
+import { useCalendarStore } from '#imports';
 export default defineComponent({
     name: 'CreateEvent',
     components: {
@@ -58,23 +58,12 @@ export default defineComponent({
     setup(props, { emit }) {
         const { t } = useI18n()
         const profileStore = useProfileStore()
+        const calendarStore = useCalendarStore()
         const checkListRef = useTemplateRef<CheckListExposed>('checkList');
         const hasErrors = ref(false)
+        const colors = computed(() => calendarStore.colors)
 
 
-
-        const colors = computed(() => [
-            { label: t('general.colors.red'), value: 'red', color: '#F34040' },
-            { label: t('general.colors.orange'), value: 'orange', color: '#F37040' },
-            { label: t('general.colors.yellow'), value: 'yellow', color: '#E9EF37' },
-            { value: 'green', label: t('general.colors.green'), color: '#8CE25E' },
-            { value: 'blueLight', label: t('general.colors.blueLight'), color: '#40F3E4' },
-            { value: 'blue', label: t('general.colors.blue'), color: '#555CEE' },
-            { value: 'purple', label: t('general.colors.purple'), color: '#CF40F3' },
-            { value: 'pink', label: t('general.colors.pink'), color: '#F897F6' },
-            { value: 'darkPink', label: t('general.colors.darkPink'), color: '#F49AA6' },
-            { value: 'black', label: t('general.colors.black'), color: '#2C2727' },
-        ])
 
         const eventType = ref({ value: 'task', message: '', color: 'primary' })
         const eventTitle = ref({ value: '', message: '', color: 'primary' })

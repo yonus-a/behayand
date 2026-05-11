@@ -3,7 +3,7 @@
         <CalendarHeader @add="openEventDetails" @refresh="refreshCalendar" @share="openSharePopup"
             @update:mode="handleModeUpdate" @update:range="handleRangeUpdate" />
         <div class=" w-full overflow-hidden flex-1 ">
-            <CalendarGrid :range="currentRange" :mode="currentMode" />
+            <CalendarGrid :events="events" :range="currentRange" :mode="currentMode" />
         </div>
         <SharePopup ref="sharePopup" />
         <MainPopup ref="eventPopup" />
@@ -163,6 +163,7 @@ export default defineComponent({
             handleModeUpdate,
             handleRangeUpdate,
             currentMode,
+            events,
             openSharePopup,
             refreshCalendar,
             sharePopup,

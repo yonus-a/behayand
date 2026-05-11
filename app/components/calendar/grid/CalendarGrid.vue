@@ -11,8 +11,14 @@
                     <!-- Main Grid: items-stretch makes this match the Sidebar height exactly -->
                     <div class=" flex-1 relative">
                         <CalendarPointer :mode="mode" :hours="hours" :headers="headers" />
-                        <div class=" w-full h-full" v-if="mode !== 'monthly'">
+                        <div class=" w-full relative h-full" v-if="mode !== 'monthly'">
                             <!-- Grid displays-->
+                            <div class="absolute inset-0 pointer-events-none">
+                                <div class="relative w-full h-full pointer-events-auto">
+                                    <CalendarItemDisplay v-for="event in visibleGridEvents" :key="event.id"
+                                        :event="event" :mode="mode" :headers="headers" :hours="hours" />
+                                </div>
+                            </div>
                             <div
                                 class=" w-full absolute top-0 left-0 h-full pointer-events-none justify-between flex items-stretch">
                                 <div class=" h-full  border-surface-variant"
@@ -28,8 +34,10 @@
                                 </div>
                             </div>
                         </div>
+
                         <div v-else class=" relative w-full h-full grid grid-cols-7">
                             <CalendarDayHolder v-for="(day, index) in headers" :key="index" :day="day"
+                                :events="eventsByDay.get(new Date(day.date).toDateString()) || []"
                                 :other-month="isOtherMonth(day.date)" />
                         </div>
                     </div>
@@ -42,10 +50,12 @@
 import { defineComponent, type PropType, watch } from 'vue';
 import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
 import type { CalendarMode, CalendarDateRange, CalendarTimeRange } from '~/types/components/calendar';
+import type { CalendarEventPayload } from '~/types/calendar';
 import CalendarHeaderItem from './CalendarHeaderItem.vue';
 import CalendarSideItem from './CalendarSideItem.vue';
 import CalendarDayHolder from './CalendarDayHolder.vue';
 import CalendarPointer from './CalendarPointer.vue';
+import CalendarItemDisplay from './CalendarItemDisplay.vue';
 export default defineComponent({
     name: 'CalendarGrid',
     components: {
@@ -53,6 +63,7 @@ export default defineComponent({
         CalendarSideItem,
         CalendarDayHolder,
         CalendarPointer,
+        CalendarItemDisplay,
     },
     props: {
         range: {
@@ -66,6 +77,10 @@ export default defineComponent({
         hours: {
             type: Object as PropType<CalendarTimeRange>,
             default: { start: 0, end: 24 }
+        },
+        events: {
+            type: Array as PropType<CalendarEventPayload[]>,
+            default: () => []
         }
     },
     setup(props) {
@@ -90,6 +105,31 @@ export default defineComponent({
             return target.month !== current.month || target.year !== current.year;
         };
 
+        const eventsByDay = computed(() => {
+            const map = new Map<string, CalendarEventPayload[]>();
+
+            props.events.forEach(event => {
+                const dateKey = new Date(event.date).toDateString();
+                if (!map.has(dateKey)) map.set(dateKey, []);
+                map.get(dateKey)?.push(event);
+            });
+
+            // Sort newest to oldest (by time)
+            map.forEach(list => {
+                list.sort((a, b) => b.time.localeCompare(a.time));
+            });
+
+            return map;
+        });
+
+        // Filter events that actually fall within the visible time-grid range
+        const visibleGridEvents = computed(() => {
+            if (props.mode === 'monthly') return [];
+            return props.events.filter(e => {
+                const hour = parseInt(e.time.split(':'));
+                return hour >= props.hours.start && hour < props.hours.end;
+            });
+        });
 
 
         return {
@@ -97,6 +137,8 @@ export default defineComponent({
             isOtherMonth,
             columnWidths,
             displayedHeader,
+            eventsByDay,
+            visibleGridEvents,
         }
     }
 })

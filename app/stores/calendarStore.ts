@@ -136,6 +136,27 @@ export const useCalendarStore = defineStore("calendar", () => {
 
   const refreshData = () => {};
 
+  const colors = computed(() => [
+    { label: t("general.colors.red"), value: "red", color: "#F34040" },
+    { label: t("general.colors.orange"), value: "orange", color: "#F37040" },
+    { label: t("general.colors.yellow"), value: "yellow", color: "#E9EF37" },
+    { value: "green", label: t("general.colors.green"), color: "#8CE25E" },
+    {
+      value: "blueLight",
+      label: t("general.colors.blueLight"),
+      color: "#40F3E4",
+    },
+    { value: "blue", label: t("general.colors.blue"), color: "#555CEE" },
+    { value: "purple", label: t("general.colors.purple"), color: "#CF40F3" },
+    { value: "pink", label: t("general.colors.pink"), color: "#F897F6" },
+    {
+      value: "darkPink",
+      label: t("general.colors.darkPink"),
+      color: "#F49AA6",
+    },
+    { value: "black", label: t("general.colors.black"), color: "#2C2727" },
+  ]);
+
   return {
     isSending,
     errorLoadingShared,
@@ -146,6 +167,7 @@ export const useCalendarStore = defineStore("calendar", () => {
     addSharedUser,
     processingIds,
     updateAccessType,
+    colors,
     isLoadingCalendar,
     refreshData,
     removeSharedUser,

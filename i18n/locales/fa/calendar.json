@@ -1,5 +1,6 @@
 {
   "calendar": {
+    "moreItems": "{count} مورد دیگر",
     "modes": {
       "weekly": "هفتگی",
       "daily": "روزانه",

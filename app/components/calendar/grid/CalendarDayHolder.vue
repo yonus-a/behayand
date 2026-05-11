@@ -4,7 +4,15 @@
             <div class=" shrink-0">
                 <CalendarDayBadge :day="day" />
             </div>
-            <div id="holder" class=" w-full flex-1 "></div>
+            <div id="holder" class="w-full flex-1 flex flex-col gap-y-1.5 mt-2">
+                <CalendarItemDisplay position="static" v-for="event in displayedEvents" :key="event.id"
+                    :event="event" />
+
+                <div v-if="remainingCount > 0"
+                    class="w-full h-9 px-2 flex items-center rounded-lg bg-surface-variant text-label-sm text-on-surface select-none ">
+                    {{ t('calendar.moreItems', { count: remainingCount }) }}
+                </div>
+            </div>
         </div>
         <div class="w-full h-full pointer-events-none absolute top-0 left-0">
             <CalendarPattern v-if="otherMonth" class="absolute inset-0 z-0 pointer-events-none" />
@@ -12,12 +20,14 @@
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue';
+import { defineComponent, type PropType, computed } from 'vue';
 import type { CalendarDay } from '~/types/components/calendar';
 import CalendarDayBadge from './CalendarDayBadge.vue';
 import OtherMonthsBackground from '/images/calendar/other-months.svg'
 import CalendarPattern from './CalendarPattern.vue';
-
+import CalendarItemDisplay from './CalendarItemDisplay.vue';
+import { useI18n } from '#imports';
+import type { CalendarEventPayload } from '~/types/calendar';
 export default defineComponent({
     name: 'CalendarDayHolder',
     props: {
@@ -28,14 +38,19 @@ export default defineComponent({
         otherMonth: {
             type: Boolean,
             default: false,
+        },
+        events: {
+            type: Array as PropType<CalendarEventPayload[]>,
+            default: () => []
         }
     },
     components: {
         CalendarDayBadge,
         CalendarPattern,
+        CalendarItemDisplay,
     },
     setup(props) {
-
+        const { t } = useI18n()
 
         const getDayItemColor = (day: CalendarDay) => {
             let fillStyle = 'border-outline-variant bg-surface'
@@ -53,9 +68,15 @@ export default defineComponent({
             }
         }
 
+        const displayedEvents = computed(() => props.events.slice(0, 2));
+        const remainingCount = computed(() => props.events.length - 2);
+
         return {
             getDayItemColor,
             OtherMonthsBackground,
+            t,
+            displayedEvents,
+            remainingCount,
         }
     }
 })
