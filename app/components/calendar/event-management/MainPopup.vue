@@ -49,7 +49,7 @@ export default defineComponent({
         const { t } = useI18n();
         const popup = ref<Popup | null>(null);
         const isEditting = ref(false)
-        const mode = ref<EventPopupModes>('repetition');
+        const mode = ref<EventPopupModes>('create');
         const popupTitle = computed(() => isEditting.value ? t('calendar.form.editEvent') : t('calendar.form.addEvent'))
 
         // Multi-step form state

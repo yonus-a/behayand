@@ -61,23 +61,12 @@ export default defineComponent({
         const openSharePopup = () => {
             sharePopup.value?.open()
         }
-
-
-        onMounted(() => {
-            openEventPopup()
-        })
-
+     
         useSeoMeta({
             title: () => t('seo.dashboard.calendar.title'),
             description: () => t('seo.dashboard.calendar.description'),
             ogTitle: () => `${t('seo.siteName')} - ${t('seo.dashboard.calendar.title')}`,
         });
-
-
-        const openEventPopup = () => {
-            eventPopup.value?.open()
-        }
-
 
         return {
             handleModeUpdate,
@@ -85,7 +74,6 @@ export default defineComponent({
             currentMode,
             openSharePopup,
             refreshCalendar,
-            openEventPopup,
             sharePopup,
             t,
             eventPopup,

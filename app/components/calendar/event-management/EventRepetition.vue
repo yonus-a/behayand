@@ -210,6 +210,8 @@ export default defineComponent({
         watch(() => repeatTimeCycle.value.value, () => clearField(repeatTimeCycle));
         watch(() => repetitionAmount.value.value, () => clearField(repetitionAmount));
         watch(() => selectedDays.value, () => clearField(repeatTimeCycle), { deep: true });
+        watch(() => repetitionType.value, () => clearField(repeatTimeCycle), { deep: true })
+        watch(() => chosenTime.value.value, () => clearField(chosenTime));
 
 
         const endingDetailsProps = computed(() => {
@@ -273,7 +275,6 @@ export default defineComponent({
             hasErrors.value = false;
             let isValid = true;
 
-            // If user turned it off, skip validation entirely
             if (!hasRepetition.value) {
                 submitFields();
                 return;
@@ -282,34 +283,69 @@ export default defineComponent({
             const now = new Date();
             now.setHours(0, 0, 0, 0);
 
-            if (!repetitionStart.value.value || new Date(repetitionStart.value.value) < now) {
+            // 1. Repetition Start Date
+            if (!repetitionStart.value.value) {
+                repetitionStart.value.color = 'error';
+                repetitionStart.value.message = t('validation.required', { field: t('calendar.form.startDate') });
+                isValid = false;
+            } else if (new Date(repetitionStart.value.value) < now) {
                 repetitionStart.value.color = 'error';
                 repetitionStart.value.message = t('calendar.form.validation.pastDate');
                 isValid = false;
             }
 
+            if (!chosenTime.value.value) {
+                chosenTime.value.color = 'error';
+                chosenTime.value.message = t('validation.required', { field: t('calendar.form.hour') });
+                isValid = false;
+            } else {
+                const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
+
+                if (!timeRegex.test(chosenTime.value.value)) {
+                    chosenTime.value.color = 'error';
+                    chosenTime.value.message = t('calendar.form.validation.invalidTime');
+                    isValid = false;
+                }
+            }
+
+            // 2. Repeat Cycle / Custom Days
             if (repetitionType.value !== 'custom') {
                 const cycle = Number(repeatTimeCycle.value.value);
-                if (!repeatTimeCycle.value.value || isNaN(cycle) || cycle <= 0) {
+                if (!repeatTimeCycle.value.value) {
+                    repeatTimeCycle.value.color = 'error';
+                    repeatTimeCycle.value.message = t('validation.required', { field: t('calendar.form.repeatEvery') });
+                    isValid = false;
+                } else if (isNaN(cycle) || cycle <= 0) {
                     repeatTimeCycle.value.color = 'error';
                     repeatTimeCycle.value.message = t('calendar.form.validation.positiveNumber');
                     isValid = false;
                 }
             } else {
                 if (selectedDays.value.length === 0) {
-                    isValid = false; // Disable button silently or use a global toast
+                    repeatTimeCycle.value.color = 'error';
+                    repeatTimeCycle.value.message = t('calendar.form.validation.customDaysRequired');
+                    isValid = false;
                 }
             }
 
+            // 3. Repetition End (Times or Date)
             if (repeatitionEnd.value.value === 'times') {
                 const amount = Number(repetitionAmount.value.value);
-                if (!repetitionAmount.value.value || isNaN(amount) || amount <= 0) {
+                if (!repetitionAmount.value.value) {
+                    repetitionAmount.value.color = 'error';
+                    repetitionAmount.value.message = t('validation.required', { field: t('calendar.form.repeatEnding.times') });
+                    isValid = false;
+                } else if (isNaN(amount) || amount <= 0) {
                     repetitionAmount.value.color = 'error';
                     repetitionAmount.value.message = t('calendar.form.validation.positiveNumber');
                     isValid = false;
                 }
             } else {
-                if (!repetitionAmount.value.value || new Date(repetitionAmount.value.value) < now) {
+                if (!repetitionAmount.value.value) {
+                    repetitionAmount.value.color = 'error';
+                    repetitionAmount.value.message = t('validation.required', { field: t('calendar.form.repeatEnding.date') });
+                    isValid = false;
+                } else if (new Date(repetitionAmount.value.value) < now) {
                     repetitionAmount.value.color = 'error';
                     repetitionAmount.value.message = t('calendar.form.validation.pastDate');
                     isValid = false;
