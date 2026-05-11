@@ -1,9 +1,10 @@
 <template>
     <div class=" w-full h-full max-h-full flex flex-col">
-        <CalendarHeader @add="openEventDetails" @refresh="refreshCalendar" @share="openSharePopup"
+        <CalendarHeader ref="header" @add="openEventDetails" @refresh="refreshCalendar" @share="openSharePopup"
             @update:mode="handleModeUpdate" @update:range="handleRangeUpdate" />
         <div class=" w-full overflow-hidden flex-1 ">
-            <CalendarGrid :events="events" :range="currentRange" :mode="currentMode" />
+            <CalendarGrid @update:mode="applyModeUpdate" @update:range="handleRangeUpdate" :events="events"
+                :range="currentRange" :mode="currentMode" />
         </div>
         <SharePopup ref="sharePopup" />
         <MainPopup ref="eventPopup" />
@@ -12,7 +13,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
 import { useI18n, useSeoMeta, useCalendarStore } from '#imports';
-import CalendarHeader from '~/components/calendar/CalendarHeader.vue';
+import CalendarHeader, { type CalendarHeaderExposed } from '~/components/calendar/CalendarHeader.vue';
 import CalendarGrid from '~/components/calendar/grid/CalendarGrid.vue';
 import SharePopup from '~/components/calendar/SharePopup.vue';
 import type { Popup } from '~/types/components/popup';
@@ -35,6 +36,7 @@ export default defineComponent({
     setup() {
         const { t } = useI18n()
         const calendarStore = useCalendarStore()
+        const calendarHeader = useTemplateRef<CalendarHeaderExposed>('header')
 
         const eventPopup = ref<Popup | null>(null)
         const sharePopup = ref<Popup | null>(null)
@@ -140,9 +142,12 @@ export default defineComponent({
 
         const handleModeUpdate = (mode: 'daily' | 'weekly' | 'monthly') => {
             currentMode.value = mode;
-            // Mode update usually follows a range update, but we call it here to be safe
             generateMockEvents();
         };
+
+        const applyModeUpdate = (mode: 'daily' | 'weekly' | 'monthly', targetDate?: Date) => {
+            calendarHeader.value?.setTab(mode, targetDate);
+        }
 
         const refreshCalendar = () => {
             calendarStore.refreshData();
@@ -160,6 +165,7 @@ export default defineComponent({
         });
 
         return {
+            applyModeUpdate,
             handleModeUpdate,
             handleRangeUpdate,
             currentMode,
@@ -167,6 +173,7 @@ export default defineComponent({
             openSharePopup,
             refreshCalendar,
             sharePopup,
+            calendarHeader,
             t,
             eventPopup,
             openEventDetails,

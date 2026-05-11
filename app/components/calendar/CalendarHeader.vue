@@ -25,7 +25,7 @@
                                 class=" w-5 aspect-square transition-all duration-200 ease-in-out fill-on-surface/50" />
                         </div>
                     </template>
-                    
+
                 </BMenu>
                 <BMenu :options="getMonths" @select="handleMonthSelect">
                     <template #trigger="{ isOpen }">
@@ -55,11 +55,13 @@
 import { defineComponent, computed } from 'vue';
 import { useI18n, useCalendarStore, useWindowSize } from '#imports';
 import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
-
+export interface CalendarHeaderExposed {
+    setTab: (tab: string, targetDate?: Date) => void;
+}
 export default defineComponent({
     name: 'CalendarHeader',
     emits: ['update:range', 'update:mode', 'share', 'refresh', 'add'],
-    setup(_, { emit }) {
+    setup(_, { emit, expose }) {
         const { t, locale } = useI18n()
         const calendar = useCalendarDate()
         const calendarStore = useCalendarStore()
@@ -220,6 +222,29 @@ export default defineComponent({
             }
             currentDate.value = d;
         }
+
+
+        const setTab = (key: string, targetDate?: Date) => {
+            const modeMap = {
+                'daily': 0,
+                'weekly': 1,
+                'monthly': 2,
+            };
+
+            if (key in modeMap) {
+                if (targetDate) {
+                    currentDate.value = new Date(targetDate);
+                }
+                currentDisplayMode.value = modeMap[key as keyof typeof modeMap];
+            } else {
+                console.warn(`Invalid tab key: ${key}`);
+            }
+        };
+        expose({
+            setTab
+        } as CalendarHeaderExposed);
+
+
         return {
             t,
             handleMonthSelect,

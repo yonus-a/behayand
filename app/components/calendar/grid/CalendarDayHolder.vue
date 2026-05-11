@@ -8,7 +8,7 @@
                 <CalendarItemDisplay position="static" v-for="event in displayedEvents" :key="event.id"
                     :event="event" />
 
-                <div v-if="remainingCount > 2"
+                <div v-if="remainingCount > 2" @click="openDay"
                     class="w-full h-9 px-2 flex cursor-pointer items-center rounded-lg bg-surface-variant text-label-sm text-on-surface select-none ">
                     {{ t('calendar.moreItems', { count: remainingCount }) }}
                 </div>
@@ -49,7 +49,8 @@ export default defineComponent({
         CalendarPattern,
         CalendarItemDisplay,
     },
-    setup(props) {
+    emits: ['open-day'],
+    setup(props, { emit }) {
         const { t } = useI18n()
 
         const getDayItemColor = (day: CalendarDay) => {
@@ -71,11 +72,16 @@ export default defineComponent({
         const displayedEvents = computed(() => props.events.slice(0, 2));
         const remainingCount = computed(() => props.events.length - 2);
 
+        const openDay = () => {
+            emit('open-day', props.day);
+        }
+
         return {
             getDayItemColor,
             OtherMonthsBackground,
             t,
             displayedEvents,
+            openDay,
             remainingCount,
         }
     }
