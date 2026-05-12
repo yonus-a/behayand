@@ -8,16 +8,23 @@
             <div class=" w-4 h-4 rounded-sm" :style="{ backgroundColor: event?.color }"></div>
             <div class=" select-none text-on-surface text-title-lg">{{ event?.title }}</div>
         </div>
+        <div class=" w-full flex gap-y-1 flex-col">
+            <div class=" flex items-center gap-x-3">
+                <BIcon icon="PhInfo" class=" w-5 shrink-0 h-5 fill-on-surface/50" />
+                <div class=" text-title-md select-none text-on-surface">{{ t('calendar.form.descriptions') }}</div>
+            </div>
+            <div class=" w-full text-justify text-body-md select-none text-on-surface/50">{{ event?.description }}</div>
+        </div>
         <div class=" flex items-center gap-x-4">
-            <BIcon icon="PhInfo" class=" w-4 h-4 fill-on-surfac/50 " />
-            <div class=" text-title-md select-none text-on-surface">{{ t('calendar.form.descriptions') }}</div>
+            <BIcon icon="PhClock" class=" w-5 h-5 fill-on-surface/50" />
+            <div class=" select-none text-title-md text-on-surface">{{ }}</div>
         </div>
     </div>
 </template>
 <script lang="ts">
 import { defineComponent, type PropType, ref, computed } from 'vue';
 import type { CalendarEventPayload } from '~/types/calendar';
-import { useI18n } from '#imports';
+import { useI18n, useDate } from '#imports';
 
 export default defineComponent({
     name: 'CalendarItemDisplay',
