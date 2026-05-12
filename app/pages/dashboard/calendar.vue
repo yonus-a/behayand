@@ -3,8 +3,8 @@
         <CalendarHeader ref="header" @add="openEventDetails" @refresh="refreshCalendar" @share="openSharePopup"
             @update:mode="handleModeUpdate" @update:range="handleRangeUpdate" />
         <div class=" w-full overflow-hidden flex-1 ">
-            <CalendarGrid @update:mode="applyModeUpdate" @update:range="handleRangeUpdate" :events="events"
-                :range="currentRange" :mode="currentMode" />
+            <CalendarGrid :loading="isLoading" @update:mode="applyModeUpdate" @update:range="handleRangeUpdate"
+                :events="events" :range="currentRange" :mode="currentMode" />
         </div>
         <SharePopup ref="sharePopup" />
         <MainPopup ref="eventPopup" />
@@ -37,6 +37,7 @@ export default defineComponent({
         const { t } = useI18n()
         const calendarStore = useCalendarStore()
         const calendarHeader = useTemplateRef<CalendarHeaderExposed>('header')
+        const isLoading = ref(false)
 
         const eventPopup = ref<Popup | null>(null)
         const sharePopup = ref<Popup | null>(null)
@@ -185,6 +186,7 @@ export default defineComponent({
             eventPopup,
             openEventDetails,
             currentRange,
+            isLoading,
         }
     }
 })

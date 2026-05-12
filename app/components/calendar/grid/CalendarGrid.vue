@@ -4,7 +4,8 @@
 
             <Transition name="fade-overlay" mode="out-in">
 
-                <div v-if="showMonthly" key="desktop-view" class="w-full flex-1 min-h-0 overflow-hidden">
+                <div v-if="showMonthly" key="desktop-view" class="w-full flex-1 min-h-0 "
+                    :class="[showMonthly ? 'overflow-hidden' : 'overflow-y-auto']">
                     <CalendarHeaderItem v-if="showMonthly" class="shrink-0" :mode="mode" :days="displayedHeader" />
                     <div class="h-full w-full overflow-y-auto hide-scrollbar">
                         <div class="flex items-stretch min-h-full w-full">
@@ -63,9 +64,10 @@
                     </div>
                 </div>
 
-                <MobileCalendarGrid v-else key="mobile-view" :days="headers" :mode="mode" :events-by-day="eventsByDay"
-                    :is-other-month-func="isOtherMonth" />
-
+                <div v-else key="mobile-view" class="w-full flex-1 min-h-0 overflow-y-auto hide-scrollbar">
+                    <MobileCalendarGrid :loading="isLoading" :days="headers" :mode="mode" :events-by-day="eventsByDay"
+                        :is-other-month-func="isOtherMonth" />
+                </div>
             </Transition>
         </div>
     </ClientOnly>
@@ -109,10 +111,15 @@ export default defineComponent({
         events: {
             type: Array as PropType<CalendarEventPayload[]>,
             default: () => []
+        },
+        loading: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['update:mode', 'update:range'],
     setup(props, { emit }) {
+        const isLoading = computed(() => props.loading)
         const { width } = useWindowSize()
         const isMobile = computed(() => width.value < 768)
         const { getCalendarHeaders, getParts } = useCalendarDate();
@@ -204,7 +211,8 @@ export default defineComponent({
             eventsByDay,
             visibleGridEvents,
             openSpecificDay,
-            isSidebarActive
+            isSidebarActive,
+            isLoading,
         }
     }
 })

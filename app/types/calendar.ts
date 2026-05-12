@@ -25,7 +25,7 @@ export interface EventRepetitionConfig {
 // The Final Combined Payload from MainPopup.vue
 export interface CalendarEventPayload {
   id?: number;
-  
+
   // --- Step 1: Details ---
   eventType: EventCategory;
   title: string;
@@ -43,4 +43,5 @@ export interface CalendarEventPayload {
 
   // --- Step 3: Repetition (Optional) ---
   repetition?: EventRepetitionConfig;
+  endDate: Date;
 }

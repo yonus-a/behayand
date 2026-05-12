@@ -1,5 +1,6 @@
 <template>
-    <div class=" w-full pt-6 px-4">
+    <div class=" w-full pt-6 px-4 relative">
+        <div class=" w-dvw fixed right-0 -translate-y-6 pointer-events-none z-1000 h-6 bg-linear-to-b from-surface to-surface/0"></div>
         <div id="mobile-grid" class="w-full" style="touch-action: pan-x;" @touchstart="handleTouchStart"
             @touchmove="handleTouchMove" @touchend="handleTouchEnd">
 
@@ -21,6 +22,13 @@
                 </div>
             </div>
         </div>
+        <div class=" transition-all duration-200 ease-in-out overflow-hidden text-wrap whitespace-nowrap w-full"
+            :class="[showEventsList ? ' h-auto opacity-100' : 'opacity-0 h-0']">
+            <div class=" py-3 text-on-surface text-title-md select-none">{{ formatDate(selectedDate) }}</div>
+            <div class=" w-full flex flex-col gap-y-2">
+                <EventDisplay :loading="isLoading" v-for="event in eventsList" :key="event.id" :event="event" />
+            </div>
+        </div>
     </div>
 </template>
 
@@ -30,11 +38,13 @@ import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
 import type { CalendarEventPayload } from '~/types/calendar';
 import type { CalendarDay } from '~/types/components/calendar';
 import MobileDayHolder from './MobileDayHolder.vue';
-
+import EventDisplay from './EventDisplay.vue';
+import { useDate } from '#imports';
 export default defineComponent({
     name: 'MobileCalendarGrid',
     components: {
         MobileDayHolder,
+        EventDisplay,
     },
     props: {
         days: {
@@ -49,21 +59,46 @@ export default defineComponent({
             type: Function as PropType<(date: Date) => boolean>,
             required: true
         },
+        loading: {
+            type: Boolean,
+            default: false
+        }
     },
-    setup() {
+    setup(props) {
+        const { formatDate } = useDate()
         const { getWeekDayNames } = useCalendarDate()
+        const isLoading = computed(() => props.loading)
         const weekDays = computed(() => getWeekDayNames.value);
 
+
+        const showEventsList = ref(false);
+        const eventsList = ref<CalendarEventPayload[]>([]);
         const selectedDate = ref('');
 
         const selectDay = (day: CalendarDay) => {
-            selectedDate.value = new Date(day.date).toDateString();
+            const dateKey = new Date(day.date).toDateString();
+            selectedDate.value = dateKey;
+
+            const foundEvents = props.eventsByDay.get(dateKey);
+
+            if (foundEvents && foundEvents.length > 0) {
+                eventsList.value = [...foundEvents];
+                showEventsList.value = true;
+            } else {
+                showEventsList.value = false;
+            }
         };
 
         onMounted(() => {
-            const today = new Date().toDateString();
-            selectedDate.value = today;
-            console.log('fuck')
+            const todayDate = new Date();
+            const todayKey = todayDate.toDateString();
+            selectedDate.value = todayKey;
+
+            const todayEvents = props.eventsByDay.get(todayKey);
+            if (todayEvents && todayEvents.length > 0) {
+                eventsList.value = [...todayEvents];
+                showEventsList.value = true;
+            }
         });
 
         const isDaySelected = (day: CalendarDay) => {
@@ -118,13 +153,17 @@ export default defineComponent({
         return {
             isDaySelected,
             weekDays,
+            formatDate,
             selectDay,
             selectedDate,
+            showEventsList,
             progress,
             isDragging,
             handleTouchStart,
             handleTouchMove,
-            handleTouchEnd
+            handleTouchEnd,
+            eventsList,
+            isLoading,
         }
     }
 })
