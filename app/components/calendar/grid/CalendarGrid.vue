@@ -1,8 +1,8 @@
 <template>
     <div class="w-full h-full max-h-full flex flex-col">
-        <CalendarHeaderItem v-show="showMonthly" class="shrink-0" :mode="mode" :days="displayedHeader" />
+        <CalendarHeaderItem v-if="showMonthly" class="shrink-0" :mode="mode" :days="displayedHeader" />
 
-        <div v-show="showMonthly" class="w-full flex-1 min-h-0 overflow-hidden">
+        <div v-if="showMonthly" class="w-full flex-1 min-h-0 overflow-hidden">
             <div class="h-full w-full overflow-y-auto hide-scrollbar">
                 <div class="flex items-stretch min-h-full w-full">
 
@@ -59,13 +59,14 @@
                 </div>
             </div>
         </div>
-        <MobileCalendarGrid v-show="!showMonthly" :days="headers" :mode="mode" :events-by-day="eventsByDay"
+        
+        <MobileCalendarGrid v-else :days="headers" :mode="mode" :events-by-day="eventsByDay"
             :is-other-month-func="isOtherMonth" />
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType, computed, ref, watch } from 'vue'; // Added ref and watch
+import { defineComponent, type PropType, computed, ref, watch } from 'vue'; 
 import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
 import type { CalendarMode, CalendarDateRange, CalendarTimeRange, CalendarDay } from '~/types/components/calendar';
 import type { CalendarEventPayload } from '~/types/calendar';
@@ -168,16 +169,13 @@ export default defineComponent({
             emit('update:mode', 'daily', new Date(day.date));
         };
 
-        // FIX: Safely manages the sidebar's presence in the DOM
+        // Safely manages the sidebar's presence in the DOM
         const isSidebarActive = ref(props.mode !== 'monthly');
 
         watch(() => props.mode, (newMode) => {
             if (newMode !== 'monthly') {
-                // Instantly show before animation starts so height is ready
                 isSidebarActive.value = true;
             } else {
-                // Wait exactly 300ms (matches duration-300 in template) for width animation to finish, 
-                // then hide to eliminate the massive scroll margin
                 setTimeout(() => {
                     if (props.mode === 'monthly') {
                         isSidebarActive.value = false;
@@ -197,12 +195,11 @@ export default defineComponent({
             isOtherMonth,
             columnWidths,
             showMonthly,
-            isMobile,
             displayedHeader,
             eventsByDay,
             visibleGridEvents,
             openSpecificDay,
-            isSidebarActive // Exported to template
+            isSidebarActive
         }
     }
 })

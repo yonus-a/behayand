@@ -1,47 +1,42 @@
 <template>
-    <div @click="selectDay" 
-         class="flex flex-col items-center justify-start gap-y-0.5 w-full overflow-hidden"
-         :class="[
-            canSelect ? 'cursor-pointer' : 'cursor-default', 
-            isDragging ? '' : 'transition-all duration-300 ease-out'
-         ]"
-         :style="{ height: `${40 + (expandProgress * 16)}px` }">
-        
-        <div class="relative w-8 h-8 shrink-0 rounded-full transition-all duration-200 ease-in-out aspect-square border"
-            :class="styles.border">
-            <div class="rounded-full w-full h-full transition-all duration-200 ease-in-out bg-diamond-black dark:bg-diamond-gray"
-                :class="styles.bg"></div>
-            <div class="w-full h-full absolute inset-0 left-0 top-0 flex items-center justify-center">
-                <div class="select-none text-label-md transition-all duration-200 ease-in-out"
-                    :class="styles.text">{{ day.primary }}</div>
-            </div>
-        </div>
+    <ClientOnly>
+        <div @click="selectDay"
+            class="flex flex-col items-center justify-start gap-y-0.5 w-full overflow-hidden hw-accel-height" :class="[
+                canSelect ? 'cursor-pointer' : 'cursor-default',
+                isDragging ? '' : 'transition-all duration-300 ease-out'
+            ]" :style="{ height: `${40 + (expandProgress * 16)}px` }">
 
-        <div class="w-full flex-1 relative flex justify-center">
-            
-            <div class="rounded-full aspect-square w-1.5 bg-error absolute " 
-                 v-if="canSelect"
-                 :class="[isDragging ? '' : 'transition-all duration-300 ease-out']"
-                 :style="{ 
-                    opacity: Math.max(0, 1 - (expandProgress * 2)), 
-                    transform: `scale(${Math.max(0, 1 - (expandProgress * 2))})` 
-                 }">
+            <div class="relative w-8 h-8 shrink-0 rounded-full transition-all duration-200 ease-in-out aspect-square border"
+                :class="styles.border">
+                <div class="rounded-full w-full h-full transition-all duration-200 ease-in-out bg-diamond-black dark:bg-diamond-gray"
+                    :class="styles.bg"></div>
+                <div class="w-full h-full absolute inset-0 left-0 top-0 flex items-center justify-center">
+                    <div class="select-none text-label-md transition-all duration-200 ease-in-out" :class="styles.text">
+                        {{ day.primary }}</div>
+                </div>
             </div>
 
-            <div class="w-full flex flex-col gap-y-px absolute top-0 px-0.5"
-                 v-if="canSelect"
-                 :class="[isDragging ? '' : 'transition-all duration-300 ease-out']"
-                 :style="{ 
-                    opacity: expandProgress, 
-                    transform: `translateY(${(1 - expandProgress) * 6}px)` 
-                 }">
-                <div v-for="event in displayedEvents" :key="event.id" 
-                     class="w-full rounded-full shrink-0 min-h-1"
-                    :style="{ backgroundColor: event.color }"></div>
+            <div class="w-full flex-1 relative flex justify-center">
+
+                <div class="rounded-full aspect-square w-1.5 bg-error absolute hw-accel" v-if="canSelect"
+                    :class="[isDragging ? '' : 'transition-all duration-300 ease-out']" :style="{
+                        opacity: Math.max(0, 1 - (expandProgress * 2)),
+                        transform: `scale(${Math.max(0, 1 - (expandProgress * 2))})`
+                    }">
+                </div>
+
+                <div class="w-full flex flex-col gap-y-px absolute top-0 px-0.5 hw-accel" v-if="canSelect"
+                    :class="[isDragging ? '' : 'transition-all duration-300 ease-out']" :style="{
+                        opacity: expandProgress,
+                        transform: `translateY(${(1 - expandProgress) * 6}px)`
+                    }">
+                    <div v-for="event in displayedEvents" :key="event.id" class="w-full rounded-full shrink-0 min-h-1"
+                        :style="{ backgroundColor: event.color }"></div>
+                </div>
+
             </div>
-            
         </div>
-    </div>
+    </ClientOnly>
 </template>
 
 <script lang="ts">
@@ -64,12 +59,10 @@ export default defineComponent({
             type: Array as PropType<CalendarEventPayload[]>,
             default: () => []
         },
-        // Receives the drag amount from the grid
         expandProgress: {
             type: Number,
             default: 0
         },
-        // Tells the component to stop CSS transitions so it sticks to the user's finger
         isDragging: {
             type: Boolean,
             default: false
@@ -86,7 +79,6 @@ export default defineComponent({
             }
         }
 
-        // Cleaned up styling logic per your request
         const styles = computed(() => {
             if (props.isSelected) {
                 return { border: 'border-transparent', bg: 'opacity-100', text: 'text-on-primary' };
@@ -106,3 +98,14 @@ export default defineComponent({
     }
 })
 </script>
+
+<style scoped>
+/* GPU Hardware Acceleration Hints */
+.hw-accel-height {
+    will-change: height;
+}
+
+.hw-accel {
+    will-change: transform, opacity;
+}
+</style>
