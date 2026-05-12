@@ -1,16 +1,15 @@
 <template>
     <div class=" border border-outline-variant/50 w-full relative h-full"
         :class="[otherMonth ? ' overflow-hidden' : 'overflow-visible']">
-        <div class=" absolute top-0 left-0 w-full h-full p-4 flex flex-col">
+        <div class="  relative top-0 left-0 w-full h-full p-4 flex flex-col">
             <div class=" shrink-0">
                 <CalendarDayBadge :day="day" />
             </div>
-            <div id="holder" class="w-full flex-1 relative z-20 flex flex-col gap-y-1.5 mt-2">
-                <CalendarItemDisplay position="static" v-for="event in displayedEvents" :key="event.id"
+            <div id="holder" class="w-full flex-1 relative flex flex-col gap-y-1.5 mt-2">
+                <CalendarItemDisplay v-for="event in displayedEvents" :key="event.id" position="static"
                     :event="event" />
-
                 <div v-if="remainingCount > 2" @click="openDay"
-                    class="w-full h-9 px-2 flex cursor-pointer items-center rounded-lg bg-surface-variant text-label-sm text-on-surface select-none ">
+                    class="w-full relative z-0 h-9 px-2 flex cursor-pointer items-center rounded-lg bg-surface-variant text-label-sm text-on-surface select-none ">
                     {{ t('calendar.moreItems', { count: remainingCount }) }}
                 </div>
             </div>

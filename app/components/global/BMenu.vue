@@ -115,9 +115,9 @@ export default defineComponent({
         const toggleMenu = () => {
             if (!isOpen.value) {
                 globalActiveMenuId.value = instanceId;
-                isOpen.value = true;
                 emit('open')
-                calculateAlignment(); // Run the logic here
+                isOpen.value = true;
+                calculateAlignment();
             } else {
                 closeMenu();
             }
@@ -166,10 +166,12 @@ export default defineComponent({
             emit('close');
             if (globalActiveMenuId.value === instanceId) globalActiveMenuId.value = null;
         };
-
         watch(globalActiveMenuId, (newId) => {
             if (props.ignoreGlobal) return;
-            if (newId !== instanceId) isOpen.value = false;
+        
+            if (newId !== instanceId && isOpen.value) {
+                closeMenu();
+            }
         });
 
         useClickOutside(menuWrapper, () => {

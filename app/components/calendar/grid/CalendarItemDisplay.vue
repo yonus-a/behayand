@@ -1,12 +1,12 @@
 <template>
-    <div :style="wrapperStyle" :class="{ 'absolute px-1 lg:px-4 z-10': position !== 'static' }">
+    <div :style="wrapperStyle" :class="[position !== 'static' ? 'absolute px-1 lg:px-4' : '']">
+
         <div :class="[
-            'flex relative  items-center min-h-4 rounded-lg md:rounded-md cursor-pointer transition-transform  text-[11px] leading-[1.2]',
-            menuOpen ? 'z-' : 'z-20',
-            // Mode Specific padding/height
+            'flex relative items-center min-h-4 rounded-lg md:rounded-md cursor-pointer transition-transform text-[11px] leading-[1.2]',
             mode === 'monthly' ? 'px-2 mb-1 h-6 w-full shrink-0 whitespace-nowrap text-ellipsis' : 'px-4 w-full h-full',
             (mode === 'daily' || mode === 'weekly') ? 'shadow-sm border border-white/20' : ''
         ]" :style="contentStyle" @click="$emit('click', event)">
+
             <BMenu @close="toggleMenuState(false)" @open="toggleMenuState(true)" ref="menuRef">
                 <template #trigger>
                     <div class="w-full relative z-50 flex items-center gap-x-1">
@@ -19,7 +19,7 @@
                         </div>
                     </div>
                 </template>
-                <CalendarItemContent />
+                <CalendarItemContent :event="event" />
             </BMenu>
 
         </div>
@@ -62,13 +62,12 @@ export default defineComponent({
         const displayedContact = computed<Contact | null>(() => {
             // Priority 1: Event type is service -> use first provider
             if (props.event.eventType === 'service' && props.event.service?.provider?.length) {
-                return props.event.service.provider!;
+                return props.event.service.provider || null; // <--- ADDED
             }
 
-            // Priority 2: Not a service, has selected users -> get family member from store
             if (props.event.eventType !== 'service' && props.event.selectedUsers?.length) {
-                // Just take the first selected user for the avatar
-                return profileStore.getFamilyMembersByIds([props.event.selectedUsers[0]]) || null;
+                const members = profileStore.getFamilyMembersByIds([props.event.selectedUsers[0]]);
+                return members && members.length > 0 ? members : null; // <--- ADDED
             }
 
             return null;
@@ -81,10 +80,19 @@ export default defineComponent({
         })
 
         const wrapperStyle = computed(() => {
-            if (props.mode === 'monthly') return {};
-            if (props.position === 'static') return {
-                width: `100%`,
-                height: `36px`
+            // Force the z-index directly into the DOM inline styles. 100 if open, 10 if closed.
+            const currentZIndex = menuOpen.value ? 100 : 10;
+
+            if (props.mode === 'monthly') {
+                return { zIndex: currentZIndex, position: 'relative' };
+            }
+            if (props.position === 'static') {
+                return {
+                    width: `100%`,
+                    height: `36px`,
+                    zIndex: currentZIndex,
+                    position: 'relative'
+                };
             }
 
             const dayIndex = props.headers.findIndex(h =>
@@ -105,9 +113,9 @@ export default defineComponent({
                 left: `${dayIndex * columnWidth}%`,
                 width: `${columnWidth}%`,
                 height: isMobile.value && props.mode === 'weekly' ? '16px' : '36px',
+                zIndex: currentZIndex // <--- BULLETPROOF FIX
             };
         });
-
         const contentStyle = computed(() => {
             if (props.mode === 'monthly') {
                 return {
