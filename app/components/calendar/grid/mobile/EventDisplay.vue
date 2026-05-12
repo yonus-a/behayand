@@ -1,13 +1,38 @@
 <template>
     <div
-        class=" w-full overflow-hidden flex flex-col h-24 rounded-xl border border-outline-variant bg-surface relative">
-        <div class=" w-full flex-1 "></div>
+        class=" w-full overflow-hidden cursor-pointer flex flex-col select-none h-24 rounded-xl border border-outline-variant bg-surface relative">
+        <div class=" p-4 w-full flex-1 flex flex-col gap-y-1.5">
+            <div class=" text-label-md  text-on-surface">{{ event.title }}</div>
+            <div class=" flex justify-between items-center">
+                <div class=" text-on-surface/50 flex items-center gap-x-1">
+                    <BIcon icon="PhClock" class=" w-4 h-4" />
+                    <div class="text-body-sm">{{ timeRange }}</div>
+                </div>
+                <div>
+                    <div dir="ltr" class=" flex justify-center items-center">
+                        <div v-for="(contact, index) in selectedFamilyMembers" :key="contact.id"
+                            class=" border border-surface w-6 h-6">
+                            <ContactAvatar :class="[index > 0 ? ' -translate-x-1/2' : ' translate-x-0']"
+                                :contact="contact" :show-online="false" />
+                        </div>
+                        <div v-if="remainingUsers > 0"
+                            class=" bg-outline-variant border border-surface -translate-x-full w-6 h-6 rounded-full flex items-center justify-center select-none">
+                            <div class=" select-none text-on-surface text-[10px]">
+                                +{{ remainingUsers }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class=" w-full h-1 shrink-0" :style="{ backgroundColor: event.color }"></div>
     </div>
 </template>
 <script lang="ts">
 import { defineComponent, type PropType, computed } from 'vue';
 import type { CalendarEventPayload } from '~/types/calendar';
+import { useProfileStore, useI18n } from '#imports';
+import ContactAvatar from '~/components/chat/contact/ContactAvatar.vue';
 export default defineComponent({
     name: 'EventDisplay',
     props: {
@@ -20,13 +45,46 @@ export default defineComponent({
             default: false
         }
     },
+    components: {
+        ContactAvatar,
+    },
     setup(props) {
+        const profileStore = useProfileStore()
         const isLoading = computed(() => props.loading)
+
+        const { locale } = useI18n();
+
+        const timeRange = computed(() =>
+            formatEventTimeRange(
+                props.event.time,
+                props.event.duration,
+                props.event.endDate,
+                locale.value
+            )
+        );
+
+        onMounted(() => {
+            console.log(props.event.selectedUsers.length)
+        })
+
+        const selectedFamilyMembers = computed(() =>
+            profileStore.getFamilyMembersByIds(props.event.selectedUsers).slice(0, 4)
+        );
+
+        const remainingUsers = computed(() => {
+            if (props.event.selectedUsers) {
+                return props.event.selectedUsers?.length - selectedFamilyMembers.value.length
+            }
+            return 0
+        })
 
 
 
         return {
             isLoading,
+            timeRange,
+            selectedFamilyMembers,
+            remainingUsers,
         }
     }
 })

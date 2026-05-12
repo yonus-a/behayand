@@ -59,6 +59,9 @@ export default defineComponent({
             const startTime = currentRange.value.start.getTime();
             const endTime = currentRange.value.end.getTime();
 
+            const userCount = Math.floor(Math.random() * 5) + 1;
+            const randomUsers = Array.from({ length: 6 }, () => Math.random() > 0.5 ? 1 : 2);
+
             // Adjust count based on mode
             const eventCount = currentMode.value === 'daily' ? 6 : currentMode.value === 'weekly' ? 15 : 45;
 
@@ -98,7 +101,10 @@ export default defineComponent({
                     time: startDate.toTimeString().slice(0, 5), // "HH:mm"
                     isFullDay,
                     hasRepetition,
-                    selectedUsers: [Math.floor(Math.random() * 100), Math.floor(Math.random() * 100)],
+                    selectedUsers: Array.from(
+                        { length: Math.floor(Math.random() * 5) + 1 }, // Random length from 1 to 5
+                        () => (Math.random() > 0.5 ? 1 : 2)            // Fill only with 1 or 2
+                    ),
                     attachement: Math.random() < 0.3 ? 'document.pdf' : undefined
                 };
 

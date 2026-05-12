@@ -178,8 +178,14 @@ export const useProfileStore = defineStore("profile", () => {
     }
   };
 
+  const getFamilyMembersByIds = (ids?: number[]) => {
+    if (!ids || ids.length === 0) return [];
+    return familyMembers.value.filter((member) => ids.includes(member.id));
+  };
+
   return {
     userData,
+    getFamilyMembersByIds,
     userRoles,
     chosenRole,
     isLoading,

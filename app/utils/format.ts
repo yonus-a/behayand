@@ -135,3 +135,38 @@ export const formatDuration = (totalSeconds: number): string => {
 
   return `${padded(minutes)}:${padded(seconds)}`;
 };
+
+/**
+ * Formats the start and end time of an event.
+ * @param startTime - Start time in HH:mm format
+ * @param duration - Duration in minutes
+ * @param endDate - Optional end date object
+ * @param locale - Current locale
+ */
+export const formatEventTimeRange = (
+  startTime: string,
+  duration?: number,
+  endDate?: Date,
+  locale: string = "fa",
+): string => {
+  if (!startTime) return "";
+
+  let result = startTime;
+
+  if (duration) {
+    const [hours, minutes] = startTime.split(":").map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, 0);
+    date.setMinutes(date.getMinutes() + duration);
+
+    const endH = String(date.getHours()).padStart(2, "0");
+    const endM = String(date.getMinutes()).padStart(2, "0");
+    result = `${startTime} - ${endH}:${endM}`;
+  } else if (endDate) {
+    const endH = String(endDate.getHours()).padStart(2, "0");
+    const endM = String(endDate.getMinutes()).padStart(2, "0");
+    result = `${startTime} - ${endH}:${endM}`;
+  }
+
+  return replaceDigitsByLocale(result, locale);
+};
