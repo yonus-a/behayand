@@ -1,22 +1,27 @@
 <template>
     <div :style="wrapperStyle" :class="{ 'absolute px-1 lg:px-4 z-10': position !== 'static' }">
         <div :class="[
-            'flex relative items-center min-h-4 overflow-hidden rounded-lg md:rounded-md cursor-pointer transition-transform  text-[11px] leading-[1.2]',
+            'flex relative  items-center min-h-4 rounded-lg md:rounded-md cursor-pointer transition-transform  text-[11px] leading-[1.2]',
+            menuOpen ? 'z-' : 'z-20',
             // Mode Specific padding/height
             mode === 'monthly' ? 'px-2 mb-1 h-6 w-full shrink-0 whitespace-nowrap text-ellipsis' : 'px-4 w-full h-full',
             (mode === 'daily' || mode === 'weekly') ? 'shadow-sm border border-white/20' : ''
         ]" :style="contentStyle" @click="$emit('click', event)">
             <BMenu @close="toggleMenuState(false)" @open="toggleMenuState(true)" ref="menuRef">
+                <template #trigger>
+                    <div class="w-full relative z-50 flex items-center gap-x-1">
+                        <div v-if="displayedContact" class="w-5 h-5 shrink-0">
+                            <ContactAvatar :contact="displayedContact" :show-online="false" class="w-full h-full" />
+                        </div>
+                        <div
+                            class="text-label-md line-clamp-1 overflow-hidden text-ellipsis select-none text-on-primary">
+                            {{ event.title }}
+                        </div>
+                    </div>
+                </template>
                 <CalendarItemContent />
             </BMenu>
-            <div @click="openMenu" class="w-full flex items-center gap-x-1">
-                <div v-if="displayedContact" class="w-5 h-5 shrink-0">
-                    <ContactAvatar :contact="displayedContact" :show-online="false" class="w-full h-full" />
-                </div>
-                <div class="text-label-md line-clamp-1 overflow-hidden text-ellipsis select-none text-on-primary">
-                    {{ event.title }}
-                </div>
-            </div>
+
         </div>
     </div>
 </template>
@@ -127,7 +132,7 @@ export default defineComponent({
             menuRef.value?.open()
         }
 
-        return { wrapperStyle, contentStyle, displayedContact, menuRef, toggleMenuState, openMenu };
+        return { wrapperStyle, contentStyle, displayedContact, menuRef, toggleMenuState, openMenu, menuOpen };
     }
 });
 </script>

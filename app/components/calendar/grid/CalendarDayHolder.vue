@@ -1,10 +1,11 @@
 <template>
-    <div class=" overflow-hidden border border-outline-variant/50 w-full relative h-full">
-        <div class=" absolute top-0 left-0 z-10 w-full h-full p-4 flex flex-col">
+    <div class=" border border-outline-variant/50 w-full relative h-full"
+        :class="[otherMonth ? ' overflow-hidden' : 'overflow-visible']">
+        <div class=" absolute top-0 left-0 w-full h-full p-4 flex flex-col">
             <div class=" shrink-0">
                 <CalendarDayBadge :day="day" />
             </div>
-            <div id="holder" class="w-full flex-1 flex flex-col gap-y-1.5 mt-2">
+            <div id="holder" class="w-full flex-1 relative z-20 flex flex-col gap-y-1.5 mt-2">
                 <CalendarItemDisplay position="static" v-for="event in displayedEvents" :key="event.id"
                     :event="event" />
 
