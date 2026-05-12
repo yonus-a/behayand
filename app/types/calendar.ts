@@ -1,4 +1,7 @@
-export type EventCategory = "task" | "medicine" | "event";
+import type { ServiceRequest } from "./chat";
+import type { Contact } from "./chat";
+
+export type EventCategory = "task" | "medicine" | "event" | "service";
 export type RepetitionCycleType = "day" | "hour" | "custom";
 export type RepetitionEndType = "date" | "times";
 
@@ -43,5 +46,7 @@ export interface CalendarEventPayload {
 
   // --- Step 3: Repetition (Optional) ---
   repetition?: EventRepetitionConfig;
-  endDate: Date;
+  endDate?: Date;
+  duration?: number;
+  service?: ServiceRequest;
 }

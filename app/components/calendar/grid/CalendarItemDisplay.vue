@@ -1,24 +1,35 @@
 <template>
     <div :style="wrapperStyle" :class="{ 'absolute px-1 lg:px-4 z-10': position !== 'static' }">
         <div :class="[
-            'flex items-center min-h-4 overflow-hidden rounded-lg md:rounded-md cursor-pointer transition-transform  text-[11px] leading-[1.2]',
+            'flex relative items-center min-h-4 overflow-hidden rounded-lg md:rounded-md cursor-pointer transition-transform  text-[11px] leading-[1.2]',
             // Mode Specific padding/height
             mode === 'monthly' ? 'px-2 mb-1 h-6 w-full shrink-0 whitespace-nowrap text-ellipsis' : 'px-4 w-full h-full',
             (mode === 'daily' || mode === 'weekly') ? 'shadow-sm border border-white/20' : ''
         ]" :style="contentStyle" @click="$emit('click', event)">
-            <div class="hidden md:flex items-center w-full gap-x-1">
-                <span v-if="mode !== 'monthly'" class="font-bold opacity-80">{{ event.time }}</span>
-                <span class="font-medium truncate">{{ event.title }}</span>
+            <BMenu @close="toggleMenuState(false)" @open="toggleMenuState(true)" ref="menuRef">
+                <CalendarItemContent />
+            </BMenu>
+            <div @click="openMenu" class="w-full flex items-center gap-x-1">
+                <div v-if="displayedContact" class="w-5 h-5 shrink-0">
+                    <ContactAvatar :contact="displayedContact" :show-online="false" class="w-full h-full" />
+                </div>
+                <div class="text-label-md line-clamp-1 overflow-hidden text-ellipsis select-none text-on-primary">
+                    {{ event.title }}
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, type PropType } from 'vue';
+import { defineComponent, computed, type PropType, useTemplateRef } from 'vue';
 import type { CalendarMode, CalendarTimeRange, CalendarDay } from '~/types/components/calendar';
 import type { CalendarEventPayload } from '~/types/calendar';
-import { useWindowSize } from '#imports';
+import { useWindowSize, useProfileStore } from '#imports';
+import type { Contact } from '~/types/chat';
+import ContactAvatar from '~/components/chat/contact/ContactAvatar.vue';
+import type { Menu } from '~/types/components/menu';
+import CalendarItemContent from './item/CalendarItemContent.vue';
 export default defineComponent({
     name: 'CalendarEventItem',
     props: {
@@ -31,9 +42,38 @@ export default defineComponent({
             default: 'auto'
         }
     },
+    components: {
+        ContactAvatar,
+        CalendarItemContent,
+    },
     setup(props) {
         const { width } = useWindowSize()
         const isMobile = computed(() => width.value < 768)
+        const menuRef = useTemplateRef<Menu>('menuRef')
+        const menuOpen = ref(false)
+
+        const profileStore = useProfileStore();
+
+        const displayedContact = computed<Contact | null>(() => {
+            // Priority 1: Event type is service -> use first provider
+            if (props.event.eventType === 'service' && props.event.service?.provider?.length) {
+                return props.event.service.provider!;
+            }
+
+            // Priority 2: Not a service, has selected users -> get family member from store
+            if (props.event.eventType !== 'service' && props.event.selectedUsers?.length) {
+                // Just take the first selected user for the avatar
+                return profileStore.getFamilyMembersByIds([props.event.selectedUsers[0]]) || null;
+            }
+
+            return null;
+        });
+
+        onMounted(() => {
+            nextTick(() => {
+                console.log(displayedContact.value)
+            })
+        })
 
         const wrapperStyle = computed(() => {
             if (props.mode === 'monthly') return {};
@@ -59,7 +99,7 @@ export default defineComponent({
                 top: `${topPercent}%`,
                 left: `${dayIndex * columnWidth}%`,
                 width: `${columnWidth}%`,
-                height: isMobile.value && props.mode==='weekly' ?'16px' : '36px',
+                height: isMobile.value && props.mode === 'weekly' ? '16px' : '36px',
             };
         });
 
@@ -76,7 +116,18 @@ export default defineComponent({
                 color: '#fff'
             };
         });
-        return { wrapperStyle, contentStyle };
+
+
+        const toggleMenuState = (state: boolean) => {
+            menuOpen.value = state
+        }
+
+        const openMenu = () => {
+            if (menuOpen.value) return
+            menuRef.value?.open()
+        }
+
+        return { wrapperStyle, contentStyle, displayedContact, menuRef, toggleMenuState, openMenu };
     }
 });
 </script>
