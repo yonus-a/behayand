@@ -50,14 +50,36 @@ export default defineComponent({
         const isFullDay = ref(false)
 
 
-        onMounted(() => {
-            if (props.initialData) {
-                chosenDate.value.value = props.initialData.date || '';
-                chosenTime.value.value = props.initialData.time || '';
-                isFullDay.value = props.initialData.isFullDay || false;
-                hasRepetition.value = props.initialData.hasRepetition || false;
+        //  onMounted(() => {
+        //      if (props.initialData) {
+        //          chosenDate.value.value = props.initialData.date || '';
+        //          chosenTime.value.value = props.initialData.time || '';
+        //          isFullDay.value = props.initialData.isFullDay || false;
+        //          hasRepetition.value = props.initialData.hasRepetition || false;
+        //      }
+        //  });
+
+        watch(() => props.initialData, (newData) => {
+            if (newData) {
+                // Ensure we are working with a string
+                let dateStr = newData.date;
+                if (dateStr instanceof Date) {
+                    dateStr = dateStr.toISOString();
+                } else {
+                    dateStr = dateStr || '';
+                }
+
+                // Now it's safe to check for 'T' and split
+                if (typeof dateStr === 'string' && dateStr.includes('T')) {
+                    dateStr = dateStr.split('T'); // is crucial to get YYYY-MM-DD
+                }
+
+                chosenDate.value.value = dateStr;
+                chosenTime.value.value = newData.time || '';
+                isFullDay.value = newData.isFullDay || false;
+                hasRepetition.value = newData.hasRepetition || false;
             }
-        });
+        }, { immediate: true, deep: true });
 
         const clearField = (fieldRef: any) => {
             if (fieldRef.value.color === 'error') {
@@ -101,12 +123,14 @@ export default defineComponent({
         };
 
         const submitFields = () => {
-            emit('submit', {
-                date: chosenDate.value.value,
-                time: chosenTime.value.value,
-                isFullDay: isFullDay.value,
-                hasRepetition: hasRepetition.value
-            });
+            setTimeout(() => {
+                emit('submit', {
+                    date: chosenDate.value.value,
+                    time: chosenTime.value.value,
+                    isFullDay: isFullDay.value,
+                    hasRepetition: hasRepetition.value
+                });
+            }, 300)
         };
 
         const goBack = () => {

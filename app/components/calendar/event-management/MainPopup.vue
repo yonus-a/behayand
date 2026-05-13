@@ -39,18 +39,30 @@ import CreateEvent from './CreateEvent.vue';
 import { useI18n } from '#imports';
 import EventTiming from './EventTiming.vue';
 import EventRepetition from './EventRepetition.vue';
+import { useEventBus } from '@vueuse/core';
+import type { CalendarEventPayload } from '~/types/calendar';
 
 type EventPopupModes = 'create' | '' | 'timing' | 'repetition';
 
 export default defineComponent({
     name: 'EventPopup',
     components: { CreateEvent, EventTiming, EventRepetition },
-    setup(_, { expose }) {
+    emits: ['submit', 'edit'],
+    setup(_, { expose, emit }) {
         const { t } = useI18n();
         const popup = ref<Popup | null>(null);
         const isEditting = ref(false)
+        const currentEditId = ref<number | null>(null);
         const mode = ref<EventPopupModes>('create');
         const popupTitle = computed(() => isEditting.value ? t('calendar.form.editEvent') : t('calendar.form.addEvent'))
+
+
+        const bus = useEventBus<any>('calendar-actions');
+        bus.on((payload) => {
+            if (payload.type === 'edit-event' && payload.event) {
+                open(payload.event);
+            }
+        });
 
         // Multi-step form state
         const step = ref(1);
@@ -101,7 +113,54 @@ export default defineComponent({
 
 
 
-        const open = () => popup.value?.open();
+        const open = (event?: CalendarEventPayload) => {
+            if (event && event.id) {
+                isEditting.value = true;
+                currentEditId.value = event.id;
+
+                console.log(event)
+                // Pre-fill Step 1
+                eventData.value = {
+                    isEditing: true, // Flag for CreateEvent
+                    eventType: event.eventType || 'task',
+                    title: event.title || '',
+                    description: event.description || '',
+                    selectedUsers: event.selectedUsers || [],
+                    attachement: event.attachement || '',
+                    color: event.color || '',
+                    checkList: event.checkList ? JSON.parse(JSON.stringify(event.checkList)) : []
+                };
+
+                // Format Date safely for Step 2 input
+                const d = new Date(event.date);
+                const pad = (n: number) => n.toString().padStart(2, '0');
+                const dateVal = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+                // Pre-fill Step 2
+                timingData.value = {
+                    isEditing: true, // Flag for EventTiming
+                    date: dateVal,
+                    time: event.time || '',
+                    isFullDay: event.isFullDay || false,
+                    hasRepetition: event.hasRepetition || false
+                };
+
+                // Pre-fill Step 3
+                if (event.hasRepetition && event.repetition) {
+                    repetitionData.value = {
+                        mode: 'edit', // Flag for EventRepetition
+                        ...event.repetition
+                    };
+                } else {
+                    repetitionData.value = null;
+                }
+            } else {
+                isEditting.value = false;
+                currentEditId.value = null;
+            }
+            popup.value?.open();
+        };
+
         const close = () => popup.value?.close();
 
         // Wipe data completely when popup is dismissed to prevent leaking state to the next open
@@ -121,17 +180,22 @@ export default defineComponent({
         };
 
         const finalSubmit = () => {
-            const finalPayload = {
+            const finalPayload: Record<string, any> = {
                 ...eventData.value,
                 ...timingData.value,
             };
 
             if (timingData.value?.hasRepetition && repetitionData.value) {
-                const { hasRepetition, ...pureRepetitionData } = repetitionData.value;
+                const { hasRepetition, mode, ...pureRepetitionData } = repetitionData.value;
                 finalPayload.repetition = pureRepetitionData;
             }
-
-            console.log("FINAL API PAYLOAD:", finalPayload);
+            delete finalPayload.isEditing;
+            if (isEditting.value && currentEditId.value) {
+                finalPayload.id = currentEditId.value;
+                emit('edit', finalPayload);
+            } else {
+                emit('submit', finalPayload);
+            }
             close();
         };
 

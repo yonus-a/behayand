@@ -28,11 +28,7 @@ export default defineComponent({
     setup(props) {
         const hasImage = computed(() => props.contact.imageUrl && props.contact.imageUrl.trim().length > 0)
 
-        onMounted(()=>{
-            nextTick(()=>{
-                console.log(props.contact)
-            })
-        })
+  
 
         const initials = computed(() => {
             // Accessing directly from props.contact

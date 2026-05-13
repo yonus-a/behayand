@@ -82,8 +82,9 @@ export default defineComponent({
         const isReminder = ref(false)
         const repeatitionEnd = ref({ value: 'date', color: 'primary', message: '' })
         const repetitionAmount = ref({ value: '', color: 'primary', message: '' })
+        const selectedReminder = ref({ value: 15, color: 'primary', message: '' });
+
         const mode = ref<RepetitionMode>('create')
-        const initialSnapshot = ref('');
         const hasErrors = ref(false)
 
         const repetitionTypes = computed<MenuOption[]>(() => [
@@ -119,28 +120,65 @@ export default defineComponent({
             };
         };
 
+        watch(() => props.initialData, (newData) => {
+            if (newData) {
+                mode.value = newData.mode || 'create';
+                hasRepetition.value = newData.hasRepetition ?? true;
 
-        onMounted(() => {
-            if (props.initialData) {
-                mode.value = props.initialData.mode || 'create';
-                hasRepetition.value = props.initialData.hasRepetition ?? true;
-                repetitionStart.value.value = props.initialData.repetitionStart || '';
-                repeatTimeCycle.value.value = props.initialData.repeatTimeCycle || '';
-                repetitionType.value = props.initialData.repetitionType || 'day';
-                selectedDays.value = props.initialData.selectedDays || [];
-                wholeDay.value = props.initialData.wholeDay ?? false;
-                chosenTime.value.value = props.initialData.chosenTime || '';
-                isReminder.value = props.initialData.isReminder ?? false;
-                selectedReminder.value.value = props.initialData.selectedReminder || 15;
-                repeatitionEnd.value.value = props.initialData.repeatitionEnd || 'date';
-                repetitionAmount.value.value = props.initialData.repetitionAmount || '';
+                // Handle repetitionStart
+                let startStr = newData.repetitionStart;
+                if (startStr instanceof Date) startStr = startStr.toISOString();
+                else startStr = startStr || '';
+
+                if (typeof startStr === 'string' && startStr.includes('T')) {
+                    startStr = startStr.split('T');
+                }
+                repetitionStart.value.value = startStr;
+
+                // ... (repeatTimeCycle, repetitionType, etc. remain the same) ...
+                repeatTimeCycle.value.value = newData.repeatTimeCycle || '';
+                repetitionType.value = newData.repetitionType || 'day';
+                selectedDays.value = newData.selectedDays || [];
+                wholeDay.value = newData.wholeDay ?? false;
+                chosenTime.value.value = newData.chosenTime || '';
+                isReminder.value = newData.isReminder ?? false;
+                selectedReminder.value.value = newData.selectedReminder || 15;
+                repeatitionEnd.value.value = newData.repeatitionEnd || 'date';
+
+                // Handle repetitionAmount
+                let amountStr = newData.repetitionAmount;
+                if (amountStr instanceof Date) amountStr = amountStr.toISOString();
+                else amountStr = amountStr || '';
+
+                if (repeatitionEnd.value.value === 'date' && typeof amountStr === 'string' && amountStr.includes('T')) {
+                    amountStr = amountStr.split('T');
+                }
+                repetitionAmount.value.value = amountStr;
             } else {
-                hasRepetition.value = true; // Default true on fresh open
+                hasRepetition.value = true;
             }
-            initialSnapshot.value = JSON.stringify(getFormData());
-        });
+        }, { immediate: true, deep: true });
 
-        const selectedReminder = ref({ value: 15, color: 'primary', message: '' });
+        //  onMounted(() => {
+        //      if (props.initialData) {
+        //          mode.value = props.initialData.mode || 'create';
+        //          hasRepetition.value = props.initialData.hasRepetition ?? true;
+        //          repetitionStart.value.value = props.initialData.repetitionStart || '';
+        //          repeatTimeCycle.value.value = props.initialData.repeatTimeCycle || '';
+        //          repetitionType.value = props.initialData.repetitionType || 'day';
+        //          selectedDays.value = props.initialData.selectedDays || [];
+        //          wholeDay.value = props.initialData.wholeDay ?? false;
+        //          chosenTime.value.value = props.initialData.chosenTime || '';
+        //          isReminder.value = props.initialData.isReminder ?? false;
+        //          selectedReminder.value.value = props.initialData.selectedReminder || 15;
+        //          repeatitionEnd.value.value = props.initialData.repeatitionEnd || 'date';
+        //          repetitionAmount.value.value = props.initialData.repetitionAmount || '';
+        //      } else {
+        //          hasRepetition.value = true; // Default true on fresh open
+        //      }
+        //      initialSnapshot.value = JSON.stringify(getFormData());
+        //  });
+
 
         const reminderOptions = computed<DropdownOption[]>(() => {
             const m = t('general.timeframes.minutes');
@@ -173,9 +211,7 @@ export default defineComponent({
             }
         ])
 
-        const isDirty = computed(() => {
-            return JSON.stringify(getFormData()) !== initialSnapshot.value;
-        });
+
 
 
         const buttonsProps = computed(() => {
@@ -186,11 +222,10 @@ export default defineComponent({
                 ];
             }
             return [
-                { key: 'submit', color: 'primary', text: t('calendar.form.save'), icon: '', disabled: hasErrors.value || !isDirty.value },
+                { key: 'submit', color: 'primary', text: t('calendar.form.save'), icon: '', disabled: hasErrors.value },
                 { key: 'back', color: 'secondary', text: t('calendar.form.delete.delete'), icon: 'PhTrash', disabled: false }
             ];
         });
-
         watch(() => getFormData(), () => {
             hasErrors.value = false;
         }, { deep: true });

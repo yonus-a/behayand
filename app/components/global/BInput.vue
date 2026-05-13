@@ -372,14 +372,17 @@ watch(() => props.modelValue, (val) => {
     if (props.type === 'date') {
         if (val) {
             const d = parseDate(val);
-            if (!isNaN(d.getTime())) {
+
+            // Check if d is actually a Date object AND is not "Invalid Date"
+            if (d instanceof Date && !isNaN(d.getTime())) {
                 inputValue.value = formatDate(d, {
                     showWeekday: false,
                     useRelativeDay: false,
                     showTime: false
                 });
             } else {
-                inputValue.value = '';
+                // If it's a string that parseDate couldn't handle, or null
+                inputValue.value = typeof val === 'string' ? val : '';
             }
         } else {
             inputValue.value = '';
@@ -588,9 +591,11 @@ const dateMenuRef = useTemplateRef<Menu>('dateMenuRef');
 const parsedModelDate = computed(() => {
     if (!props.modelValue) return new Date();
     const d = parseDate(props.modelValue);
-    return isNaN(d.getTime()) ? new Date() : d;
+    if (d instanceof Date && !isNaN(d.getTime())) {
+        return d;
+    }
+    return new Date();
 });
-
 const handleDateSelect = (d: Date) => {
     emit('update:modelValue', d);
     closeDateMenu();

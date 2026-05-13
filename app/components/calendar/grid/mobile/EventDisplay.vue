@@ -70,9 +70,7 @@ export default defineComponent({
             bus.emit({ type: 'open-details', event: props.event, x: e.clientX, y: e.clientY });
         }
 
-        onMounted(() => {
-            console.log(props.event.selectedUsers.length)
-        })
+
 
         const selectedFamilyMembers = computed(() =>
             profileStore.getFamilyMembersByIds(props.event.selectedUsers).slice(0, 4)

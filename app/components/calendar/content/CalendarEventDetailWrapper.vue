@@ -5,13 +5,15 @@
                 <template #trigger>
                     <div class="w-1 h-1"></div>
                 </template>
-                <CalendarItemContent v-if="activeEvent" @delete="handleDelete" @close="closeAll" :event="activeEvent" />
+                <CalendarItemContent @edit="handleEdit" v-if="activeEvent" @delete="handleDelete" @close="closeAll"
+                    :event="activeEvent" />
             </BMenu>
         </div>
 
         <BPopup has-close :title="t('calendar.form.type.event')" ref="popupRef" @close="onClose" @open="onOpen">
             <div class="w-full flex justify-center">
-                <CalendarItemContent v-if="activeEvent" @delete="handleDelete" @close="closeAll" :event="activeEvent" />
+                <CalendarItemContent @edit="handleEdit" v-if="activeEvent" @delete="handleDelete" @close="closeAll"
+                    :event="activeEvent" />
             </div>
         </BPopup>
     </Teleport>
@@ -60,8 +62,8 @@ export default defineComponent({
             }
         });
 
-        const onOpen = () => { emit('lock-scroll', true); console.log('fuck open') };
-        const onClose = () => { emit('lock-scroll', false); console.log('fuck close') };
+        const onOpen = () => { emit('lock-scroll', true); };
+        const onClose = () => { emit('lock-scroll', false); };
 
         const closeAll = () => {
             menuRef.value?.close();
@@ -75,7 +77,16 @@ export default defineComponent({
             closeAll();
         };
 
-        return { t, x, y, activeEvent, menuRef, popupRef, onOpen, onClose, closeAll, handleDelete };
+        const handleEdit = () => {
+            closeAll();
+            setTimeout(() => {
+
+                if (activeEvent.value) {
+                    bus.emit({ type: 'edit-event', event: activeEvent.value });
+                }
+            }, 300)
+        }
+        return { t, x, y, activeEvent, menuRef, popupRef, onOpen, onClose, closeAll, handleDelete, handleEdit };
     }
 });
 </script>

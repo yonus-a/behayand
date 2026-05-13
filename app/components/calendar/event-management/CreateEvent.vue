@@ -62,15 +62,38 @@ export default defineComponent({
         const checkListRef = useTemplateRef<CheckListExposed>('checkList');
         const hasErrors = ref(false)
         const colors = computed(() => calendarStore.colors)
-
-
-
+        const chosenColor = ref({ value: colors.value[0]?.value, message: '', color: 'primary' })
         const eventType = ref({ value: 'task', message: '', color: 'primary' })
         const eventTitle = ref({ value: '', message: '', color: 'primary' })
         const description = ref({ value: '', message: '', color: 'primary' })
         const selectedUsers = ref({ value: [], message: '', color: 'primary' })
         const attachement = ref({ value: '', color: '', message: '' })
-        const chosenColor = ref({ value: colors.value[0]?.value, message: '', color: 'primary' })
+
+
+        watch(() => props.initialData, (newData) => {
+            if (newData) {
+                eventType.value.value = newData.eventType || 'task';
+                eventTitle.value.value = newData.title || '';
+                description.value.value = newData.description || '';
+
+                if (newData.eventType !== 'medicine') {
+                    selectedUsers.value.value = newData.selectedUsers || [];
+                    attachement.value.value = newData.attachement || '';
+                    chosenColor.value.value = newData.color || colors.value?.value;
+                }
+
+                if (newData.eventType === 'task' && newData.checkList) {
+                    checkListData.value = [...newData.checkList];
+                }
+            } else {
+                const randomIdx = Math.floor(Math.random() * colors.value.length);
+                chosenColor.value.value = colors.value[randomIdx]?.value || 'primary';
+            }
+        }, { immediate: true, deep: true });
+
+
+
+
         const checkListData = ref(
             (props.initialData?.eventType === 'task' && props.initialData?.checkList)
                 ? [...props.initialData.checkList]
@@ -112,23 +135,23 @@ export default defineComponent({
             }, 250);
         });
 
-        onMounted(() => {
-            if (props.initialData) {
-                eventType.value.value = props.initialData.eventType;
-                eventTitle.value.value = props.initialData.title;
-                description.value.value = props.initialData.description;
+        // onMounted(() => {
+        //     if (props.initialData) {
+        //         eventType.value.value = props.initialData.eventType;
+        //         eventTitle.value.value = props.initialData.title;
+        //         description.value.value = props.initialData.description;
 
-                if (props.initialData.eventType !== 'medicine') {
-                    selectedUsers.value.value = props.initialData.selectedUsers || [];
-                    attachement.value.value = props.initialData.attachement || '';
-                    chosenColor.value.value = props.initialData.color;
-                }
-                // REMOVED: checkListData assignment here (now handled in ref initialization)
-            } else {
-                const randomIdx = Math.floor(Math.random() * colors.value.length);
-                chosenColor.value.value = colors.value[randomIdx].value;
-            }
-        });
+        //         if (props.initialData.eventType !== 'medicine') {
+        //             selectedUsers.value.value = props.initialData.selectedUsers || [];
+        //             attachement.value.value = props.initialData.attachement || '';
+        //             chosenColor.value.value = props.initialData.color;
+        //         }
+        //         // REMOVED: checkListData assignment here (now handled in ref initialization)
+        //     } else {
+        //         const randomIdx = Math.floor(Math.random() * colors.value.length);
+        //         chosenColor.value.value = colors.value[randomIdx].value;
+        //     }
+        // });
 
 
         const attachementOptions = computed(() => [{ key: 'delete', icon: 'PhTrash', color: 'error', label: t('calendar.form.deleteAttachement') }])

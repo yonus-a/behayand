@@ -210,7 +210,6 @@ export default defineComponent({
 
         const setLockScroll = (state: boolean) => {
             scrollLocked.value = state;
-            console.log(scrollLocked.value)
         }
 
         return {

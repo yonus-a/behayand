@@ -73,11 +73,7 @@ export default defineComponent({
             return null;
         });
 
-        onMounted(() => {
-            nextTick(() => {
-                console.log(displayedContact.value)
-            })
-        })
+
 
         const wrapperStyle = computed(() => {
             // Force the z-index directly into the DOM inline styles. 100 if open, 10 if closed.
@@ -90,7 +86,6 @@ export default defineComponent({
                 return {
                     width: `100%`,
                     height: `36px`,
-                    zIndex: currentZIndex,
                     position: 'relative'
                 };
             }
