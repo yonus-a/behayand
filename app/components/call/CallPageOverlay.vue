@@ -287,18 +287,17 @@ export default defineComponent({
 
         onBeforeMount(() => {
             callStore.isPiP = false;
-
             const isInitializing = route.query.initCall === 'true';
-
-            if (!callStore.isActive && !isInitializing) {
+            if (isInitializing) return
+            if (!callStore.isActive) {
                 const rawId = route.params.id;
-                const actualId = Array.isArray(rawId) ? rawId : rawId;
+                const actualId = Array.isArray(rawId) ? rawId[0] : rawId;
+
                 const fallbackId = actualId || chatContact.value?.id || '';
 
                 router.push(`/dashboard/chat/${fallbackId}`);
                 return;
             }
-
             isReady.value = true;
         })
 
