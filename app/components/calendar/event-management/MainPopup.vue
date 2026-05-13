@@ -7,12 +7,14 @@
                         <BIcon class=" opacity-50 cursor-pointer w-5 h-5" @click="close" icon="PhX" />
                         <div class=" text-label-sm">{{ popupTitle }}</div>
                     </div>
-                    <CreateEvent v-show="mode === 'create' && step === 1" :initial-data="eventData" @close="close"
-                        @submit="handleStep1Submit" />
-                    <EventTiming v-show="mode === 'timing'" :initial-data="timingData" @back="handleTimingBack"
-                        @submit="handleTimingSubmit" />
-                    <EventRepetition v-show="mode === 'repetition'" :initial-data="repetitionData"
-                        @back="handleRepetitionBack" @submit="handleRepetitionSubmit" />
+                    <CreateEvent v-show="mode === 'create' && step === 1" :key="`step1-${sessionKey}`"
+                        :initial-data="eventData" @close="close" @submit="handleStep1Submit" />
+
+                    <EventTiming v-show="mode === 'timing'" :key="`step2-${sessionKey}`" :initial-data="timingData"
+                        @back="handleTimingBack" @submit="handleTimingSubmit" />
+
+                    <EventRepetition v-show="mode === 'repetition'" :key="`step3-${sessionKey}`"
+                        :initial-data="repetitionData" @back="handleRepetitionBack" @submit="handleRepetitionSubmit" />
 
                     <div v-if="mode === 'create' && step === 2" class="w-full max-w-99 px-6 py-4 bg-surface rounded-xl">
                         <div class="text-label-md mb-4">{{ t('calendar.form.step2Title') || 'Step 2 Details' }}</div>
@@ -68,6 +70,7 @@ export default defineComponent({
         const step = ref(1);
         const eventData = ref<Record<string, any> | null>(null);
         const timingData = ref<Record<string, any> | null>(null);
+        const sessionKey = ref(0);
 
         const submittedEventData = ref<Record<string, any> | null>(null);
         const submittedTimingData = ref<Record<string, any> | null>(null);
@@ -115,14 +118,16 @@ export default defineComponent({
 
 
         const open = (event?: CalendarEventPayload) => {
+            // THE SLEDGEHAMMER: Bump the key to nuke old component instances and spawn fresh ones
+            sessionKey.value++;
+
             if (event && event.id) {
                 isEditting.value = true;
                 currentEditId.value = event.id;
 
-                console.log(event)
                 // Pre-fill Step 1
                 eventData.value = {
-                    isEditing: true, // Flag for CreateEvent
+                    isEditing: true,
                     eventType: event.eventType || 'task',
                     title: event.title || '',
                     description: event.description || '',
@@ -132,14 +137,14 @@ export default defineComponent({
                     checkList: event.checkList ? JSON.parse(JSON.stringify(event.checkList)) : []
                 };
 
-                // Format Date safely for Step 2 input
+                // Format Date safely
                 const d = new Date(event.date);
                 const pad = (n: number) => n.toString().padStart(2, '0');
                 const dateVal = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
                 // Pre-fill Step 2
                 timingData.value = {
-                    isEditing: true, // Flag for EventTiming
+                    isEditing: true,
                     date: dateVal,
                     time: event.time || '',
                     isFullDay: event.isFullDay || false,
@@ -149,15 +154,19 @@ export default defineComponent({
                 // Pre-fill Step 3
                 if (event.hasRepetition && event.repetition) {
                     repetitionData.value = {
-                        mode: 'edit', // Flag for EventRepetition
+                        mode: 'edit',
                         ...event.repetition
                     };
                 } else {
                     repetitionData.value = null;
                 }
             } else {
+                // EXPLICITLY RESET EVERYTHING FOR A NEW EVENT
                 isEditting.value = false;
                 currentEditId.value = null;
+                eventData.value = null;
+                timingData.value = null;
+                repetitionData.value = null;
             }
             popup.value?.open();
         };
@@ -213,9 +222,10 @@ export default defineComponent({
             repetitionData.value = null;
             submittedEventData.value = null;
             submittedTimingData.value = null;
-
             isEditting.value = false;
             currentEditId.value = null;
+            console.log('fuck')
+
         };
 
         return {
@@ -235,6 +245,7 @@ export default defineComponent({
             close,
             repetitionData,
             handleRepetitionBack,
+            sessionKey,
         };
     }
 });

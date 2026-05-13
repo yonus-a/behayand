@@ -36,6 +36,7 @@ export default defineComponent({
         const { t } = useI18n();
         const { width } = useWindowSize();
         const activeEvent = ref<CalendarEventPayload | null>(null);
+        const isOpen = ref(false);
 
         const x = ref(0);
         const y = ref(0);
@@ -47,23 +48,31 @@ export default defineComponent({
 
         bus.on((payload) => {
             if (payload.type === 'open-details') {
-                activeEvent.value = payload.event;
-                x.value = payload.x;
-                y.value = payload.y;
+                const openNew = () => {
+                    activeEvent.value = payload.event;
+                    x.value = payload.x;
+                    y.value = payload.y;
 
-                setTimeout(() => {
-                    if (width.value > 1024) {
-                        menuRef.value?.open();
-                    } else {
-                        popupRef.value?.open();
-                    }
-                    onOpen();
-                }, 10);
+                    setTimeout(() => {
+                        if (width.value > 1024) {
+                            menuRef.value?.open();
+                        } else {
+                            popupRef.value?.open();
+                        }
+                        onOpen();
+                    }, 10);
+                };
+
+                if (isOpen.value) {
+                    closeAll();
+                    setTimeout(openNew, 300);
+                } else {
+                    openNew();
+                }
             }
         });
 
-        const onOpen = () => { emit('lock-scroll', true); };
-        const onClose = () => { emit('lock-scroll', false); };
+
 
         const closeAll = () => {
             menuRef.value?.close();
@@ -86,6 +95,18 @@ export default defineComponent({
                 }
             }, 300)
         }
+
+        const onOpen = () => {
+            isOpen.value = true;
+            emit('lock-scroll', true);
+        };
+
+        const onClose = () => {
+            isOpen.value = false;
+            emit('lock-scroll', false);
+        };
+
+
         return { t, x, y, activeEvent, menuRef, popupRef, onOpen, onClose, closeAll, handleDelete, handleEdit };
     }
 });

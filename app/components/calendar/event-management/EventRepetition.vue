@@ -2,9 +2,9 @@
     <div class=" w-full ">
         <BCheckBox v-model="hasRepetition" :label="t('calendar.form.repeat')" />
         <div class=" w-full mt-3">
-            <BInput :disabled="!hasRepetition" v-model="repetitionStart.value" :color="repetitionStart.color"
-                :message="repetitionStart.message" :title="t('calendar.form.startDate')" type="date"
-                :placeholder="t('general.select')" />
+            <BInput :disabled="!hasRepetition" :readonly="mode === 'edit'" v-model="repetitionStart.value"
+                :color="repetitionStart.color" :message="repetitionStart.message" :title="t('calendar.form.startDate')"
+                type="date" :placeholder="t('general.select')" />
             <BInput :disabled="!hasRepetition" :selected-option-key="repetitionType"
                 :readonly="repetitionType === 'custom'" @select="selectOption"
                 :type="repetitionType === 'custom' ? 'text' : 'number'"
@@ -141,11 +141,13 @@ export default defineComponent({
                 chosenTime.value.value = newData.chosenTime || '';
                 isReminder.value = newData.isReminder ?? false;
                 repeatitionEnd.value.value = newData.repeatitionEnd
-                if (repeatitionEnd.value.value === 'times') {
-                    console.log('son of a bitch works finally')
-                    repetitionAmount.value.value = newData.repetitionAmount
-                } else {
-                    repetitionAmount.value.value = new Date(newData.repetitionAmount[0])
+                if (newData.repeatitionEnd) {
+                    if (repeatitionEnd.value.value === 'times') {
+                        console.log('son of a bitch works finally')
+                        repetitionAmount.value.value = newData.repetitionAmount
+                    } else {
+                        repetitionAmount.value.value = new Date(newData.repetitionAmount[0]).toString()
+                    }
                 }
                 // if (newData.repeatitionEnd !== 'times') {
                 //     const incomingReminder = Number(newData.selectedReminder);
@@ -217,16 +219,20 @@ export default defineComponent({
 
 
         const buttonsProps = computed(() => {
-            if (mode.value === 'create') {
-                return [
-                    { key: 'submit', color: 'primary', text: t('calendar.form.submit'), icon: '', disabled: hasErrors.value },
-                    { key: 'back', color: 'secondary', text: t('calendar.form.back'), icon: '', disabled: false }
-                ];
-            }
             return [
-                { key: 'submit', color: 'primary', text: t('calendar.form.save'), icon: '', disabled: hasErrors.value },
-                { key: 'back', color: 'secondary', text: t('calendar.form.delete.delete'), icon: 'PhTrash', disabled: false }
+                { key: 'submit', color: 'primary', text: t('calendar.form.submit'), icon: '', disabled: hasErrors.value },
+                { key: 'back', color: 'secondary', text: t('calendar.form.back'), icon: '', disabled: false }
             ];
+            // if (mode.value === 'create') {
+            // return [
+            //     { key: 'submit', color: 'primary', text: t('calendar.form.submit'), icon: '', disabled: hasErrors.value },
+            //     { key: 'back', color: 'secondary', text: t('calendar.form.back'), icon: '', disabled: false }
+            // ];
+            // }
+            // return [
+            //     { key: 'submit', color: 'primary', text: t('calendar.form.save'), icon: '', disabled: hasErrors.value },
+            //     { key: 'back', color: 'secondary', text: t('calendar.form.delete.delete'), icon: 'PhTrash', disabled: false }
+            // ];
         });
 
         watch(() => getFormData(), () => {
@@ -323,14 +329,16 @@ export default defineComponent({
             now.setHours(0, 0, 0, 0);
 
             // 1. Repetition Start Date
-            if (!repetitionStart.value.value) {
-                repetitionStart.value.color = 'error';
-                repetitionStart.value.message = t('validation.required', { field: t('calendar.form.startDate') });
-                isValid = false;
-            } else if (new Date(repetitionStart.value.value) < now) {
-                repetitionStart.value.color = 'error';
-                repetitionStart.value.message = t('calendar.form.validation.pastDate');
-                isValid = false;
+            if (mode.value !== 'edit') {
+                if (!repetitionStart.value.value) {
+                    repetitionStart.value.color = 'error';
+                    repetitionStart.value.message = t('validation.required', { field: t('calendar.form.startDate') });
+                    isValid = false;
+                } else if (new Date(repetitionStart.value.value) < now) {
+                    repetitionStart.value.color = 'error';
+                    repetitionStart.value.message = t('calendar.form.validation.pastDate');
+                    isValid = false;
+                }
             }
 
             if (!chosenTime.value.value) {
