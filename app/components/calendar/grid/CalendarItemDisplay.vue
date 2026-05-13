@@ -4,11 +4,11 @@
             'flex relative items-center min-h-4 rounded-lg md:rounded-md cursor-pointer transition-transform text-[11px] leading-[1.2]',
             mode === 'monthly' ? 'px-2 mb-1 h-6 w-full shrink-0 whitespace-nowrap text-ellipsis' : 'px-4 w-full h-full',
             (mode === 'daily' || mode === 'weekly') ? 'shadow-sm border border-white/20' : ''
-        ]" :style="contentStyle" @click="$emit('click', event)">
+        ]" :style="contentStyle" @click="openMenu">
 
             <BMenu @close="toggleMenuState(false)" @open="toggleMenuState(true)" ref="menuRef">
                 <template #trigger>
-                    <div class="w-full relative z-50 flex items-center gap-x-1">
+                    <div class="w-full  relative z-50 hidden md:flex items-center gap-x-1">
                         <div v-if="displayedContact" class="w-5 h-5 shrink-0">
                             <ContactAvatar :contact="displayedContact[0]" :show-online="false" class="w-full h-full" />
                         </div>
@@ -20,7 +20,9 @@
                 </template>
                 <CalendarItemContent @delete="handleDelete" @close="closeMenu" :event="event" />
             </BMenu>
-
+            <BPopup ref="popup">
+                Hello Bitch
+            </BPopup>
         </div>
     </div>
 </template>
@@ -34,6 +36,7 @@ import type { Contact } from '~/types/chat';
 import { useEventBus } from '@vueuse/core';
 import ContactAvatar from '~/components/chat/contact/ContactAvatar.vue';
 import type { Menu } from '~/types/components/menu';
+import type { Popup } from '~/types/components/popup';
 import CalendarItemContent from './item/CalendarItemContent.vue';
 export default defineComponent({
     name: 'CalendarEventItem',
@@ -55,6 +58,7 @@ export default defineComponent({
         const { width } = useWindowSize()
         const isMobile = computed(() => width.value < 768)
         const menuRef = useTemplateRef<Menu>('menuRef')
+        const popup = useTemplateRef<Popup>('popup')
         const menuOpen = ref(false)
         const bus = useEventBus<{ type: string; id: number | undefined }>('calendar-actions');
 
@@ -138,8 +142,8 @@ export default defineComponent({
         }
 
         const openMenu = () => {
-            if (menuOpen.value) return
-            menuRef.value?.open()
+            if (width.value > 1024) return
+            popup.value?.open()
         }
 
         const closeMenu = () => {
@@ -151,7 +155,7 @@ export default defineComponent({
             closeMenu()
         }
 
-        return { wrapperStyle, handleDelete, contentStyle, displayedContact, menuRef, toggleMenuState, openMenu, menuOpen, closeMenu };
+        return { wrapperStyle, handleDelete, contentStyle, displayedContact, menuRef, toggleMenuState, openMenu, menuOpen, closeMenu, popup, };
     }
 });
 </script>
