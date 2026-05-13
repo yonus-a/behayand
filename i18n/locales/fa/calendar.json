@@ -72,6 +72,7 @@
       "submit": "ثبت",
       "remind": "یادآوری",
       "startDate": "تاریخ شروع",
+      "enterCall":"ورود به گفتگو",
       "repeatEvery": "تکرار هر",
       "timeErrors": {
         "past": "تاریخ رویداد نمیتواند در گذشته باشد."

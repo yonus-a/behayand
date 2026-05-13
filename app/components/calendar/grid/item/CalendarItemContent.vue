@@ -19,8 +19,20 @@
             <div class=" rtl:pr-10 ltr:pl-10 w-full text-justify text-body-md select-none text-on-surface/50">{{
                 event?.description }}</div>
         </div>
-        <div class=" w-full" v-if="event?.eventType === 'task'">
-            <CheckList v-model="checkList" />
+        <div class=" w-full hidden md:flex items-center gap-x-3" v-if="canJoinCall">
+            <BIcon :icon="event.service?.provider[0]?.serviceType === 'video-call' ? 'PhVideoCamera' : 'PhPhoneCall'"
+                class=" w-5 shrink-0 h-5  fill-on-surface/50" />
+            <div class=" flex-1 flex-col gap-y-1">
+                <NuxtLinkLocale :to="callPath">
+                    <BButton :text="t('calendar.form.enterCall')" />
+                </NuxtLinkLocale>
+                <div class=" text-body-md select-none text-on-surface/50">{{ fullCallUrl }}</div>
+            </div>
+            <BIcon @click="copyCallUrl" :icon="isCopied ? 'PhCheckCircle' : 'PhCopy'"
+                class=" w-5 h-5 fill-on-surface/50 cursor-pointer" />
+        </div>
+        <div class=" w-full" v-if="event?.eventType === 'task' && event.checkList">
+            <CheckList v-model="checkList" :title="t('calendar.form.checkList')" />
         </div>
         <div class=" flex flex-col gap-y-2 w-full" v-if="event?.attachement && event.attachement.trim().length !== 0">
             <div class=" flex items-center gap-x-3">
@@ -28,8 +40,9 @@
                 <div class=" w-full text-justify text-body-md select-none text-on-surface/50">
                     {{ t('calendar.form.attachement') }}</div>
             </div>
-            <div class=" w-full flex flex-col gap-y-2">
-                <CalendarAttachementDisplay :url="event.attachement" />
+            <div dir="rtl"
+                class=" max-w-57.5 bg-surface border-outline-variant border p-1 rounded-xl flex justify-end items-center">
+                <FileDisplay :url="event.attachement" />
             </div>
         </div>
         <div v-if="displayedContacts" class=" w-full flex flex-col gap-y-2 ">
@@ -47,7 +60,6 @@
                 </div>
             </div>
         </div>
-        <FileFormatDisplay />
         <div class=" flex items-center gap-x-4">
             <BIcon icon="PhClock" class=" w-5 h-5 fill-on-surface/50" />
             <div v-if="event" class=" select-none text-title-md text-on-surface">
@@ -60,17 +72,22 @@
                     :color="button.color" :type="button.type" class=" min-w-full" />
             </div>
         </div>
+        <div v-else class="md:hidden w-full flex gap-x-2">
+            <NuxtLinkLocale class=" min-w-full" :to="callPath">
+                <BButton class=" min-w-full" :text="t('calendar.form.enterCall')" />
+            </NuxtLinkLocale>
+        </div>
     </div>
 </template>
 <script lang="ts">
 import { defineComponent, type PropType, ref, computed } from 'vue';
 import type { CalendarEventPayload } from '~/types/calendar';
-import { useI18n, useDate, useProfileStore } from '#imports';
+import { useI18n, useDate, useProfileStore, useAppToast } from '#imports';
 import ContactAvatar from '~/components/chat/contact/ContactAvatar.vue';
 import type { Contact } from '~/types/chat';
 import CheckList from '../../event-management/CheckList.vue';
-import CalendarAttachementDisplay from '../../content/CalendarAttachementDisplay.vue';
 import FileFormatDisplay from '~/components/general/FileFormatDisplay.vue';
+import FileDisplay from '~/components/chat/chat-bubbles/FileDisplay.vue';
 export default defineComponent({
     name: 'CalendarItemDisplay',
     props: {
@@ -82,15 +99,19 @@ export default defineComponent({
     components: {
         ContactAvatar,
         CheckList,
-        CalendarAttachementDisplay,
+        FileDisplay,
         FileFormatDisplay,
     },
     emits: ['edit', 'delete', 'close'],
     setup(props, { emit }) {
+        const { openToast } = useAppToast()
         const { formatEventFullDateTime } = useDate()
         const { t } = useI18n()
         const profileStore = useProfileStore()
         const checkList = ref(props.event?.checkList)
+        const isService = computed(() => props.event?.eventType === 'service')
+        const canJoinCall = computed(() => isService.value && props.event.service?.provider[0]?.isActive)
+        const isCopied = ref(false)
 
         const displayedContacts = computed<Contact | null>(() => {
             if (!props.event) return null
@@ -118,12 +139,12 @@ export default defineComponent({
                 {
                     icon: 'PhPen',
                     key: 'edit',
-                    active: props.event?.eventType !== 'service',
+                    active: !isService.value,
                 },
                 {
                     icon: 'PhTrash',
                     key: 'delete',
-                    active: props.event?.eventType !== 'service',
+                    active: !isService.value,
                 }
             ]
             return items.filter((item) => item.active === true)
@@ -136,6 +157,7 @@ export default defineComponent({
                 color: 'secondary',
                 text: t('calendar.form.edit'),
                 type: 'fill',
+                active: !isService.value,
             },
             {
                 icon: 'PhTrash',
@@ -143,6 +165,7 @@ export default defineComponent({
                 color: 'error',
                 text: t('calendar.form.delete.delete'),
                 type: 'outline',
+                active: !isService.value,
             },
         ])
 
@@ -162,14 +185,41 @@ export default defineComponent({
         }
 
 
+        const config = useRuntimeConfig()
+
+        // Construct the provider ID and route
+        const providerId = computed(() => props.event?.service?.provider?.?.id)
+        const callPath = computed(() => `/dashboard/chat/${providerId.value}/call`)
+
+        // Construct the full URL for the copy-to-clipboard feature
+        const fullCallUrl = computed(() => {
+            if (!providerId.value) return ''
+            return `${config.public.siteUrl}${callPath.value}?initCall=true`
+        })
+
+        const copyCallUrl = async () => {
+            try {
+                await navigator.clipboard.writeText(fullCallUrl.value)
+                openToast(t('calendar.share.copySuccess'), 'success')
+                isCopied.value = true;
+            } catch (err) {
+                console.error('Failed to copy', err)
+            }
+        }
+
         return {
             actions,
             handleAction,
             t,
             formatEventFullDateTime,
             displayedContacts,
+            canJoinCall,
             checkList,
             mobileActions,
+            copyCallUrl,
+            callPath,
+            isCopied,
+            fullCallUrl,
         }
     }
 })

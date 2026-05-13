@@ -29,6 +29,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
+      siteUrl: 'https://behayand.ir',
       apiBaseUrl: "https://api.behayand.ir",
       platformApiBaseUrl: "https://api.behayand.ir",
       domainName: "behayand.ir",

@@ -1,11 +1,6 @@
 <template>
-    <div class=" max-w-57.5 bg-surface border-outline-variant border p-4 rounded-xl flex items-center">
-        <!--   <div></div>
-        <div></div>
-        <div class=" relative shrink-0">
-            <BIcon icon="PhUser" class=" w-10 h-10 fill-[#3B82F6]" />
-        </div>
-        -->
+    <div dir="rtl"
+        class=" max-w-57.5 bg-surface border-outline-variant border p-1 rounded-xl flex justify-end items-center">
         <FileDisplay :url="url" />
     </div>
 </template>

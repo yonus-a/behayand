@@ -1,8 +1,12 @@
 <template>
-    <div class="w-48 px-3 flex gap-x-2 select-none items-center">
-        <div class="flex text-left flex-col gap-y-0.5 flex-1 min-w-0">
+    <div class="px-3 flex gap-x-2 select-none items-center">
+        <div dir="ltr" class="flex text-left flex-col gap-y-0.5 flex-1 min-w-0">
             <div class="text-on-surface text-label-md truncate">{{ fileName }}</div>
-            <div dir="ltr" class="text-body-sm text-on-surface/70">{{ formattedSize }}</div>
+            <div class=" w-20">
+                <div 
+                    class="text-body-sm text-left text-on-surface/70 w-full line-clamp-1 text-ellipsis overflow-hidden">{{
+                    formattedSize }}</div>
+            </div>
         </div>
         <FileFormatDisplay :width="30" :height="33" :label="fileExt" v-if="status === 'downloaded' && !isUploading"
             @click="toggleDownload" />
