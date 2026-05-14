@@ -17,6 +17,38 @@ export const useCalendarStore = defineStore("calendar", () => {
   const errorLoadingShared = ref(false);
   const isSending = ref(false);
 
+  const holidays = ref<Record<string, string>>({}); // Key: "YYYY-MM-DD", Value: "Holiday Name"
+  const isLoadingHolidays = ref(false);
+
+  const fetchHolidays = async (year: number = 2026) => {
+    isLoadingHolidays.value = true;
+    try {
+      // Using Calendarific as an example (requires an API key)
+      const response = await $fetch(
+        `https://calendarific.com/api/v2/holidays`,
+        {
+          query: {
+            api_key: "YOUR_API_KEY",
+            country: "IR",
+            year: year,
+          },
+        },
+      );
+
+      // Map the array to a key-value object for O(1) lookup
+      const holidayMap: Record<string, string> = {};
+      response.response.holidays.forEach((h: any) => {
+        holidayMap[h.date.iso] = h.name;
+      });
+
+      holidays.value = holidayMap;
+    } catch (error) {
+      console.error("Failed to fetch holidays", error);
+    } finally {
+      isLoadingHolidays.value = false;
+    }
+  };
+
   const getDefaultSettings = (): CalendarSettingsPayload => {
     const currentLocale = locale.value;
 
@@ -271,5 +303,8 @@ export const useCalendarStore = defineStore("calendar", () => {
     removeSharedUser,
     updateSettings,
     settings,
+    holidays,
+    fetchHolidays,
+    isLoadingHolidays,
   };
 });
