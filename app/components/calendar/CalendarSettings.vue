@@ -11,8 +11,10 @@
                     :placeholder="t('general.select')" v-model="chosenCalendar" />
                 <BSelect :options="startOfWeekOptions" :title="t('calendar.filters.startOfWeek')"
                     :placeholder="t('general.select')" v-model="chosenStartOfWeek" />
+                <!--  
                 <BSelect searchable :options="timeZoneOptions" :title="t('calendar.filters.timeZone')"
-                    :placeholder="t('general.select')" v-model="chosenTimeZone" />
+                :placeholder="t('general.select')" v-model="chosenTimeZone" />
+                -->
                 <div class=" w-1/3 flex flex-col gap-y-3">
                     <div class=" text-body-sm opacity-50">{{ t('calendar.filters.displaySettings.title') }}</div>
                     <BCheckBox v-model="showAi" :label="t('calendar.filters.displaySettings.ai')" />
