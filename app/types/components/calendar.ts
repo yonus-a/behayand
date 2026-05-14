@@ -23,6 +23,7 @@ export interface CalendarDay {
   name: string;
   shortName: string;
   dayOfWeek: number;
+  isHoliday: boolean;
 }
 
 export interface CalendarEvent {
@@ -32,4 +33,3 @@ export interface CalendarEvent {
   title?: string;
   color?: string;
 }
-

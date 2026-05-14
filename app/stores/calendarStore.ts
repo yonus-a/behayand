@@ -9,8 +9,70 @@ import { useAppToast, useI18n } from "#imports";
 import { useCookie } from "#imports";
 
 export const useCalendarStore = defineStore("calendar", () => {
-  const { t, locale} = useI18n();
+  const { t, locale } = useI18n();
   const { openToast } = useAppToast();
+
+  const holidaysMap = ref<
+    Record<string, { isHoliday: boolean; titles: string[] }>
+  >({});
+
+  // --- Add to the Store Actions ---
+  const ensureHolidays = async (startDate: Date, endDate: Date) => {
+    const datesToFetch: Date[] = [];
+    const d = new Date(startDate);
+    d.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    // Find dates we haven't fetched yet
+    while (d <= end) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dayStr = String(d.getDate()).padStart(2, "0");
+      const iso = `${y}-${m}-${dayStr}`;
+
+      if (!holidaysMap.value[iso]) {
+        datesToFetch.push(new Date(d));
+        // Mark as 'pending' to prevent duplicate requests
+        holidaysMap.value[iso] = { isHoliday: false, titles: [] };
+      }
+      d.setDate(d.getDate() + 1);
+    }
+
+    if (datesToFetch.length === 0) return;
+
+    // Fetch missing dates concurrently
+    await Promise.all(
+      datesToFetch.map(async (date) => {
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+        const iso = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+        try {
+          // Using WC (World Calendar/Gregorian) as standard input
+          const config = useRuntimeConfig(); // Assuming you store API key in nuxt config
+          const res: any = await $fetch(
+            `https://api.apieco.ir/farsicalendar/api/WC/${day}/${month}/${year}`,
+            {
+              headers: {
+                "apieco-key": config.public.apiecoKey || "YOUR_API_KEY",
+              },
+            },
+          );
+
+          const values = res?.values || [];
+          const isHoliday = values.some((v: any) => v.dayoff === true);
+          const titles = values.map((v: any) => v.occasion).filter(Boolean);
+
+          // Vue's reactivity will automatically update the grid when this resolves!
+          holidaysMap.value[iso] = { isHoliday, titles };
+        } catch (e) {
+          console.error("Holiday fetch failed for", iso);
+        }
+      }),
+    );
+  };
 
   const isLoadingShared = ref(true);
   const hasLoadedShared = ref(false);
@@ -59,7 +121,7 @@ export const useCalendarStore = defineStore("calendar", () => {
   const updateSettings = (newSettings: CalendarSettingsPayload) => {
     settings.value = { ...newSettings };
     settingsCookie.value = { ...newSettings };
-  //  openToast(t("general.success"), "success"); // Optional feedback
+    //  openToast(t("general.success"), "success"); // Optional feedback
   };
 
   const processingIds = ref<Record<number, boolean>>({});
@@ -271,5 +333,7 @@ export const useCalendarStore = defineStore("calendar", () => {
     removeSharedUser,
     updateSettings,
     settings,
+    ensureHolidays,
+    holidaysMap,
   };
 });

@@ -260,14 +260,41 @@ export const useCalendarDate = () => {
       date.getMonth() === today.getMonth() &&
       date.getFullYear() === today.getFullYear();
 
-    // Checking if weekend (Friday for FA/AR, Sunday & Saturday for EN)
+    const calendarStore = useCalendarStore();
+
+    // 1. Get local ISO string safely
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    const isoDate = `${y}-${m}-${d}`;
+
+    // 2. Read from API cache
+    const apiHolidayData = calendarStore.holidaysMap[isoDate];
+    const isPublicHoliday = apiHolidayData?.isHoliday || false;
+    const holidayTitle = apiHolidayData?.titles.join(" - ") || null;
+
+    // 3. Weekend Check
     const dayOfWeek = date.getDay();
     const isWeekend = settings.value.showHolidays
-      ? activeCalSetting === "jalaali" || activeCalSetting === "islamic"
+      ? settings.value.calendar === "jalaali" ||
+        settings.value.calendar === "islamic"
         ? dayOfWeek === 5 // Friday
-        : dayOfWeek === 0 || dayOfWeek === 6 // Sunday/Saturday
+        : dayOfWeek === 0 || dayOfWeek === 6 // Sun/Sat
       : false;
 
+    // 4. Final Holiday Flag
+    const isHoliday = settings.value.showHolidays
+      ? isWeekend || isPublicHoliday
+      : false;
+
+    // Checking if weekend (Friday for FA/AR, Sunday & Saturday for EN)
+    //  const dayOfWeek = date.getDay();
+    //  const isWeekend = settings.value.showHolidays
+    //    ? activeCalSetting === "jalaali" || activeCalSetting === "islamic"
+    //      ? dayOfWeek === 5 // Friday
+    //      : dayOfWeek === 0 || dayOfWeek === 6 // Sunday/Saturday
+    //    : false;
+    //
     // Localized names
     const activeCal = getActiveCalendar.value;
     const name = new Intl.DateTimeFormat(`${lang}-u-ca-${activeCal}`, {
@@ -287,6 +314,8 @@ export const useCalendarDate = () => {
       ghamari,
       isToday,
       isWeekend,
+      isHoliday,
+      holidayTitle,
       name,
       shortName,
       dayOfWeek,

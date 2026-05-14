@@ -233,7 +233,7 @@ export default defineComponent({
                 start = bounds.start;
                 end = bounds.end;
             }
-
+            calendarStore.ensureHolidays(start, end);
             // 3. Emit the newly calculated range to the parent (CalendarPage)
             emit('update:range', { start, end });
         }, { immediate: true });

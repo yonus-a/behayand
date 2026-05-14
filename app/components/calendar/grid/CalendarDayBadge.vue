@@ -31,7 +31,7 @@ export default defineComponent({
                 fillStyle = ' bg-diamond-black dark:bg-diamond-surface border-outline-variant/0'
                 textStyle = 'text-surface'
             }
-            if (day.isWeekend) {
+            if (day.isWeekend || day.isHoliday) {
                 textStyle = 'text-error'
             }
             return {
