@@ -161,12 +161,7 @@ export default defineComponent({
             return options.filter((opt) => !opt.disabled);
         });
 
-        watch(() => isMobile.value, () => {
-            console.log('is mobile:', isMobile.value)
-        })
-        watch(() => width.value, () => {
-            console.log('width:', width.value)
-        })
+
 
         const handleOption = (key: string) => {
             switch (key) {
