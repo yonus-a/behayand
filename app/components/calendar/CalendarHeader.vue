@@ -41,6 +41,12 @@
         <div class=" hidden md:flex items-center gap-x-2">
             <BButton @click="handleOption(option.key)" v-for="option in optionButtons" :key="option.key"
                 :icon="option.icon" :disabled="option.disabled && option.disabled === true" color="secondary" />
+            <BMenu>
+                <template #trigger>
+                    <BButton icon="PhGear" color="secondary" />
+                </template>
+                <CalendarSettings />
+            </BMenu>
             <BButton @click="handleOption('add')" :text="t('calendar.addEvent')" color="primary" right-icon="PhPlus" />
         </div>
     </div>
@@ -71,18 +77,26 @@
                 :icon="option.icon" :disabled="option.disabled && option.disabled === true" color="secondary" />
         </div>
     </Teleport>
+    <BPopup ref="popup">
+        <CalendarSettings />
+    </BPopup>
 </template>
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
+import { defineComponent, useTemplateRef, computed } from 'vue';
 import { useI18n, useCalendarStore, useWindowSize } from '#imports';
 import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
 import { useEventBus } from '@vueuse/core';
+import type { Popup } from '~/types/components/popup';
+import CalendarSettings from './CalendarSettings.vue';
 export interface CalendarHeaderExposed {
     setTab: (tab: string, targetDate?: Date) => void;
 }
 export default defineComponent({
     name: 'CalendarHeader',
     emits: ['update:range', 'update:mode', 'share', 'refresh', 'add'],
+    components: {
+        CalendarSettings,
+    },
     setup(_, { emit, expose }) {
         const { t, locale } = useI18n()
         const calendar = useCalendarDate()
@@ -91,7 +105,7 @@ export default defineComponent({
         const { width } = useWindowSize()
         const isMobile = computed(() => width.value < 768)
         const bus = useEventBus<any>('calendar-actions');
-
+        const popup = useTemplateRef<Popup>('popup')
 
         // Source of truth. Start at today.
         const currentDate = ref(new Date())
@@ -121,21 +135,36 @@ export default defineComponent({
             t('calendar.modes.monthly'),
         ])
 
-        const optionButtons = ref([
-            {
-                key: 'share',
-                icon: 'PhShareNetwork',
-            },
-            {
-                key: 'sync',
-                icon: 'PhArrowsClockwise',
-                disabled: isSyncingCalendar.value
-            },
-            //   {
-            //       key: 'settings',
-            //       icon: 'PhGear'
-            //   },
-        ])
+        const optionButtons = computed(() => {
+            const options = [
+                {
+                    key: 'share',
+                    icon: 'PhShareNetwork',
+                    disabled: false,
+                },
+                {
+                    key: 'sync',
+                    icon: 'PhArrowsClockwise',
+                    disabled: isSyncingCalendar.value
+                },
+                {
+                    key: 'settings',
+                    icon: 'PhGear',
+                    // This now reactively tracks the computed isMobile
+                    disabled: !isMobile.value
+                }
+            ];
+
+            // Filter out anything where disabled is true
+            return options.filter((opt) => !opt.disabled);
+        });
+
+        watch(() => isMobile.value, () => {
+            console.log('is mobile:', isMobile.value)
+        })
+        watch(() => width.value, () => {
+            console.log('width:', width.value)
+        })
 
         const handleOption = (key: string) => {
             switch (key) {
@@ -146,12 +175,16 @@ export default defineComponent({
                     emit('refresh')
                     break;
                 case 'settings':
-
+                    popup.value?.open()
                     break;
                 case 'add':
                     emit('add')
                     break;
             }
+        }
+
+        const closeSettings = () => {
+            popup.value?.close()
         }
 
         watch([currentDate, currentDisplayMode], ([newDate, newMode], [oldDate, oldMode]) => {
@@ -276,11 +309,13 @@ export default defineComponent({
             getInitialMonthIndex,
             getYears: calendar.getYears,
             getMonths: calendar.getMonths,
+            closeSettings,
             isMobile,
             prevStep,
             nextStep,
             selectedYearText,
             selectedMonthText,
+            popup,
             currentDisplayMode,
             optionButtons,
             displayModes,

@@ -72,7 +72,7 @@
       "submit": "ثبت",
       "remind": "یادآوری",
       "startDate": "تاریخ شروع",
-      "enterCall":"ورود به گفتگو",
+      "enterCall": "ورود به گفتگو",
       "repeatEvery": "تکرار هر",
       "timeErrors": {
         "past": "تاریخ رویداد نمیتواند در گذشته باشد."
@@ -106,6 +106,26 @@
         "success": "رویداد با موفقیت حذف شد !",
         "error": "در پردازش درخواست شما مشکلی پیش آمد !"
       }
+    },
+    "filters": {
+      "title": "فیلترها",
+      "calendar": {
+        "title": "تقویم",
+        "jalaali": "تقویم شمسی",
+        "georgian": "میلادی",
+        "islamic": "قمری"
+      },
+      "startOfWeek": "شروع هفته",
+      "timeZone": "منطقه زمانی",
+      "displaySettings": {
+        "title": "تنظیمات نمایش",
+        "ai": "هوشمند",
+        "medicine": "دارو",
+        "services": "خدمات",
+        "task": "وظیفه"
+      },
+      "apply":"اعمال",
+      "showHolidays":"نمایش تعطیلات"
     }
   }
 }
