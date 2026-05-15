@@ -190,11 +190,39 @@
     },
     "board": {
       "title": "تخته",
-      "selectColor":"انتخاب رنگ",
+      "selectColor": "انتخاب رنگ",
       "page": "صفحه {page}",
       "addPage": "صفحه جدید",
       "confirm": "تایید",
       "savedSuccessfully": "تصویر با موفقیت ذخیره سازی شد."
+    },
+    "prescription": {
+      "title": "نسخه نویسی",
+      "initialDetection": "تشخیص اولیه",
+      "medicationName": "نام دارو",
+      "brands": "برند",
+      "dose": "دوز مصرف",
+      "usageLimit": "مقدار استفاده",
+      "repetitionAmount": "تعداد تکرار",
+      "usageMethod": "شیوه استفاده",
+      "addMedications": "افزودن دارو",
+      "warning": "خطا",
+      "repeat": "تکرار",
+      "period": "دوره",
+      "timePeriod": "مدت زمان",
+      "submit": "ثبت",
+      "back": "بازگشت",
+      "continue": "ادامه",
+      "periodOptions": {
+        "hospitalization": "بستری کلینیک",
+        "prescriptionDrugs": "تجویز نسخه"
+      },
+      "priority": {
+        "title": "اولویت",
+        "high": "بالا",
+        "medium": "متوسط",
+        "low": "پایین"
+      }
     }
   }
 }
