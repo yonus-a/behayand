@@ -1,11 +1,18 @@
 <template>
-    <div class=" flex w-10 h-10 relative z-1000 items-center justify-center">
+    <div class=" flex w-10 h-10 absolute z-10000 items-center justify-center">
         <BMenu :overlay="false">
             <template #trigger="{ isOpen }">
                 <div class="w-full aspect-square flex items-center justify-center">
-                    <div class="cursor-pointer w-5 h-5 rounded-full overflow-hidden border border-outline/20 transition-all duration-200"
-                        :class="[isOpen ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface' : '']">
-                        <BImage class="w-full h-full min-w-full min-h-full" fit="cover" :src="currentCountry?.flag" />
+                    <div class="cursor-pointer w-5 h-5 rounded-full overflow-hidden border border-outline/20 transition-all duration-200 flex items-center justify-center"
+                        :class="[
+                            isOpen ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface' : '',
+                            currentCountry?.code !== 'fa' ? 'bg-primary/5' : ''
+                        ]">
+                        <BImage v-if="currentCountry?.code === 'fa'" class="w-full h-full min-w-full min-h-full"
+                            fit="cover" :src="currentCountry?.flag" />
+                        <span v-else class="text-[8px] font-bold text-primary uppercase leading-none">
+                            {{ currentCountry?.code }}
+                        </span>
                     </div>
                 </div>
             </template>
