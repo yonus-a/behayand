@@ -1,6 +1,6 @@
 <template>
     <BPopup ref="popup" no-padding :has-close="false">
-        <div class=" w-full flex px-6 py-4 justify-center">
+        <div class=" w-full flex lg:gap-y-0 gap-y-4 gap-x-4 px-6 flex-col lg:flex-row py-4 items-stretch justify-center">
             <div class=" w-dvw max-w-86">
                 <div class=" mb-4 flex items-center gap-x-3">
                     <BIcon icon="PhX" class=" cursor-pointer w-4 h-4 fill-on-surface" @click="closePopup" />
@@ -11,7 +11,9 @@
                     :placeholder="t('general.select')" />
                 <PrescriptionDetails />
             </div>
-            <MedicationsList :medications="prescribedMeds" />
+            <div class=" lg:max-w-1/2 w-full lg:w-102 lg:h-180 h-auto ">
+                <MedicationsList />
+            </div>
         </div>
     </BPopup>
 </template>
