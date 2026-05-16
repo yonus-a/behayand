@@ -39,6 +39,8 @@
     },
     "datePicker": {
       "title": "انتخاب تاریخ"
-    }
+    },
+    "result": "نتیجه ای",
+    "noResultFound": "هیچ {item} برای '{search}' یافت نشد !"
   }
 }

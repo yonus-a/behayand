@@ -209,7 +209,7 @@
       "addMedications": "افزودن دارو",
       "warning": "خطا",
       "repeat": "تکرار",
-      "usage": "هر {time} {count}",
+      "usage": "هر {count} {time}",
       "period": "دوره",
       "timePeriod": "مدت زمان",
       "descriptions": "توضیحات",
@@ -225,7 +225,11 @@
         "high": "بالا",
         "medium": "متوسط",
         "low": "پایین"
-      }
+      },
+      "success": "با موفقیت ثبت شد",
+      "hospitalizationSuccess": "فرم بستری با موفقیت ارسال شد",
+      "emptyList": "هیچ دارویی اضافه نشده است",
+      "medicineSearch": "دارویی"
     }
   }
 }

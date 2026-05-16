@@ -63,7 +63,7 @@
                     openDirection === 'up' ? 'bottom-[calc(100%+6px)] origin-bottom' : 'top-[calc(100%+6px)] origin-top'
                 ]">
 
-                    <div v-if="loading" class="flex items-center justify-center h-18.75 w-full">
+                    <div v-if="isLoading" class="flex items-center justify-center h-18.75 w-full">
                         <BIcon icon="PhCircleNotch" class="w-7 h-7 animate-spin fill-outline" />
                     </div>
 
@@ -75,11 +75,13 @@
                                 'Add' }}: "{{ searchQuery }}"</span>
                         </div>
 
-                        <div v-if="filteredOptions.length === 0 && (!allowCreate || !searchQuery)"
+                        <div v-if="filteredOptions.length === 0 && (!allowCreate || !searchQuery) && !isLoading"
                             class="flex items-center justify-center gap-x-2 py-6 text-on-surface/50">
-                            <span class="text-sm select-none font-medium">{{ noResultText || t('addresses.noResults') ||
-                                `No
-                                results found!` }}</span>
+                            <span class="text-sm select-none font-medium">{{
+                                t('general.noResultFound', {
+                                    search: searchQuery, item: noResultText !== '' ? noResultText :
+                                        t('general.result')
+                                }) }}</span>
                         </div>
 
                         <div v-if="filteredOptions.length > 0" class="overflow-y-auto  max-h-50 " ref="optionsListRef">
@@ -169,7 +171,7 @@ export default defineComponent({
         color: { type: String, default: 'primary' },
         loading: { type: Boolean, default: false },
         remoteSearch: { type: Boolean, default: false },
-        noResultText: { type: String, default: '' }
+        noResultText: { type: String, default: '' },
     },
     setup(props, { emit }) {
         const { t } = useI18n();
@@ -178,6 +180,7 @@ export default defineComponent({
         const dropdownRef = ref<HTMLElement | null>(null);
         const searchInput = ref<HTMLInputElement | null>(null);
         const optionsListRef = ref<HTMLElement | null>(null);
+        const isLoading = computed(()=> props.loading)
         const highlightedIndex = ref(-1);
         let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -444,7 +447,7 @@ export default defineComponent({
             messageColorClass, messageIcon, virtualizer,
             toggleDropdown, closeDropdown, toggleOption, removeItem, createOption,
             highlightNext, highlightPrev, selectHighlighted, openOnTab, containerClasses,
-            openDirection,
+            openDirection,isLoading,
         };
     }
 });
