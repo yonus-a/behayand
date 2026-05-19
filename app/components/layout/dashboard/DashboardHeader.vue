@@ -44,7 +44,7 @@
 
             <!-- MOBILE LEFT GROUP (Notifications, Search) & Desktop Right -->
             <div id="header-custom-actions"></div>
-            <div v-if="!hasCustomActions" class=" shrink-0" id="header-default-actions">
+            <div class="shrink-0 header-default-actions" :class="[isHydrated ? 'opacity-100' : 'opacity-0']" id="header-default-actions">
                 <div class=" flex items-center gap-x-3 md:gap-x-4 shrink-0">
                     <NuxtLinkLocale class=" md:block hidden">
 
@@ -151,9 +151,15 @@ export default defineComponent({
 
         const hasCustomActions = ref(false);
 
+        const isHydrated = ref(false);
         onMounted(() => {
+            isHydrated.value = true;
             const target = document.getElementById('header-custom-actions');
             if (target) {
+                nextTick(() => {
+                    hasCustomActions.value = target.children.length > 0;
+                });
+
                 const observer = new MutationObserver(() => {
                     hasCustomActions.value = target.children.length > 0;
                 });
@@ -176,6 +182,7 @@ export default defineComponent({
             profileStore,
             hasCustomActions,
             closeProfileDetailsMenu,
+            isHydrated,
             unreadMessages,
             openSearch,
             canShowGreetings,
@@ -187,7 +194,21 @@ export default defineComponent({
 })
 </script>
 <style scoped>
-#header-custom-actions:not(:empty)~.header-default-actions {
-    display: none;
+#header-custom-actions {
+    min-width: 120px;
+    /* Adjust to match the width of your custom buttons */
+    min-height: 40px;
+    /* Adjust to match BButton height */
+    display: flex;
+    align-items: center;
+}
+
+#header-custom-actions {
+    display: flex;
+}
+
+/* The CSS handles the hiding instantly without waiting for Vue/JS */
+#header-custom-actions:not(:empty)+#header-default-actions {
+    display: none !important;
 }
 </style>
