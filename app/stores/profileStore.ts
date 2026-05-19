@@ -34,6 +34,7 @@ export const useProfileStore = defineStore("profile", () => {
     nationality: "iranian",
     nationalId: "",
     imageUrl: "",
+    phoneNumber: "",
     gender: null,
     birthDate: null as Date | null,
     balance: 1000000,
@@ -148,6 +149,7 @@ export const useProfileStore = defineStore("profile", () => {
         nationalId: "1234567890",
         gender: "male",
         imageUrl: "",
+        phoneNumber:"09133877121",
         birthDate: new Date("1999-11-25T00:00:00Z"),
         balance: 1000000,
         referral: {

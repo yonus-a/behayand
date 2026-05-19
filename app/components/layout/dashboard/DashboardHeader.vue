@@ -66,10 +66,15 @@
                         <BIcon icon="PhMagnifyingGlass" class=" fill-on-surface/50 w-5 h-5" />
                     </div>
                     <div class=" w-10 aspect-square hidden md:flex justify-center items-center">
-                        <div class=" cursor-pointer w-5 h-5 rounded-full overflow-hidden">
-                            <BImage class=" w-full h-full min-w-full min-h-full max-w-full max-h-full"
-                                :src="profileStore.userData.imageUrl" />
-                        </div>
+                        <BMenu>
+                            <template #trigger>
+                                <div class=" cursor-pointer w-5 h-5 rounded-full overflow-hidden">
+                                    <BImage class=" w-full h-full min-w-full min-h-full max-w-full max-h-full"
+                                        :src="profileStore.userData.imageUrl" />
+                                </div>
+                            </template>
+                            <ProfileDetails />
+                        </BMenu>
                     </div>
                 </div>
             </div>
@@ -94,12 +99,14 @@ import { useProfileStore, useChatStore, useStoriesStore, useI18n, useRoute } fro
 import DashboardGreetings from '~/components/dashboard/DashboardGreetings.vue';
 import DashboardNotifications from './header/DashboardNotifications.vue';
 import StoryDisplay from './story/StoryDisplay.vue';
+import ProfileDetails from './header/ProfileDetails.vue';
 export default defineComponent({
     name: 'DashboardHeader',
     components: {
         DashboardGreetings,
         DashboardNotifications,
         StoryDisplay,
+        ProfileDetails,
     },
     setup() {
         const route = useRoute()

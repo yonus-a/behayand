@@ -10,6 +10,7 @@ export interface Profile {
   imageUrl: string;
   birthDate: Date | null;
   balance: number;
+  phoneNumber: String;
   referral?: Referral;
 }
 

@@ -1,3 +1,10 @@
 {
-  "profile": {}
+  "profile": {
+    "routes": {
+      "profile": "پروفایل",
+      "addresses": "آدرس ها",
+      "settings": "تنظیمات",
+      "logout": "خروج"
+    }
+  }
 }
