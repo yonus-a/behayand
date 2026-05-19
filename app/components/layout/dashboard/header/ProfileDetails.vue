@@ -1,6 +1,6 @@
 <template>
     <div class=" w-60 flex flex-col gap-y-2 p-3">
-        <div class=" flex w-full items-center gap-x-2">
+        <NuxtLinkLocale to="/dashboard/profile" class="  cursor-pointer flex w-full items-center gap-x-2">
             <div class=" rounded-full overflow-hidden w-10 shrink-0 aspect-square">
                 <BImage :src="profileStore.userData.imageUrl" />
             </div>
@@ -8,10 +8,11 @@
                 <div class=" text-label-md">{{ profileStore.userData.name }} {{ profileStore.userData.lastName }}</div>
                 <div class=" opacity-50 text-body-sm">{{ profileStore.userData.phoneNumber }}</div>
             </div>
-        </div>
+        </NuxtLinkLocale>
         <div class=" w-full h-px rounded-full bg-outline-variant"></div>
         <div class=" w-full flex flex-col gap-y-1">
-            <div :class="[route.color]" class=" w-full flex items-center h-10 p-2.5 gap-x-2 cursor-pointer"
+            <div :class="[route.color, route.hover]"
+                class=" transition-all duration-200 ease-in-out  rounded-xl w-full flex items-center h-10 p-2.5 gap-x-2 cursor-pointer"
                 v-for="route in routes" :key="route.key" @click="handleRouteClick(route.key)">
                 <BIcon :icon="route.icon" class="w-5 h-5" />
                 <div class=" select-none text-body-sm">{{ route.label }}</div>
@@ -39,27 +40,31 @@ export default defineComponent({
                 label: t('profile.routes.profile'),
                 path: '/dashboard/profile',
                 icon: 'PhUser',
-                color: 'text-on-surface/70'
+                color: 'text-on-surface/70',
+                hover: 'hover:bg-surface-variant-2 bg-surface-variant-2/0'
             },
             {
                 key: 'addresses',
                 label: t('profile.routes.addresses'),
                 path: '/dashboard/addresses',
                 icon: 'PhMapPin',
-                color: 'text-on-surface/70'
+                color: 'text-on-surface/70',
+                hover: 'hover:bg-surface-variant-2 bg-surface-variant-2/0'
             },
             {
                 key: 'settings',
                 label: t('profile.routes.settings'),
                 path: '/dashboard/settings',
                 icon: 'PhGear',
-                color: 'text-on-surface/70'
+                color: 'text-on-surface/70',
+                hover: 'hover:bg-surface-variant-2 bg-surface-variant-2/0'
             },
             {
                 key: 'logout',
                 label: t('profile.routes.logout'),
                 icon: 'PhSignOut',
-                color: 'text-error'
+                color: 'text-error',
+                hover: 'hover:bg-error/20 bg-error/0'
             },
         ])
 
