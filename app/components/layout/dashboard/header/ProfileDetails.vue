@@ -20,11 +20,13 @@
             </div>
         </div>
     </div>
+    <BModal ref="modal" @action="logout" />
 </template>
 <script lang="ts">
-import { defineComponent, computed, type PropType } from 'vue';
+import { defineComponent, useTemplateRef, computed, type PropType } from 'vue';
 import { useI18n, useLocalePath, useProfileStore, useAuthStore } from '#imports';
 import { useRouter } from 'vue-router';
+import { type Modal } from '~/types/components/modal';
 export default defineComponent({
     name: 'ProfileDetails',
     emits: ['close'],
@@ -34,6 +36,7 @@ export default defineComponent({
         const router = useRouter()
         const localePath = useLocalePath()
         const authStore = useAuthStore()
+        const modal = useTemplateRef<Modal>('modal')
         const isLoading = computed(() => profileStore.isLoading)
 
         const routes = computed(() => [
@@ -76,7 +79,7 @@ export default defineComponent({
             if (!targetRouteItem?.path || targetRouteItem.path.trim().length == 0) {
                 switch (key) {
                     case 'logout':
-                        authStore.logout()
+                        modal.value?.openModal(t('profile.logout.modal.title'), t('profile.logout.modal.description'), 'error', true, t('profile.logout.modal.exit'))
                         break;
                 }
             } else {
@@ -88,12 +91,18 @@ export default defineComponent({
             emit('close')
         }
 
+        const logout = () => {
+            authStore.logout()
+        }
+
         return {
             handleRouteClick,
             routes,
             isLoading,
             profileStore,
+            logout,
             closeMenu,
+            modal,
         }
     }
 })
