@@ -14,7 +14,8 @@
             </div>
             <div class=" flex-1 select-none text-on-surface flex flex-col gap-y-1">
                 <div v-loading="isLoading" class=" text-body-sm opacity-50">{{ t('profile.profile.image.image') }}</div>
-                <div v-loading="isLoading" class=" text-label-md">{{ t('profile.profile.image.edit') }}</div>
+                <div @click="openImagePicker" v-loading="isLoading" class=" text-primary cursor-pointer text-label-md">
+                    {{ t('profile.profile.image.edit') }}</div>
             </div>
             <div class=" text-label-md " v-loading="isLoading">{{ profileStore.userData.phoneNumber }}</div>
         </div>
@@ -28,7 +29,7 @@
 </template>
 <script lang="ts">
 import { defineComponent, computed, useTemplateRef } from 'vue';
-import { useI18n, useProfileStore } from '#imports';
+import { useDate, useI18n, useProfileStore } from '#imports';
 import type { Popup } from '~/types/components/popup';
 import type { ProfileFieldProps } from './DetailsInput.vue';
 import DetailsInput from './DetailsInput.vue';
@@ -38,6 +39,7 @@ export default defineComponent({
         DetailsInput,
     },
     setup() {
+        const { formatDateShort } = useDate()
         const { t } = useI18n()
         const profileStore = useProfileStore()
         const popup = useTemplateRef<Popup>('popup')
@@ -45,15 +47,25 @@ export default defineComponent({
 
         const fields = computed<ProfileFieldProps[]>(() => {
             const d = profileStore.userData;
+            const nationalIdTitle = d.nationality === 'foriegner'
+                ? t('profile.profile.foreignCode')
+                : t('profile.profile.fields.nationalCode');
+
+            const nationalityText = d.nationality
+                ? t(`general.nationality.${d.nationality}`)
+                : null;
+            const relationshipText = d.relationShipStatus
+                ? t(`general.relationshipStatus.${d.relationShipStatus}`)
+                : null;
             return [
                 { id: 'name', title: t('profile.profile.fields.name'), value: d.name ?? null },
                 { id: 'lastName', title: t('profile.profile.fields.lastName'), value: d.lastName ?? null },
-                { id: 'nationalCode', title: t('profile.profile.fields.nationalCode'), value: d.nationalId ?? null },
+                { id: 'nationalCode', title: nationalIdTitle, value: d.nationalId ?? null },
                 { id: 'email', title: t('profile.profile.fields.email'), value: d.email ?? null },
-                { id: 'birthDate', title: t('profile.profile.fields.birthDate'), value: d.birthDate?.toLocaleDateString() ?? null },
+                { id: 'birthDate', title: t('profile.profile.fields.birthDate'), value: formatDateShort(new Date(d.birthDate)) ?? null },
                 { id: 'placeOfBirth', title: t('profile.profile.fields.placeOfBirth'), value: d.placeOfBirth ?? null },
-                { id: 'relationShipStatus', title: t('profile.profile.fields.relationShipStatus'), value: d.relationShipStatus ?? null },
-                { id: 'nationality', title: t('profile.profile.fields.nationality'), value: d.nationality ?? null }
+                { id: 'relationShipStatus', title: t('profile.profile.fields.relationShipStatus'), value: relationshipText },
+                { id: 'nationality', title: t('profile.profile.fields.nationality'), value: nationalityText }
             ] as ProfileFieldProps[];
         });
 
@@ -61,9 +73,15 @@ export default defineComponent({
             popup.value?.open()
         ]
 
+
+        const openImagePicker = () => {
+
+        }
+
         return {
             t,
             profileStore,
+            openImagePicker,
             isLoading,
             fields,
             openEdit,

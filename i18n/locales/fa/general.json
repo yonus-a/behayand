@@ -4,6 +4,15 @@
       "light": "روشن",
       "dark": "تاریک"
     },
+    "relationshipStatus": {
+      "title": "وضعیت تاهل",
+      "married": "متاهل",
+      "single": "مجرد"
+    },
+    "nationality": {
+      "iranian": "ایرانی",
+      "foreigner": "اتباع خارجه"
+    },
     "viewAll": "مشاهده همه",
     "search": "جستجو",
     "roles": {
