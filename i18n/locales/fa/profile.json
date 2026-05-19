@@ -6,6 +6,26 @@
       "settings": "تنظیمات",
       "logout": "خروج"
     },
+    "profile": {
+      "title": "اطلاعات شخصی",
+      "edit": "ویرایش",
+      "image": {
+        "image": "تصویر پروفایل",
+        "edit": "ویرایش",
+        "add": "اضافه کردنس"
+      },
+      "enterPlaceholder": "{field} خود را وارد کنید...",
+      "fields": {
+        "name": "نام",
+        "lastName": "نام خانوادگی",
+        "nationalCode": "کد ملی",
+        "email": "آدرس ایمیل",
+        "birthDate": "تاریخ تولد",
+        "placeOfBirth": "محل تولد",
+        "relationShipStatus": "وضعیت تاهل",
+        "nationality": "ملیت"
+      }
+    },
     "logout": {
       "modal": {
         "title": "خروج از حساب",

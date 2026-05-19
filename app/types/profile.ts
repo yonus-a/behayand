@@ -6,11 +6,14 @@ export interface Profile {
   lastName: string;
   nationality: "iranian" | "foriegner";
   nationalId: string;
+  email?: string | null;
   gender: "male" | "female" | null;
   imageUrl: string;
   birthDate: Date | null;
+  placeOfBirth?: string | null;
+  relationShipStatus?: "single" | "married" | "divorced" | "widowed" | null;
   balance: number;
-  phoneNumber: String;
+  phoneNumber: string;
   referral?: Referral;
 }
 

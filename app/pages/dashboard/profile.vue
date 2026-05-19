@@ -1,8 +1,15 @@
 <template>
-    <div></div>
+    <div class=" w-full h-full overflow-y-auto">
+        <div class=" w-full flex select-none flex-col gap-y-6 px-8 py-6">
+            <ProfileForm />
+        </div>
+    </div>
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { useI18n } from '#imports';
+import DetailsInput from '~/components/profile/DetailsInput.vue';
+import ProfileForm from '~/components/profile/ProfileForm.vue';
 definePageMeta({
     layout: 'dashboard',
     headerTitle: 'profile.title',
@@ -10,10 +17,15 @@ definePageMeta({
 });
 export default defineComponent({
     name: 'ProfileView',
+    components: {
+        ProfileForm,
+        DetailsInput,
+    },
     setup() {
+        const { t } = useI18n()
 
         return {
-
+            t,
         }
     }
 })

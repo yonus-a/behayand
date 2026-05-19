@@ -1,0 +1,73 @@
+<template>
+    <div class=" w-full rounded-2xl flex flex-col gap-y-4 p-4 border border-outline-variant">
+        <div class=" w-full flex items-center justify-between">
+            <div class=" text-title-sm text-on-surface select-none">{{ t('profile.profile.title') }}</div>
+            <div @click="openEdit" class=" flex cursor-pointer select-none items-center gap-x-2">
+                <BIcon class="w-5 h-5 fill-primary" icon="PhPencilSimpleLine" />
+                <div class=" select-none text-primary  text-label-sm">{{ t('profile.profile.edit') }}</div>
+            </div>
+        </div>
+        <div class=" w-full flex items-center justify-between bg-surface-variant rounded-xl px-2 py-3 gap-x-3">
+            <div class=" w-12 rounded-full overflow-hidden aspect-square shrink-0">
+                <BImage v-loading="isLoading" :src="profileStore.userData.imageUrl"
+                    class=" w-full h-full min-w-full min-h-full max-w-full max-h-full" />
+            </div>
+            <div class=" flex-1 select-none text-on-surface flex flex-col gap-y-1">
+                <div v-loading="isLoading" class=" text-body-sm opacity-50">{{ t('profile.profile.image.image') }}</div>
+                <div v-loading="isLoading" class=" text-label-md">{{ t('profile.profile.image.edit') }}</div>
+            </div>
+            <div class=" text-label-md " v-loading="isLoading">{{ profileStore.userData.phoneNumber }}</div>
+        </div>
+        <div class=" w-full grid grid-cols-3 gap-3">
+            <DetailsInput v-for="(field, index) in fields" :key="index" :field="field" :loading="isLoading" />
+        </div>
+    </div> 
+    <BPopup ref="popup">
+        Kir
+    </BPopup>
+</template>
+<script lang="ts">
+import { defineComponent, computed, useTemplateRef } from 'vue';
+import { useI18n, useProfileStore } from '#imports';
+import type { Popup } from '~/types/components/popup';
+import type { ProfileFieldProps } from './DetailsInput.vue';
+import DetailsInput from './DetailsInput.vue';
+export default defineComponent({
+    name: 'ProfileForm',
+    components: {
+        DetailsInput,
+    },
+    setup() {
+        const { t } = useI18n()
+        const profileStore = useProfileStore()
+        const popup = useTemplateRef<Popup>('popup')
+        const isLoading = computed(() => profileStore.isLoading)
+
+        const fields = computed<ProfileFieldProps[]>(() => {
+            const d = profileStore.userData;
+            return [
+                { id: 'name', title: t('profile.profile.fields.name'), value: d.name ?? null },
+                { id: 'lastName', title: t('profile.profile.fields.lastName'), value: d.lastName ?? null },
+                { id: 'nationalCode', title: t('profile.profile.fields.nationalCode'), value: d.nationalId ?? null },
+                { id: 'email', title: t('profile.profile.fields.email'), value: d.email ?? null },
+                { id: 'birthDate', title: t('profile.profile.fields.birthDate'), value: d.birthDate?.toLocaleDateString() ?? null },
+                { id: 'placeOfBirth', title: t('profile.profile.fields.placeOfBirth'), value: d.placeOfBirth ?? null },
+                { id: 'relationShipStatus', title: t('profile.profile.fields.relationShipStatus'), value: d.relationShipStatus ?? null },
+                { id: 'nationality', title: t('profile.profile.fields.nationality'), value: d.nationality ?? null }
+            ] as ProfileFieldProps[];
+        });
+
+        const openEdit = () => [
+            popup.value?.open()
+        ]
+
+        return {
+            t,
+            profileStore,
+            isLoading,
+            fields,
+            openEdit,
+        }
+    }
+})
+</script>
