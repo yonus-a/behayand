@@ -3,10 +3,11 @@
         <component :is="activeLayout" v-bind="layoutProps">
             <slot />
         </component>
-        
+
         <template #placeholder>
             <div class="w-full h-dvh bg-surface animate-pulse"></div>
         </template>
+        <MobileNavigation v-if="layoutProps.hasMobileNav" />
     </ClientOnly>
 </template>
 
@@ -17,6 +18,7 @@ import { useWindowSize, useRoute } from '#imports';
 // Import layouts as components
 import DashboardLayout from './dashboard.vue';
 import MobileLayout from './mobile.vue';
+import MobileNavigation from '~/components/layout/dashboard/MobileNavigation.vue';
 
 const { width } = useWindowSize();
 const route = useRoute();
@@ -40,6 +42,7 @@ const layoutProps = computed(() => ({
     headerTitle: route.meta.headerTitle as string,
     backPath: route.meta.backPath as string,
     backIcon: route.meta.backIcon as string,
-    showBack: route.meta.showBack !== false
+    showBack: route.meta.showBack !== false,
+    hasMobileNav: route.meta.showMobileNav,
 }));
 </script>

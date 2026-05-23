@@ -7,12 +7,15 @@
                 {{ headerTitle ? t(headerTitle) : '' }}
             </div>
 
-            <BIcon v-if="showBack" :icon="backIcon || 'PhArrowLeft'" class="cursor-pointer w-6 h-6 fill-on-surface"
-                @click="handleBack" />
-            <div v-else class="w-6"></div>
+            <div id="header-custom-actions"></div>
+            <div id="header-default-actions">
+                <BIcon v-if="showBack" :icon="backIcon || 'PhArrowLeft'" class="cursor-pointer w-6 h-6 fill-on-surface"
+                    @click="handleBack" />
+                <div v-else class="w-6"></div>
+            </div>
         </div>
 
-        <div class="w-full flex-1 overflow-hidden">
+        <div class="w-full min-h-0 max-h-[calc(100vh-64px)] flex-1 overflow-y-auto">
             <slot />
         </div>
     </div>
@@ -40,3 +43,8 @@ const handleBack = () => {
     }
 };
 </script>
+<style scoped>
+#header-custom-actions:not(:empty)+#header-default-actions {
+    display: none !important;
+}
+</style>

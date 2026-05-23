@@ -1,5 +1,5 @@
 <template>
-    <div class=" w-full rounded-2xl select-none flex flex-col gap-y-4 p-4 border border-outline-variant">
+    <div class=" w-full rounded-2xl select-none flex flex-col gap-y-4 md:p-4 md:border md:border-outline-variant">
         <div class=" w-full flex justify-between items-center">
             <div class=" text-on-surface text-title-sm">{{ t('profile.address.title') }}</div>
             <BButton left-icon="PhPlus" :text="t('profile.address.options.add')" type="ghost" @click="addAddress" />

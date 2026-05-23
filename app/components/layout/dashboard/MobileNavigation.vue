@@ -14,7 +14,8 @@
                 </div>
 
                 <div @click="openRoute(localePath('/dashboard/profile'))"
-                    class="h-full flex-col gap-y-0.5 basis-1/5 aspect-square flex items-center justify-center cursor-pointer">
+                    :class="[isRouteActive('/dashboard/profile') ? 'bg-primary/10' : 'bg-primary/0']"
+                    class="h-full flex-col gap-y-0.5 basis-1/5 aspect-square transition-all duration-200 ease-in-out rounded-xl flex items-center justify-center cursor-pointer">
                     <div class="w-5 h-5 rounded-full overflow-hidden border border-outline/20">
                         <BImage :src="profileImage" class="w-full h-full object-cover" />
                     </div>

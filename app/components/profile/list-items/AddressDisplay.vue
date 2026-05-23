@@ -2,19 +2,24 @@
     <div
         class=" w-full px-5 flex  items-center justify-between gap-x-5 py-2 rounded-xl bg-surface-variant select-none text-on-surface">
         <BIcon v-loading="isLoading" icon="PhMapTrifold" class=" fill-primary w-8 h-8 shrink-0" />
-        <div class=" flex-1 shrink-0 flex flex-col gap-y-1">
-            <div v-loading="isLoading" class=" text-body-sm opacity-50 ">{{ address.title }}</div>
-            <div v-loading="isLoading" class=" max-w-full text-label-md overflow-hidden text-ellipsis line-clamp-1">
-                {{ address.path }}
+        <div class=" flex-1 flex md:flex-row flex-col md:gap-y-0 gap-y-1 md:items-center md:justify-between">
+            <div class=" flex-1 shrink-0 flex flex-col gap-y-1">
+                <div v-loading="isLoading" class=" text-body-sm opacity-50 ">{{ address.title }}</div>
+                <div v-loading="isLoading" class=" max-w-full text-label-md overflow-hidden text-ellipsis line-clamp-1">
+                    {{ address.path }}
+                </div>
+                <div class=" flex items-center gap-x-2">
+                    <div v-loading="isLoading" class=" opacity-50 text-body-md">{{ t('profile.address.postalCode') }}
+                    </div>
+                    <div v-loading="isLoading" class=" text-label-md">{{ address.postalCode }}</div>
+                </div>
             </div>
-            <div class=" flex items-center gap-x-2">
-                <div v-loading="isLoading" class=" opacity-50 text-body-md">{{ t('profile.address.postalCode') }}</div>
-                <div v-loading="isLoading" class=" text-label-md">{{ address.postalCode }}</div>
+            <div class="h-9 shrink-0 grow-0 px-3 flex items-center justify-center select-none text-on-primary-container text-label-sm md:text-label-md rounded-lg bg-primary-container self-start"
+                v-if="address.isMain">
+                <div class="shrink-0">
+                    {{ t('profile.address.mainAddress') }}
+                </div>
             </div>
-        </div>
-        <div class=" h-9 px-3 flex items-center justify-center select-none text-on-primary-container text-label-md rounded-lg bg-primary-container"
-            v-if="address.isMain">
-            {{ t('profile.address.mainAddress') }}
         </div>
         <BMenu :options="menuOptions" @select="handleOptionSelect">
             <template #trigger>

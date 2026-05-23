@@ -195,7 +195,7 @@ export default defineComponent({
 </script>
 <style scoped>
 #header-custom-actions {
-    min-width: 120px;
+    
     /* Adjust to match the width of your custom buttons */
     min-height: 40px;
     /* Adjust to match BButton height */

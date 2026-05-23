@@ -1,11 +1,8 @@
 <template>
-    <div class=" w-full rounded-2xl flex flex-col gap-y-4 p-4 border border-outline-variant">
+    <div class=" w-full rounded-2xl flex flex-col gap-y-4 md:p-4 md:border md:border-outline-variant">
         <div class=" w-full flex items-center justify-between">
             <div class=" text-title-sm text-on-surface select-none">{{ t('profile.profile.title') }}</div>
-            <div @click="openEdit" class=" flex cursor-pointer select-none items-center gap-x-2">
-                <BIcon class="w-5 h-5 fill-primary" icon="PhPencilSimpleLine" />
-                <div class=" select-none text-primary  text-label-sm">{{ t('profile.profile.edit') }}</div>
-            </div>
+            <BButton @click="openEdit" type="ghost" :text="t('profile.profile.edit')" left-icon="PhPencilSimpleLine" />
         </div>
         <div class=" w-full flex items-center justify-between bg-surface-variant rounded-xl px-2 py-3 gap-x-3">
             <div class=" w-12 rounded-full overflow-hidden aspect-square shrink-0">
@@ -19,7 +16,7 @@
             </div>
             <div class=" text-label-md " v-loading="isLoading">{{ profileStore.userData.phoneNumber }}</div>
         </div>
-        <div class=" w-full grid grid-cols-3 gap-3">
+        <div class=" w-full grid sm:grid-cols-2 grid-cols-1 lg:grid-cols-3 gap-3">
             <DetailsInput v-for="(field, index) in fields" :key="index" :field="field" :loading="isLoading" />
         </div>
     </div>

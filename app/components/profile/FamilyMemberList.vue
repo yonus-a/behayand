@@ -1,5 +1,5 @@
 <template>
-    <div class=" w-full select-none rounded-2xl flex flex-col gap-y-4 p-4 border border-outline-variant">
+    <div class=" w-full select-none rounded-2xl flex flex-col gap-y-4 md:p-4 md:border md:border-outline-variant">
         <div class=" text-on-surface text-title-sm">{{ t('profile.familyMembers.title') }}</div>
         <div class=" w-full flex flex-col gap-y-3 ">
             <FamilyMemberDisplay v-for="member in members" :key="member.id" :loading="isLoading" :member="member" />
