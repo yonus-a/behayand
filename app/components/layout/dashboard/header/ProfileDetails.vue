@@ -59,7 +59,7 @@ export default defineComponent({
             {
                 key: 'settings',
                 label: t('profile.routes.settings'),
-                path: '/dashboard/settings',
+                path: '/dashboard/profile/settings',
                 icon: 'PhGear',
                 color: 'text-on-surface/70',
                 hover: 'hover:bg-surface-variant-2 bg-surface-variant-2/0'

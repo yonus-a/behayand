@@ -70,6 +70,7 @@ export default defineComponent({
         ])
 
         const isRouteActive = (path: string) => {
+            if (route.path === '/dashboard/profile/settings' && path=='/dashboard/profile') return true
             return path === route.path
         }
 

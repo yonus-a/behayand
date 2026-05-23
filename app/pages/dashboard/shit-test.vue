@@ -6,7 +6,7 @@
             <AddressList />
         </div>
         <Teleport to="#header-custom-actions" v-if="isMobile">
-            <NuxtLinkLocale to="/dashboard/settings">
+            <NuxtLinkLocale to="/dashboard/profile/settings">
                 <BIcon class="w-5 h-5 fill-on-surface cursor-pointer" icon="PhGear" />
             </NuxtLinkLocale>
         </Teleport>

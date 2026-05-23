@@ -24,7 +24,7 @@
                             @click="toggleTheme" />
                     </div>
                     <div class=" w-10 h-10 flex justify-center items-center">
-                        <NuxtLinkLocale to="/dashboard/settings">
+                        <NuxtLinkLocale to="/dashboard/profile/settings">
                             <BIcon class=" w-5 h-5 fill-on-surface cursor-pointer" weight="bold" icon="PhGear" />
                         </NuxtLinkLocale>
                     </div>
