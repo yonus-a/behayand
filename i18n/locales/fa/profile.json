@@ -36,6 +36,7 @@
         "add": "افزودن آدرس",
         "selectAsMain":"انتخاب بعنوان آدرس اصلی"
       },
+      "mainAddress":"آدرس اصلی",
       "postalCode": "کد پستی",
       "form": {
         "addressTitle": "عنوان آدرس",

@@ -8,7 +8,8 @@
             <NoDataDisplay :image-path="noAddressImage" :title="t('profile.address.noAddress')" />
         </div>
         <div class=" w-full flex flex-col gap-y-3">
-            <AddressDisplay v-for="address in addresses" :key="address.id" :address="address" />
+            <AddressDisplay :loading="isLoadingAddresses" v-for="address in addresses" :key="address.id"
+                :address="address" />
         </div>
     </div>
 </template>
@@ -31,7 +32,7 @@ export default defineComponent({
         const { t } = useI18n()
         const profileStore = useProfileStore()
         const isLoadingAddresses = computed(() => !profileStore.isAddressesLoaded)
-        
+
 
         const mockAddress: Address = {
             id: 0,                     // dummy id
@@ -43,6 +44,7 @@ export default defineComponent({
             postalCode: '---',
             cityId: 0,
             provinceId: 0,
+            isMain: false,
         };
 
         const addresses = computed(() => {

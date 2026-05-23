@@ -22,10 +22,7 @@
         <div class=" w-full grid grid-cols-3 gap-3">
             <DetailsInput v-for="(field, index) in fields" :key="index" :field="field" :loading="isLoading" />
         </div>
-    </div> 
-    <BPopup ref="popup">
-        
-    </BPopup>
+    </div>
 </template>
 <script lang="ts">
 import { defineComponent, computed, useTemplateRef } from 'vue';

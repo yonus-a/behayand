@@ -12,6 +12,10 @@
                 <div v-loading="isLoading" class=" text-label-md">{{ address.postalCode }}</div>
             </div>
         </div>
+        <div class=" h-9 px-3 flex items-center justify-center select-none text-on-primary-container text-label-md rounded-lg bg-primary-container"
+            v-if="address.isMain">
+            {{ t('profile.address.mainAddress') }}
+        </div>
         <BMenu :options="menuOptions" @select="handleOptionSelect">
             <template #trigger>
                 <BIcon v-loading="isLoading" icon="PhDotsThreeVertical" weight="bold"

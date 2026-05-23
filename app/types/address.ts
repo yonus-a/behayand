@@ -8,4 +8,5 @@ export interface Address {
   postalCode: String;
   cityId: number;
   provinceId: number;
+  isMain: Boolean;
 }

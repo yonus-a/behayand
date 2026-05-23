@@ -1,5 +1,6 @@
+import type { Contact } from "./chat";
 import type { Service } from "./service";
-
+export type RelationTypes = "Fuck" | "This" | "Shit" | "!";
 export interface Profile {
   id: number;
   name: string;
@@ -29,4 +30,10 @@ export interface Referral {
   date: Date;
   priority: "high" | "medium" | "low";
   service: Service;
+}
+
+export interface FamilyMember extends Contact {
+  relation: RelationTypes;
+  isHeadOfHousehold: Boolean;
+  livesWithMe: Boolean;
 }

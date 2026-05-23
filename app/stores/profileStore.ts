@@ -233,6 +233,7 @@ export const useProfileStore = defineStore("profile", () => {
             postalCode: "1234567890",
             cityId: Number(randomCity.id),
             provinceId: Number(randomProvince.id),
+            isMain: i == 0,
           });
         }
       }

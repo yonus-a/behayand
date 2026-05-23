@@ -3,6 +3,7 @@
         <div class=" w-full flex select-none flex-col gap-y-6 px-8 py-6">
             <ProfileForm />
             <AddressList />
+
         </div>
     </div>
 </template>
