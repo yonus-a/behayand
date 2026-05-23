@@ -2,7 +2,12 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useI18n, useCookie } from "#imports";
 import blankProfile from "/images/dashboard/blank-profile.webp";
-import type { UserRoleKey, Profile, RoleDetail } from "~/types/profile";
+import type {
+  UserRoleKey,
+  Profile,
+  RoleDetail,
+  FamilyMember,
+} from "~/types/profile";
 import type { Contact } from "~/types/chat";
 import type { Address } from "~/types/address";
 
@@ -18,7 +23,6 @@ export const useProfileStore = defineStore("profile", () => {
 
   // --- State ---
   const isLoading = ref(true);
-  const isLoadingFamilyMembers = ref(false);
   const isLoaded = ref(false);
   const userRoles = ref<UserRoleKey[]>(["user"]);
   const insuranceCoverage = ref(300000);
@@ -56,36 +60,104 @@ export const useProfileStore = defineStore("profile", () => {
     },
   });
 
-  const familyMembers = ref<Contact[]>([
-    {
-      id: 1,
-      name: "امیر",
-      lastName: "سعیدی",
-      isOnline: true,
-      lastSeen: new Date(),
-      imageUrl: "https://i.pravatar.cc/150?u=1",
-      isActive: false,
-      unreadCount: 2,
-      serviceType: "chat",
-      birthDate: new Date(),
-      phoneNumber: "09134168227",
-      nationalCode: "1235678901",
-    },
-    {
-      id: 2,
-      name: "امیر",
-      lastName: "سعیدی",
-      isOnline: true,
-      lastSeen: new Date(),
-      imageUrl: "https://i.pravatar.cc/150?u=1",
-      isActive: false,
-      unreadCount: 2,
-      serviceType: "chat",
-      birthDate: new Date(),
-      phoneNumber: "09134168227",
-      nationalCode: "1235678901",
-    },
-  ]);
+  const isFamilyMembersLoaded = ref(false);
+  const isLoadingFamilyMembers = ref(false);
+  const familyMembers = ref<FamilyMember[]>([]);
+
+  const loadFamilyMembers = async () => {
+    if (isFamilyMembersLoaded.value) return;
+    isLoadingFamilyMembers.value = true;
+    try {
+      // Simulate network delay (1 second)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Generate 3 mock family members
+      const mockMembers: FamilyMember[] = [
+        {
+          id: 1,
+          name: "سارا",
+          lastName: "صفری",
+          isOnline: false,
+          lastSeen: new Date(),
+          imageUrl: "https://i.pravatar.cc/150?u=2",
+          isActive: true,
+          birthDate: new Date("1990-03-15"),
+          phoneNumber: "09123456789",
+          nationalCode: "1234567890",
+          relation: "mother",
+          isHeadOfHousehold: true,
+          livesWithMe: true,
+          userType: ["user"],
+        },
+        {
+          id: 2,
+          name: "رضا",
+          lastName: "صفری",
+          isOnline: true,
+          lastSeen: new Date(),
+          imageUrl: "https://i.pravatar.cc/150?u=3",
+          isActive: true,
+          birthDate: new Date("2015-07-20"),
+          relation: "child",
+          isHeadOfHousehold: false,
+          livesWithMe: true,
+          userType: ["user"],
+        },
+        {
+          id: 3,
+          name: "مریم",
+          lastName: "احمدی",
+          isOnline: false,
+          lastSeen: new Date(),
+          imageUrl: "https://i.pravatar.cc/150?u=4",
+          isActive: false,
+          birthDate: new Date("1988-12-02"),
+          relation: "spouse",
+          isHeadOfHousehold: false,
+          livesWithMe: true,
+          userType: ["user"],
+        },
+      ];
+
+      familyMembers.value = mockMembers;
+      isFamilyMembersLoaded.value = true;
+    } catch (error) {
+      console.error("Failed to load family members:", error);
+    } finally {
+      isLoadingFamilyMembers.value = false;
+    }
+  };
+
+  /// const familyMembers = ref<Contact[]>([
+  ///   {
+  ///     id: 1,
+  ///     name: "امیر",
+  ///     lastName: "سعیدی",
+  ///     isOnline: true,
+  ///     lastSeen: new Date(),
+  ///     imageUrl: "https://i.pravatar.cc/150?u=1",
+  ///     isActive: false,
+  ///     unreadCount: 2,
+  ///     serviceType: "chat",
+  ///     birthDate: new Date(),
+  ///     phoneNumber: "09134168227",
+  ///     nationalCode: "1235678901",
+  ///   },
+  ///   {
+  ///     id: 2,
+  ///     name: "امیر",
+  ///     lastName: "سعیدی",
+  ///     isOnline: true,
+  ///     lastSeen: new Date(),
+  ///     imageUrl: "https://i.pravatar.cc/150?u=1",
+  ///     isActive: false,
+  ///     unreadCount: 2,
+  ///     serviceType: "chat",
+  ///     birthDate: new Date(),
+  ///     phoneNumber: "09134168227",
+  ///     nationalCode: "1235678901",
+  ///   },
+  /// ]);
 
   // --- Static Metadata ---
   const allRoleDetails = computed<RoleDetail[]>(() => [
@@ -265,10 +337,12 @@ export const useProfileStore = defineStore("profile", () => {
     isLoaded,
     availableRoles,
     isLoadingFamilyMembers,
+    isFamilyMembersLoaded,
+    familyMembers,
+    loadFamilyMembers,
     currentRole,
     otherRoles,
     isAddressesLoaded,
-    familyMembers,
     loadUserProfile,
     switchRole,
     loadAddresses,
