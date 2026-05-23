@@ -34,9 +34,9 @@
         "edit": "ویرایش",
         "delete": "حذف",
         "add": "افزودن آدرس",
-        "selectAsMain":"انتخاب بعنوان آدرس اصلی"
+        "selectAsMain": "انتخاب بعنوان آدرس اصلی"
       },
-      "mainAddress":"آدرس اصلی",
+      "mainAddress": "آدرس اصلی",
       "postalCode": "کد پستی",
       "form": {
         "addressTitle": "عنوان آدرس",
@@ -44,6 +44,31 @@
         "city": "شهر",
         "postalCode": "کد پستی",
         "address": "آدرس"
+      }
+    },
+    "familyMembers": {
+      "title": "اعضای خانواده",
+      "addFamilyMember": "اضافه کردن شخص",
+      "relation": "نسبت",
+      "name": "نام",
+      "lastName": "نام خانوادگی",
+      "nationalCode": "کد ملی",
+      "noMembers": "هیچ عضوی ثبت نشده",
+      "selectAsHouseHoldHead": "انتخاب بعنوان سرپرست خانوار",
+      "livesWithMe": "با من زندگی میکند.",
+      "houseHoldHead": "سرپرست",
+      "add": "افزودن",
+      "options": {
+        "setAsHouseHoldHead": "تنظیم بعنوان سرپرست",
+        "delete": "حذف"
+      },
+      "relations": {
+        "mother": "مادر",
+        "father": "پدر",
+        "brother": "برادر",
+        "sister": "خواهر",
+        "child": "فرزند",
+        "spouse": "همسر"
       }
     },
     "logout": {

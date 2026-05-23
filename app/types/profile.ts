@@ -1,6 +1,6 @@
 import type { Contact } from "./chat";
 import type { Service } from "./service";
-export type RelationTypes = "Fuck" | "This" | "Shit" | "!";
+export type RelationTypes = "mother" | "father" | "sister" | "child" | "spouse";
 export interface Profile {
   id: number;
   name: string;
