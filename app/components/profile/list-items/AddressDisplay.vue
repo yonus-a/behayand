@@ -14,7 +14,7 @@
                     <div v-loading="isLoading" class=" text-label-md">{{ address.postalCode }}</div>
                 </div>
             </div>
-            <div class="h-9 shrink-0 grow-0 px-3 flex items-center justify-center select-none text-on-primary-container text-label-sm md:text-label-md rounded-lg bg-primary-container self-start"
+            <div class="h-9 shrink-0 grow-0 px-3 flex items-center justify-center select-none text-on-primary-container text-label-sm md:text-label-md rounded-lg bg-primary-container md:self-center self-start"
                 v-if="address.isMain">
                 <div class="shrink-0">
                     {{ t('profile.address.mainAddress') }}

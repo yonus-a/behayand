@@ -11,6 +11,10 @@
             <AddressDisplay :loading="isLoadingAddresses" v-for="address in addresses" :key="address.id"
                 :address="address" />
         </div>
+        <BPopup ref="popup" no-padding>
+            <LocationPermission @allowed="openPopup('form')" v-show="popupMode === 'location'" @close="closePopup" />
+            <AddressForm v-show="popupMode === 'form'" />
+        </BPopup>
     </div>
 </template>
 <script lang="ts">
@@ -21,14 +25,21 @@ import NoDataDisplay from '../general/NoDataDisplay.vue';
 import noAddressImage from '/images/profile/no-addresses.webp'
 import type { Address } from '~/types/address';
 import AddressDisplay from './list-items/AddressDisplay.vue';
+import LocationPermission from './forms/address/LocationPermission.vue';
+import AddressForm from './forms/address/AddressForm.vue';
+type PopupModes = 'location' | 'form'
 export default defineComponent({
     name: 'AddressList',
     components: {
+        LocationPermission,
         NoDataDisplay,
         AddressDisplay,
+        AddressForm,
     },
     setup() {
         const popup = useTemplateRef<Popup>('popup')
+        const popupMode = ref<PopupModes>('location')
+        const isPopupOpen = ref(false)
         const { t } = useI18n()
         const profileStore = useProfileStore()
         const isLoadingAddresses = computed(() => !profileStore.isAddressesLoaded)
@@ -61,7 +72,27 @@ export default defineComponent({
         })
 
         const addAddress = () => {
-            popup.value?.open()
+            openPopup('location')
+        }
+
+        const openPopup = (mode: PopupModes) => {
+            if (isPopupOpen.value) {
+                popup.value?.close()
+                setTimeout(() => {
+                    popupMode.value = mode
+                    popup.value?.open()
+                    isPopupOpen.value = true;
+                }, 300)
+            } else {
+                popupMode.value = mode;
+                popup.value?.open()
+                isPopupOpen.value = true;
+            }
+        }
+
+        const closePopup = () => {
+            popup.value?.close()
+            isPopupOpen.value = false;
         }
 
 
@@ -71,7 +102,10 @@ export default defineComponent({
             addresses,
             noAddressImage,
             isLoadingAddresses,
+            openPopup,
             addAddress,
+            closePopup,
+            popupMode,
         }
     }
 })
