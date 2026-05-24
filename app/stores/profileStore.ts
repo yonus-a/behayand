@@ -10,6 +10,8 @@ import type {
 } from "~/types/profile";
 import type { Contact } from "~/types/chat";
 import type { Address } from "~/types/address";
+import citiesData from "~/assets/data/cities.json";
+import type { ProvinceWithCities } from "~/types/address";
 
 export const useProfileStore = defineStore("profile", () => {
   const { t } = useI18n();
@@ -260,54 +262,35 @@ export const useProfileStore = defineStore("profile", () => {
     if (isAddressesLoaded.value) return;
     isLoadingAddresses.value = true;
     try {
-      // Fetch the comprehensive data from your public folder
-      const iranData = await $fetch<{
-        provinces: { id: number | string; name: string }[];
-        cities: {
-          id: number | string;
-          name: string;
-          province_id: number | string;
-          lat: number;
-          long: number;
-          postal_code?: string;
-        }[];
-      }>("/data/iran-cities.json");
-
-      // Simulate network delay (1.5 seconds)
+      // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Generate 5 mock addresses
+      const provinces = citiesData as ProvinceWithCities[];
       const mockAddresses: Address[] = [];
+
+      // Generate 3 mock addresses
       for (let i = 0; i < 3; i++) {
         // Pick a random province
         const randomProvince =
-          iranData.provinces[
-            Math.floor(Math.random() * iranData.provinces.length)
+          provinces[Math.floor(Math.random() * provinces.length)];
+        // Pick a random city in that province
+        const randomCity =
+          randomProvince.cities[
+            Math.floor(Math.random() * randomProvince.cities.length)
           ];
-        // Find all cities in that province
-        const citiesInProvince = iranData.cities.filter(
-          (city) => String(city.province_id) === String(randomProvince.id),
-        );
 
-        if (citiesInProvince.length > 0) {
-          const randomCity =
-            citiesInProvince[
-              Math.floor(Math.random() * citiesInProvince.length)
-            ];
-
-          mockAddresses.push({
-            id: i + 1,
-            date: new Date().toISOString(),
-            longitude: String(randomCity.long),
-            latitude: String(randomCity.lat),
-            title: randomCity.name,
-            path: `انتهای بلوار جهاد - خیابان یاسین - کوچه ۱۰ - هفت خانه مانده به آخر کوچه دست چپ - درب برقی سفید`,
-            postalCode: "1234567890",
-            cityId: Number(randomCity.id),
-            provinceId: Number(randomProvince.id),
-            isMain: i == 0,
-          });
-        }
+        mockAddresses.push({
+          id: i + 1,
+          date: new Date().toISOString(),
+          longitude: "0",
+          latitude: "0",
+          title: randomCity.name,
+          path: `انتهای بلوار جهاد - خیابان یاسین - کوچه ۱۰`,
+          postalCode: "1234567890",
+          cityId: randomCity.id,
+          provinceId: randomProvince.id,
+          isMain: i === 0,
+        });
       }
 
       addresses.value = mockAddresses;
