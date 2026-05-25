@@ -71,7 +71,6 @@ import type { Contact } from '~/types/chat';
 import type { Popup } from '~/types/components/popup';
 import ContactAvatar from './contact/ContactAvatar.vue';
 import type { MenuOption } from '~/types/components/menu-options';
-import MedicSelector from './medic-features/MedicSelector.vue';
 import { useEventBus } from '@vueuse/core';
 import { formatDuration } from '@/utils/format'
 export default defineComponent({
@@ -89,7 +88,6 @@ export default defineComponent({
     },
     components: {
         ContactAvatar,
-        MedicSelector,
     },
     emits: ['call', 'open-profile'],
     setup(props, { emit }) {

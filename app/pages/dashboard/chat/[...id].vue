@@ -17,7 +17,6 @@
         <CallPageOverlay v-show="isCallMode && selectedChat" :contact="selectedChat" />
         <PatientReferral ref="patientRefferal" :contact="selectedChat" />
         <PermissionPopup />
-        <PrescribtionDisplay />
     </div>
 </template>
 <script lang="ts">
@@ -35,7 +34,7 @@ import PatientReferral from '~/components/chat/PatientReferral.vue';
 import type { PatientRefferalExposed } from '~/components/chat/PatientReferral.vue';
 import CallPageOverlay from '~/components/call/CallPageOverlay.vue';
 import PermissionPopup from '~/components/chat/chat-input/PermissionPopup.vue';
-import PrescribtionDisplay from '~/components/chat/medic-features/PrescribtionDisplay.vue';
+
 definePageMeta({
     layout: 'dashboard',
     hideBottomNav: true,
@@ -55,7 +54,6 @@ export default defineComponent({
         ChatProfileOverview,
         ChatMessages,
         PermissionPopup,
-        PrescribtionDisplay,
         PatientReferral,
     },
     setup() {
@@ -94,11 +92,8 @@ export default defineComponent({
             return chatStore.getContactById(chatId.value);
         });
 
-
-
         const chatMessagesRef = ref<any>(null);
         const patientRefferal = useTemplateRef<PatientRefferalExposed>('patientRefferal');
-
 
         const canShowMessagingSection = computed(() => {
             if (isCallMode.value) return false;
@@ -108,9 +103,6 @@ export default defineComponent({
             return true;
         });
 
-
-
-
         watch(() => route.params.id, () => {
             if (chatId.value && selectedChat.value?.isActive) {
                 nextTick(() => {
@@ -118,10 +110,6 @@ export default defineComponent({
                 })
             }
         })
-
-
-
-
 
         useSeoMeta({
             title: () => t('seo.dashboard.chat.title'),
@@ -172,10 +160,6 @@ export default defineComponent({
                 color: 'error'
             },
         ])
-
-
-
-
 
         return {
             medicOptions,
