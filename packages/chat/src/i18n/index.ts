@@ -1,6 +1,6 @@
 import faMessages from "./fa.json";
 
-export type ChatLocaleMessages = Record<string, string | Record<string, string>>;
+export type ChatLocaleMessages = Record<string, any>;
 
 const locales: Record<string, ChatLocaleMessages> = {
   fa: faMessages,
