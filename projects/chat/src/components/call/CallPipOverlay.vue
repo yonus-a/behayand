@@ -36,6 +36,8 @@ import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { useDraggable, useWindowSize } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import ContactAvatar from '../chat/contact/ContactAvatar.vue';
+import { useProfileStore } from '@/stores/profileStore';
+import { useCallStore } from '@/stores/callStore';
 
 const profileStore = useProfileStore();
 const callStore = useCallStore();
