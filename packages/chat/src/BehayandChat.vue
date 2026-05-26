@@ -266,6 +266,7 @@ export default defineComponent({
     );
 
     return {
+      config: props.config,
       contacts,
       messages,
       chatId,
